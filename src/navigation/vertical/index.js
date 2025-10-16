@@ -9,4 +9,9 @@ export default [
     to: { name: 'second-page' },
     icon: { icon: 'tabler-file' },
   },
+  {
+    title: 'Drawings',
+    to: { name: 'drawings' },
+    icon: { icon: 'tabler-circuit-changeover' },
+  },
 ]
