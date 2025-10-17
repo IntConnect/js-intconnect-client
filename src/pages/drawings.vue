@@ -1,116 +1,275 @@
 <script setup>
-import { ref } from 'vue'
-import { VueFlow } from '@vue-flow/core'
-import SpecialNode from "@/components/flow/SpecialNode.vue"
-import SpecialEdge from "@/components/flow/SpecialEdge.vue"
+import { ref, computed, onMounted } from 'vue'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+import { Background } from '@vue-flow/background'
+import { ofetch } from 'ofetch'
+import { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
-definePage({
-  meta: {
-    layout: 'blank',
-    public: true,
-  },
+import SpecialNode from "@/components/flow/SpecialNode.vue"
+import MqttInModal from "@/components/flow/nodes/MqttInModal.vue"
+
+definePage({ meta: { layout: 'blank', public: true } })
+
+// --- Vue Flow store ---
+const { getNodes, getEdges, addEdges, setNodes, setEdges } = useVueFlow()
+
+// --- nodes & edges ---
+const nodes = ref([
+  { id: 'n1', type: 'custom', position: { x: 50, y: 50 }, data: { label: 'Node 1' } },
+  { id: 'n2', type: 'custom', position: { x: 200, y: 200 }, data: { label: 'Node 2' } },
+])
+
+const edges = ref([{ id: 'n1-n2', source: 'n1', target: 'n2' }])
+const nodeTypes = { custom: SpecialNode }
+
+// --- sidebar collapsible ---
+// Collapsible sidebars
+const leftCollapsed = ref(false)
+const rightCollapsed = ref(false)
+
+// --- tabs ---
+const currentTab = ref(0)
+const totalTabs = 3
+
+// --- modal ---
+const modalOpen = ref(false)
+const selectedNode = ref(null)
+const modalComponents = { MqttInModal }
+
+const ModalContent = computed(() => {
+  if (!selectedNode.value) return null
+  const modalName = selectedNode.value.data.modal
+
+  return modalComponents[modalName] || null
 })
 
-// these components are only shown as examples of how to use a custom node or edge
-// you can find many examples of how to create these custom components in the examples page of the docs
+// --- handlers ---
+function onNodesChange(changes) {
+  setNodes(currentNodes =>
+    currentNodes.map(node => {
+      const change = changes.find(c => c.id === node.id)
 
-// these are our nodes
-const nodes = ref([
-  // an input node, specified by using `type: 'input'`
-  {
-    id: '1',
-    type: 'input',
-    position: { x: 250, y: 5 },
-    // all nodes can have a data object containing any data you want to pass to the node
-    // a label can property can be used for default nodes
-    data: { label: 'Node 1' },
-  },
+      return change ? { ...node, ...change } : node
+    }),
+  )
+}
 
-  // default node, you can omit `type: 'default'` as it's the fallback type
-  {
-    id: '2',
-    position: { x: 100, y: 100 },
-    data: { label: 'Node 2' },
-  },
+function onEdgesChange(changes) {
+  setEdges(currentEdges =>
+    currentEdges.map(edge => {
+      const change = changes.find(c => c.id === edge.id)
 
-  // An output node, specified by using `type: 'output'`
-  {
-    id: '3',
-    type: 'output',
-    position: { x: 400, y: 200 },
-    data: { label: 'Node 3' },
-  },
+      return change ? { ...edge, ...change } : edge
+    }),
+  )
+}
 
-  // this is a custom node
-  // we set it by using a custom type name we choose, in this example `special`
-  // the name can be freely chosen, there are no restrictions as long as it's a string
-  {
-    id: '4',
-    type: 'special', // <-- this is the custom node type name
-    position: { x: 400, y: 200 },
-    data: {
-      label: 'Node 4',
-      hello: 'world',
-    },
-  },
-])
+function onConnect(params) {
+  addEdges([params])
+}
 
-// these are our edges
-const edges = ref([
-  // default bezier edge
-  // consists of an edge id, source node id and target node id
-  {
-    id: 'e1->2',
-    source: '1',
-    target: '2',
-  },
+function handleNodeClick(node) {
+  selectedNode.value = node
+  modalOpen.value = true
+}
 
-  // set `animated: true` to create an animated edge path
-  {
-    id: 'e2->3',
-    source: '2',
-    target: '3',
-    animated: true,
-  },
+function addNode(id, type, label, backgroundColor, icon, modal) {
+  setNodes([...getNodes(), {
+    id: id.toString(),
+    type: 'custom',
+    position: { x: 0, y: 0 },
+    data: { label, color: backgroundColor, icon, type, modal },
+  }])
+}
 
-  // a custom edge, specified by using a custom type name
-  // we choose `type: 'special'` for this example
-  {
-    id: 'e3->4',
-    type: 'special',
-    source: '3',
-    target: '4',
+// --- fetch available nodes ---
+const availableNodes = ref([])
+const loadingNodes = ref(true)
 
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    },
-  },
-])
+async function fetchAvailableNodes() {
+  loadingNodes.value = true
+  try {
+    const res = await ofetch('/nodes')
+
+    availableNodes.value = res.data ?? []
+  } catch (err) {
+    toast.error(err.message || 'Failed to fetch nodes')
+  } finally {
+    loadingNodes.value = false
+  }
+}
+
+onMounted(() => fetchAvailableNodes())
 </script>
 
-<template>
-  <div class="w-screen h-screen">
-    <VueFlow :nodes="nodes"
-             :edges="edges"
-    >
-      <!-- bind your custom node type to a component by using slots, slot names are always `node-<type>` -->
-      <template #node-special="specialNodeProps">
-        <SpecialNode v-bind="specialNodeProps"/>
-      </template>
 
-      <!-- bind your custom edge type to a component by using slots, slot names are always `edge-<type>` -->
-      <template #edge-special="specialEdgeProps">
-        <SpecialEdge v-bind="specialEdgeProps"/>
-      </template>
-    </VueFlow>
+<template>
+  <div class="mx-3 my-3">
+    <div class="w-full flex justify-between">
+      <VBtn color="secondary">
+        <VIcon
+          start
+          icon="tabler-circle-arrow-left-filled"
+          size="26"
+        />
+        Dashboard
+      </VBtn>
+      <VTabs
+        v-model="currentTab"
+        class="v-tabs-pill mb-1 flex justify-center"
+      >
+        <VTab
+          v-for="n in totalTabs"
+          :key="n"
+        >
+          {{ 'Tab ' + (n) }}
+        </VTab>
+      </VTabs>
+      <VBtn>
+        Submit
+        <VIcon
+          end
+          icon="tabler-send-2"
+          size="26"
+        />
+      </VBtn>
+    </div>
+    <div class="grid grid-cols-24 gap-4  overflow-hidden transition-all">
+      <div
+        class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
+        :class="[
+          leftCollapsed ? 'col-span-2' : 'col-span-4',
+        ]"
+      >
+        <VCard class="h-full flex flex-col">
+          <VCardTitle
+            class="!flex !justify-between items-center transition-all duration-300 ease-in-out overflow-hidden"
+          >
+  <span v-show="!leftCollapsed" class="transition-all duration-300">
+    All Nodes
+  </span>
+            <VBtn
+              icon
+              :class="['transition-all duration-300 ease-in-out', { 'mx-auto': leftCollapsed }]"
+              @click="leftCollapsed = !leftCollapsed"
+            >
+              <VIcon>
+                {{ leftCollapsed ? 'tabler-chevron-right' : 'tabler-chevron-left' }}
+              </VIcon>
+            </VBtn>
+          </VCardTitle>
+
+          <VCardText
+            v-show="!leftCollapsed"
+            class="flex-1 overflow-y-auto"
+          >
+            <div v-if="loadingNodes">
+              Loading nodes...
+            </div>
+            <div
+              v-else
+              class="flex flex-col gap-2"
+            >
+              <button
+                v-for="n in availableNodes"
+                :key="n.id"
+                class="bg-blue-500 text-white px-4 py-2 rounded"
+                @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name)"
+              >
+                {{ n.label }}
+              </button>
+            </div>
+          </VCardText>
+        </VCard>
+      </div>
+
+      <!-- Main Flow Area -->
+      <div
+        class="h-full bg-gray-50 rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
+        :class="[
+          leftCollapsed && rightCollapsed
+            ? 'col-span-20'
+            : leftCollapsed || rightCollapsed
+              ? 'col-span-18'
+              : 'col-span-16',
+        ]"
+      >
+        <div
+          v-if="currentTab === 0"
+          class="w-screen h-screen"
+        >
+          <VueFlow
+            :nodes="nodes"
+            :edges="edges"
+            :node-types="nodeTypes"
+            fit-view
+            style="width: 100%; height: 100%;"
+            @nodes-change="onNodesChange"
+            @edges-change="onEdgesChange"
+            @connect="onConnect"
+            @node-click="handleNodeClick"
+          >
+            <Controls/>
+            <MiniMap/>
+            <Background/>
+          </VueFlow>
+
+          <component
+            :is="ModalContent"
+            v-if="ModalContent"
+            v-model:open="modalOpen"
+            :node="selectedNode"
+          />
+        </div>
+
+        <div
+          v-else
+          class="flex items-center justify-center h-full"
+        >
+          <p class="text-gray-500">
+            Content for Tab {{ currentTab + 1 }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div
+        class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
+        :class="[
+          rightCollapsed ? 'col-span-2' : 'col-span-4',
+        ]"
+      >
+        <VCard class="h-full flex flex-col">
+          <VCardTitle class="flex items-center">
+            Right
+            <VBtn
+              icon
+              class="ms-auto"
+              @click="rightCollapsed = !rightCollapsed"
+            >
+              <VIcon>
+                {{ rightCollapsed ? 'tabler-chevron-left' : 'tabler-chevron-right' }}
+              </VIcon>
+            </VBtn>
+          </VCardTitle>
+
+          <VCardText
+            v-show="!rightCollapsed"
+            class="flex-1 overflow-y-auto"
+          >
+            <p>Extra config or node properties here</p>
+          </VCardText>
+        </VCard>
+      </div>
+    </div>
   </div>
 </template>
 
-<style>
-/* import the necessary styles for Vue Flow to work */
-@import '@vue-flow/core/dist/style.css';
 
-/* import the default theme, this is optional but generally recommended */
+<style>
+@import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 </style>
