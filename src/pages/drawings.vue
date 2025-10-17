@@ -243,11 +243,15 @@ onMounted(() => fetchAvailableNodes())
         ]"
       >
         <VCard class="h-full flex flex-col">
-          <VCardTitle class="flex items-center">
-            Right
+          <VCardTitle
+            class="!flex !justify-between items-center transition-all duration-300 ease-in-out overflow-hidden"
+          >
+  <span v-show="!rightCollapsed" class="transition-all duration-300">
+    All Nodes
+  </span>
             <VBtn
               icon
-              class="ms-auto"
+              :class="['transition-all duration-300 ease-in-out', { 'mx-auto': rightCollapsed }]"
               @click="rightCollapsed = !rightCollapsed"
             >
               <VIcon>
@@ -257,10 +261,25 @@ onMounted(() => fetchAvailableNodes())
           </VCardTitle>
 
           <VCardText
-            v-show="!rightCollapsed"
+            v-show="!leftCollapsed"
             class="flex-1 overflow-y-auto"
           >
-            <p>Extra config or node properties here</p>
+            <div v-if="loadingNodes">
+              Loading nodes...
+            </div>
+            <div
+              v-else
+              class="flex flex-col gap-2"
+            >
+              <button
+                v-for="n in availableNodes"
+                :key="n.id"
+                class="bg-blue-500 text-white px-4 py-2 rounded"
+                @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name)"
+              >
+                {{ n.label }}
+              </button>
+            </div>
           </VCardText>
         </VCard>
       </div>
