@@ -8,22 +8,28 @@ import { ofetch } from 'ofetch'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
+
 import SpecialNode from "@/components/flow/SpecialNode.vue"
 import MqttInModal from "@/components/flow/nodes/MqttInModal.vue"
 
 definePage({ meta: { layout: 'blank', public: true } })
 
 // --- Vue Flow store ---
-const { getNodes, getEdges, addEdges, setNodes, setEdges } = useVueFlow()
+const {
+  nodes: storedNodes,
+  edges: storedEdges,
+  addEdges,
+  setNodes,
+  setEdges,
+  applyNodeChanges,
+  applyEdgeChanges,
+} = useVueFlow()
+
 
 // --- nodes & edges ---
-const nodes = ref([
-  { id: 'n1', type: 'custom', position: { x: 50, y: 50 }, data: { label: 'Node 1' } },
-  { id: 'n2', type: 'custom', position: { x: 200, y: 200 }, data: { label: 'Node 2' } },
-])
+const nodes = shallowRef([])
 
-const edges = ref([{ id: 'n1-n2', source: 'n1', target: 'n2' }])
-const nodeTypes = { custom: SpecialNode }
+const edges = shallowRef([])
 
 // --- sidebar collapsible ---
 // Collapsible sidebars
@@ -32,7 +38,7 @@ const rightCollapsed = ref(false)
 
 // --- tabs ---
 const currentTab = ref(0)
-const totalTabs = 3
+const totalTabs = ref(3)
 
 // --- modal ---
 const modalOpen = ref(false)
@@ -48,23 +54,11 @@ const ModalContent = computed(() => {
 
 // --- handlers ---
 function onNodesChange(changes) {
-  setNodes(currentNodes =>
-    currentNodes.map(node => {
-      const change = changes.find(c => c.id === node.id)
-
-      return change ? { ...node, ...change } : node
-    }),
-  )
+  setNodes(nds => applyNodeChanges(changes, nds))
 }
 
 function onEdgesChange(changes) {
-  setEdges(currentEdges =>
-    currentEdges.map(edge => {
-      const change = changes.find(c => c.id === edge.id)
-
-      return change ? { ...edge, ...change } : edge
-    }),
-  )
+  setEdges(eds => applyEdgeChanges(changes, eds))
 }
 
 function onConnect(params) {
@@ -77,22 +71,49 @@ function handleNodeClick(node) {
 }
 
 function addNode(id, type, label, backgroundColor, icon, modal) {
-  setNodes([...getNodes(), {
-    id: id.toString(),
-    type: 'custom',
-    position: { x: 0, y: 0 },
-    data: { label, color: backgroundColor, icon, type, modal },
-  }])
+  const uniqueId = `${id}-${Date.now()}`
+  setNodes(current => [
+    ...current,
+    {
+      id: uniqueId,
+      type: 'custom',
+      position: { x: Math.random() * 250, y: Math.random() * 250 }, // biar ga tumpuk
+      data: {
+        label,
+        color: backgroundColor,
+        icon,
+        modal,
+        nodeType: type,
+        nodeId: id, // simpan id asli jika perlu
+      },
+    },
+  ])
 }
+
 
 // --- fetch available nodes ---
 const availableNodes = ref([])
+const availablePipelines = ref([])
 const loadingNodes = ref(true)
 
 async function fetchAvailableNodes() {
   loadingNodes.value = true
   try {
-    const res = await ofetch('/nodes')
+    const res = await $api('/nodes')
+
+    availableNodes.value = res.data ?? []
+    console.log(availableNodes)
+  } catch (err) {
+    toast.error(err.message || 'Failed to fetch nodes')
+  } finally {
+    loadingNodes.value = false
+  }
+}
+
+async function fetchPipelines() {
+  loadingNodes.value = true
+  try {
+    const res = await ofetch('/pipelines')
 
     availableNodes.value = res.data ?? []
   } catch (err) {
@@ -102,7 +123,59 @@ async function fetchAvailableNodes() {
   }
 }
 
+function addNewTab() {
+  totalTabs.value++
+  currentTab.value = totalTabs.value - 1 // otomatis pindah ke tab baru
+}
+
 onMounted(() => fetchAvailableNodes())
+
+async function submitPipeline() {
+  try {
+
+    // Ambil snapshot dari Vue Flow
+
+    // 💡 Payload sesuai DTO Go:
+    const payload = {
+      name: `Pipeline ${currentTab.value + 1}`,
+      description: `Generated from VueFlow on ${new Date().toISOString()}`,
+      is_active: true,
+      config: {
+        nodes: storedNodes.value,
+        edges: storedEdges.value,
+      },
+      nodes: storedNodes.value.map(node => ({
+        temp_id: node.id, // 🔹 id dari Vue Flow (sementara)
+        node_id: node.data?.nodeId, // referensi ke master Node, kalau ada
+        type: node.data?.nodeType || 'custom',
+        label: node.data?.label,
+        position_x: node.position.x,
+        position_y: node.position.y,
+        config: node.data || {},
+        description: node.data?.description || null,
+      })),
+      edges: storedEdges.value.map(edge => ({
+        source_node_temp_id: edge.source, // 🔹 pakai Vue Flow id sementara
+        target_node_temp_id: edge.target,
+        data: edge.data || {},
+      })),
+    }
+
+    console.log('🚀 Sending pipeline payload:', payload)
+
+    const res = await $api('/pipelines', {
+      method: 'POST',
+      body: payload,
+    })
+
+    toast.success('✅ Pipeline saved successfully!')
+    console.log('✅ Response:', res)
+  } catch (err) {
+    console.error('❌ Failed to submit pipeline:', err)
+    toast.error(err.message || 'Failed to submit pipeline')
+  }
+}
+
 </script>
 
 
@@ -117,18 +190,35 @@ onMounted(() => fetchAvailableNodes())
         />
         Dashboard
       </VBtn>
-      <VTabs
-        v-model="currentTab"
-        class="v-tabs-pill mb-1 flex justify-center"
-      >
-        <VTab
-          v-for="n in totalTabs"
-          :key="n"
+      <div class="flex flex-row">
+        <VTabs
+          v-model="currentTab"
+          class="v-tabs-pill mb-1 flex justify-center"
         >
-          {{ 'Tab ' + (n) }}
-        </VTab>
-      </VTabs>
-      <VBtn>
+          <VTab
+            v-for="n in totalTabs"
+            :key="n"
+          >
+            {{ 'Pipeline ' + (n) }}
+            <VBtn
+              icon="tabler-x"
+              color="secondary"
+              size="24"
+              class="shadow-md bg-white hover:scale-110 transition-transform duration-200 ml-2"
+              rounded="full"
+              @click=""
+            />
+          </VTab>
+        </VTabs>
+        <VBtn
+          icon="tabler-circle-plus"
+          rounded
+          class="ml-2"
+          @click="addNewTab"
+        >
+        </VBtn>
+      </div>
+      <VBtn @click="submitPipeline">
         Submit
         <VIcon
           end
@@ -148,12 +238,16 @@ onMounted(() => fetchAvailableNodes())
           <VCardTitle
             class="!flex !justify-between items-center transition-all duration-300 ease-in-out overflow-hidden"
           >
-  <span v-show="!leftCollapsed" class="transition-all duration-300">
-    All Nodes
-  </span>
+            <span
+              v-show="!leftCollapsed"
+              class="transition-all duration-300"
+            >
+              All Nodes
+            </span>
             <VBtn
               icon
-              :class="['transition-all duration-300 ease-in-out', { 'mx-auto': leftCollapsed }]"
+              class="transition-all duration-300 ease-in-out"
+              :class="[{ 'mx-auto': leftCollapsed }]"
               @click="leftCollapsed = !leftCollapsed"
             >
               <VIcon>
@@ -164,7 +258,7 @@ onMounted(() => fetchAvailableNodes())
 
           <VCardText
             v-show="!leftCollapsed"
-            class="flex-1 overflow-y-auto"
+            class="flex-1 overflow-y-auto px-2"
           >
             <div v-if="loadingNodes">
               Loading nodes...
@@ -173,14 +267,16 @@ onMounted(() => fetchAvailableNodes())
               v-else
               class="flex flex-col gap-2"
             >
-              <button
+              <VBtn
                 v-for="n in availableNodes"
                 :key="n.id"
-                class="bg-blue-500 text-white px-4 py-2 rounded"
+                color="primary"
+                class="mx-0"
                 @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name)"
               >
+                <VIcon start :icon="n.icon"/>
                 {{ n.label }}
-              </button>
+              </VBtn>
             </div>
           </VCardText>
         </VCard>
@@ -204,7 +300,7 @@ onMounted(() => fetchAvailableNodes())
           <VueFlow
             :nodes="nodes"
             :edges="edges"
-            :node-types="nodeTypes"
+            :node-types="{ custom: markRaw (SpecialNode) }"
             fit-view
             style="width: 100%; height: 100%;"
             @nodes-change="onNodesChange"
@@ -216,6 +312,7 @@ onMounted(() => fetchAvailableNodes())
             <MiniMap/>
             <Background/>
           </VueFlow>
+
 
           <component
             :is="ModalContent"
@@ -246,12 +343,16 @@ onMounted(() => fetchAvailableNodes())
           <VCardTitle
             class="!flex !justify-between items-center transition-all duration-300 ease-in-out overflow-hidden"
           >
-  <span v-show="!rightCollapsed" class="transition-all duration-300">
-    All Nodes
-  </span>
+            <span
+              v-show="!rightCollapsed"
+              class="transition-all duration-300"
+            >
+              All Nodes
+            </span>
             <VBtn
               icon
-              :class="['transition-all duration-300 ease-in-out', { 'mx-auto': rightCollapsed }]"
+              class="transition-all duration-300 ease-in-out"
+              :class="[{ 'mx-auto': rightCollapsed }]"
               @click="rightCollapsed = !rightCollapsed"
             >
               <VIcon>
