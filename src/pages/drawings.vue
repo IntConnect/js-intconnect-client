@@ -102,7 +102,6 @@ async function fetchAvailableNodes() {
     const res = await $api('/nodes')
 
     availableNodes.value = res.data ?? []
-    console.log(availableNodes)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -110,12 +109,31 @@ async function fetchAvailableNodes() {
   }
 }
 
-async function fetchPipelines() {
+async function fetchAvailablePipelines() {
   loadingNodes.value = true
   try {
-    const res = await ofetch('/pipelines')
+    const res = await $api('/pipelines')
+    availablePipelines.value = res.data?.map(val => {
+      return {
+        id: val.id,
+        name: val.name,
+      }
+    }) ?? []
 
-    availableNodes.value = res.data ?? []
+  } catch (err) {
+    toast.error(err.message || 'Failed to fetch nodes')
+  } finally {
+    loadingNodes.value = false
+  }
+}
+
+async function fetchDetailPipeline(pipelineId) {
+  loadingNodes.value = true
+  try {
+    const res = await $api(`/pipelines/${pipelineId}`)
+    const { nodes, edges } = constructPipelineFromResponse(res.data)
+    setNodes(nodes)
+    setEdges(edges)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -124,11 +142,58 @@ async function fetchPipelines() {
 }
 
 function addNewTab() {
-  totalTabs.value++
-  currentTab.value = totalTabs.value - 1 // otomatis pindah ke tab baru
+  availablePipelines.value.push({
+    id: null,
+    name: "New Pipeline",
+  })
 }
 
-onMounted(() => fetchAvailableNodes())
+onMounted(() => {
+  fetchAvailableNodes()
+  fetchAvailablePipelines()
+})
+
+watch(availablePipelines, availablePipelines => {
+  console.log(availablePipelines)
+  console.log(availablePipelines.length)
+  if (availablePipelines.length > 0) {
+    console.log((availablePipelines[0]).id)
+    fetchDetailPipeline((availablePipelines)[0].id)
+  }
+})
+
+function constructPipelineFromResponse(pipelineData) {
+  // Ambil nodes dari pipeline_node
+  console.log(pipelineData)
+  const nodes = pipelineData.pipeline_node?.map(node => ({
+    id: String(node.id), // penting: jadikan string biar cocok dengan Vue Flow
+    type: 'custom', // atau bisa `node.type` kalau kamu punya variasi node
+    position: {
+      x: node.position_x,
+      y: node.position_y,
+    },
+    data: {
+      label: node.label,
+      nodeType: node.type,
+      nodeId: node.node_id,
+      color: node.config?.color || '#ccc',
+      icon: node.config?.icon || 'tabler-database-heart',
+      modal: node.config?.modal || null,
+      config: node.config,
+    },
+  }))
+
+  // Ambil edges dari pipeline_edge
+  const edges = pipelineData.pipeline_edge?.map(edge => ({
+    id: String(edge.id),
+    source: String(edge.source_node_id), // sesuai node.id di atas
+    target: String(edge.target_node_id),
+    data: edge.data || {},
+  }))
+
+  return { nodes, edges }
+}
+
 
 async function submitPipeline() {
   try {
@@ -169,7 +234,6 @@ async function submitPipeline() {
     })
 
     toast.success('✅ Pipeline saved successfully!')
-    console.log('✅ Response:', res)
   } catch (err) {
     console.error('❌ Failed to submit pipeline:', err)
     toast.error(err.message || 'Failed to submit pipeline')
@@ -196,10 +260,10 @@ async function submitPipeline() {
           class="v-tabs-pill mb-1 flex justify-center"
         >
           <VTab
-            v-for="n in totalTabs"
-            :key="n"
+            v-for="availablePipeline in availablePipelines"
+            :key="availablePipeline.id"
           >
-            {{ 'Pipeline ' + (n) }}
+            {{ (availablePipeline.name) }}
             <VBtn
               icon="tabler-x"
               color="secondary"
@@ -215,8 +279,7 @@ async function submitPipeline() {
           rounded
           class="ml-2"
           @click="addNewTab"
-        >
-        </VBtn>
+        />
       </div>
       <VBtn @click="submitPipeline">
         Submit
