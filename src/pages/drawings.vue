@@ -44,11 +44,9 @@ const totalTabs = ref(3)
 const modalOpen = ref(false)
 const selectedNode = ref(null)
 const modalComponents = { MqttInModal }
-
 const ModalContent = computed(() => {
   if (!selectedNode.value) return null
-  const modalName = selectedNode.value.data.modal
-
+  const modalName = selectedNode.value.node.data.modal
   return modalComponents[modalName] || null
 })
 
@@ -65,7 +63,7 @@ function onConnect(params) {
   addEdges([params])
 }
 
-function handleNodeClick(node) {
+function handleNodeDoubleClick(node) {
   selectedNode.value = node
   modalOpen.value = true
 }
@@ -102,6 +100,7 @@ async function fetchAvailableNodes() {
     const res = await $api('/nodes')
 
     availableNodes.value = res.data ?? []
+    console.log(availableNodes)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -244,26 +243,20 @@ async function submitPipeline() {
 
 
 <template>
-  <div class="mx-3 my-3">
-    <div class="w-full flex justify-between">
-      <VBtn color="secondary">
-        <VIcon
-          start
-          icon="tabler-circle-arrow-left-filled"
-          size="26"
-        />
+  <div class="px-3 py-3 w-screen h-screen overflow-hidden flex flex-col">
+    <!-- Header -->
+    <div class="flex justify-between items-center p-3 bg-white shadow">
+      <VBtn color="secondary" class="mb-3" to="/">
+        <VIcon start icon="tabler-circle-arrow-left-filled" size="26"/>
         Dashboard
       </VBtn>
-      <div class="flex flex-row">
-        <VTabs
-          v-model="currentTab"
-          class="v-tabs-pill mb-1 flex justify-center"
+
+      <div class="flex flex-row items-center">
+        <VTabs v-model="currentTab"
+               class="v-tabs-pill flex justify-center"
         >
-          <VTab
-            v-for="availablePipeline in availablePipelines"
-            :key="availablePipeline.id"
-          >
-            {{ (availablePipeline.name) }}
+          <VTab v-for="availablePipeline in availablePipelines" :key="availablePipeline.id">
+            {{ availablePipeline.name }}
             <VBtn
               icon="tabler-x"
               color="secondary"
@@ -274,39 +267,28 @@ async function submitPipeline() {
             />
           </VTab>
         </VTabs>
-        <VBtn
-          icon="tabler-circle-plus"
-          rounded
-          class="ml-2"
-          @click="addNewTab"
-        />
+
+        <VBtn icon="tabler-circle-plus" rounded class="ml-2" @click="addNewTab"/>
       </div>
+
       <VBtn @click="submitPipeline">
         Submit
-        <VIcon
-          end
-          icon="tabler-send-2"
-          size="26"
-        />
+        <VIcon end icon="tabler-send-2" size="26"/>
       </VBtn>
     </div>
-    <div class="grid grid-cols-24 gap-4  overflow-hidden transition-all">
+
+    <!-- Main Layout -->
+    <div class="grid grid-cols-24 gap-4 flex-1 overflow-hidden bg-gray-100 p-3">
+      <!-- Left Sidebar -->
       <div
         class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
-        :class="[
-          leftCollapsed ? 'col-span-2' : 'col-span-4',
-        ]"
+        :class="leftCollapsed ? 'col-span-2' : 'col-span-4'"
       >
         <VCard class="h-full flex flex-col">
           <VCardTitle
-            class="!flex !justify-between items-center transition-all duration-300 ease-in-out overflow-hidden"
+            class="!flex !justify-between items-center transition-all duration-300 ease-in-out"
           >
-            <span
-              v-show="!leftCollapsed"
-              class="transition-all duration-300"
-            >
-              All Nodes
-            </span>
+            <span v-show="!leftCollapsed" class="transition-all duration-300">All Nodes</span>
             <VBtn
               icon
               class="transition-all duration-300 ease-in-out"
@@ -319,17 +301,10 @@ async function submitPipeline() {
             </VBtn>
           </VCardTitle>
 
-          <VCardText
-            v-show="!leftCollapsed"
-            class="flex-1 overflow-y-auto px-2"
-          >
-            <div v-if="loadingNodes">
-              Loading nodes...
-            </div>
-            <div
-              v-else
-              class="flex flex-col gap-2"
-            >
+          <!-- Scrollable content -->
+          <VCardText v-show="!leftCollapsed" class="flex-1 overflow-y-auto px-2">
+            <div v-if="loadingNodes">Loading nodes...</div>
+            <div v-else class="flex flex-col gap-2">
               <VBtn
                 v-for="n in availableNodes"
                 :key="n.id"
@@ -345,9 +320,9 @@ async function submitPipeline() {
         </VCard>
       </div>
 
-      <!-- Main Flow Area -->
+      <!-- Center Flow -->
       <div
-        class="h-full bg-gray-50 rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
+        class="bg-gray-50 rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
         :class="[
           leftCollapsed && rightCollapsed
             ? 'col-span-20'
@@ -356,65 +331,42 @@ async function submitPipeline() {
               : 'col-span-16',
         ]"
       >
-        <div
-          v-if="currentTab === 0"
-          class="w-screen h-screen"
-        >
+        <div class="h-full w-full">
           <VueFlow
             :nodes="nodes"
             :edges="edges"
-            :node-types="{ custom: markRaw (SpecialNode) }"
+            :node-types="{ custom: markRaw(SpecialNode) }"
             fit-view
             style="width: 100%; height: 100%;"
             @nodes-change="onNodesChange"
             @edges-change="onEdgesChange"
             @connect="onConnect"
-            @node-click="handleNodeClick"
+            @node-double-click="handleNodeDoubleClick"
           >
             <Controls/>
             <MiniMap/>
             <Background/>
           </VueFlow>
 
-
           <component
             :is="ModalContent"
             v-if="ModalContent"
-            v-model:open="modalOpen"
+            v-model:isDialogVisible="modalOpen"
             :node="selectedNode"
           />
-        </div>
-
-        <div
-          v-else
-          class="flex items-center justify-center h-full"
-        >
-          <p class="text-gray-500">
-            Content for Tab {{ currentTab + 1 }}
-          </p>
         </div>
       </div>
 
       <!-- Right Sidebar -->
       <div
         class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
-        :class="[
-          rightCollapsed ? 'col-span-2' : 'col-span-4',
-        ]"
+        :class="rightCollapsed ? 'col-span-2' : 'col-span-4'"
       >
         <VCard class="h-full flex flex-col">
-          <VCardTitle
-            class="!flex !justify-between items-center transition-all duration-300 ease-in-out overflow-hidden"
-          >
-            <span
-              v-show="!rightCollapsed"
-              class="transition-all duration-300"
-            >
-              All Nodes
-            </span>
+          <VCardTitle class="!flex !justify-between items-center">
+            <span v-show="!rightCollapsed">All Nodes</span>
             <VBtn
               icon
-              class="transition-all duration-300 ease-in-out"
               :class="[{ 'mx-auto': rightCollapsed }]"
               @click="rightCollapsed = !rightCollapsed"
             >
@@ -424,17 +376,10 @@ async function submitPipeline() {
             </VBtn>
           </VCardTitle>
 
-          <VCardText
-            v-show="!leftCollapsed"
-            class="flex-1 overflow-y-auto"
-          >
-            <div v-if="loadingNodes">
-              Loading nodes...
-            </div>
-            <div
-              v-else
-              class="flex flex-col gap-2"
-            >
+          <!-- Scrollable right content -->
+          <VCardText v-show="!rightCollapsed" class="flex-1 overflow-y-auto">
+            <div v-if="loadingNodes">Loading nodes...</div>
+            <div v-else class="flex flex-col gap-2">
               <button
                 v-for="n in availableNodes"
                 :key="n.id"
@@ -449,6 +394,12 @@ async function submitPipeline() {
       </div>
     </div>
   </div>
+  <component
+    :is="ModalContent"
+    v-if="ModalContent"
+    v-model:open="modalOpen"
+    :node="selectedNode"
+  />
 </template>
 
 
