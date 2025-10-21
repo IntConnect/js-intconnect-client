@@ -1,5 +1,5 @@
 <script setup>
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+
 
 const props = defineProps({
   open: {
@@ -10,6 +10,10 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  protocolConfigurations: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:open', 'config'])
@@ -19,6 +23,9 @@ const actionOptions = [
   { label: 'Dynamic subscription', value: 'dynamic_sub' },
 ]
 
+watch(() => (props.protocolConfigurations), () => {
+  console.log(props.protocolConfigurations)
+}, { immediate: true })
 
 const outputOptions = [
   { label: 'auto-detect (parsed JSON Object, string or buffer)', value: 'auto_detect_1' },
@@ -41,20 +48,17 @@ watch(props.node, () => {
   console.log(props.node.config)
   if (props.node.config) {
     config.value = {
-      broker: props.node.config.broker,
-      port: props.node.config.port,
-      topic: props.node.config.topic,
-      username: '',
-      password: '',
-      qos: 0,
-      retained: false,
-      config: 'single_sub',
+      protocol_configuration_id: '',
+      action: '',
+      topic: '',
+      output: '',
+      name: '',
     }
   }
 }, { immediate: true })
 
 const submitConfig = () => {
-  emit('config', { ...config.value })
+  emit('config', { ...config.value, node_id: props.node.id })
   emit('update:open', false)
 }
 
@@ -88,7 +92,7 @@ const resetConfig = () => {
         <p class="text-body-1 text-center mb-6">
           Edit MQTT Config Node
         </p>
-        <div class="w-full flex justify-center mb-2">
+        <div class="w-full flex justify-center mb-5">
           <VTabs
             v-model="currentTab"
             class="v-tabs-pill "
@@ -111,8 +115,37 @@ const resetConfig = () => {
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
-                    for="mqttQos"
-                  >QoS</label>
+                    for="protocol_configurations"
+                  >Servers</label>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="9"
+                >
+                  <VSelect
+                    id="protocol_configurations"
+                    v-model="config.protocol_configuration_id"
+                    :items="protocolConfigurations"
+                    item-title="name"
+                    item-value="id"
+                    label="Select Protocol Configurations"
+                    prepend-inner-icon="tabler-protocol"
+                  />
+                </VCol>
+              </VRow>
+            </VCol>
+
+            <VCol cols="12">
+              <VRow no-gutters>
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-items-center"
+                >
+                  <label
+                    class="v-label text-body-2 text-high-emphasis"
+                    for="actionOptions"
+                  >Action</label>
                 </VCol>
                 <VCol
                   cols="12"
@@ -123,14 +156,12 @@ const resetConfig = () => {
                     v-model="config.action"
                     :items="actionOptions"
                     item-title="label"
-                    item-value="value"
-                    label="Select Actions"
-                    prepend-inner-icon="tabler-map"
+                    item-value="id"
+                    label="Select Action"
                   />
                 </VCol>
               </VRow>
             </VCol>
-
 
             <!-- 👉 Topic -->
             <VCol cols="12">
@@ -173,47 +204,55 @@ const resetConfig = () => {
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
-                    for="mqttQos"
-                  >QoS</label>
+                    for="output"
+                  >Output</label>
                 </VCol>
                 <VCol
                   cols="12"
                   md="9"
                 >
                   <VSelect
-                    id="mqttQos"
-                    v-model="config.qos"
-                    :items="[0, 1, 2]"
-                    label="Select QoS"
+                    id="output"
+                    v-model="config.output"
+                    :items="outputOptions"
+                    label="Select Output"
                     prepend-inner-icon="tabler-map"
+                    item-title="label"
+                    item-value="id"
+
                   />
                 </VCol>
               </VRow>
             </VCol>
-
-            <!-- 👉 Retained -->
             <VCol cols="12">
+
               <VRow no-gutters>
+
                 <VCol
                   cols="12"
                   md="3"
                   class="d-flex align-items-center"
                 >
-                  <label class="v-label text-body-2 text-high-emphasis">Retained</label>
+                  <label
+                    class="v-label text-body-2 text-high-emphasis"
+                    for="mqttTopic"
+                  >Name</label>
                 </VCol>
                 <VCol
                   cols="12"
                   md="9"
                 >
-                  <VSwitch
-                    v-model="config.retained"
-                    inset
-                    color="primary"
-                    label="Retain message"
+                  <AppTextField
+                    id="mqttTopic"
+                    v-model="config.name"
+                    prepend-inner-icon="tabler-hash"
+                    placeholder="MQTT 1"
+                    persistent-placeholder
                   />
                 </VCol>
               </VRow>
             </VCol>
+
 
             <!-- 👉 Submit & Reset -->
             <VCol cols="12">

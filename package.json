@@ -39,6 +39,7 @@
     "date-fns": "^4.1.0",
     "destr": "2.0.5",
     "eslint-plugin-regexp": "2.7.0",
+    "grid-layout-plus": "^1.1.1",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "jwt-decode": "4.0.0",

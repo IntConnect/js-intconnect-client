@@ -96,6 +96,7 @@ function addNode(id, type, label, backgroundColor, icon, modal, defaultConfig) {
 
 // --- fetch available nodes ---
 const availableNodes = ref([])
+const availableProtocolConfigurations = ref([])
 const availablePipelines = ref([])
 const loadingNodes = ref(true)
 
@@ -106,6 +107,21 @@ async function fetchAvailableNodes() {
 
     availableNodes.value = res.data ?? []
     console.log(availableNodes)
+  } catch (err) {
+    toast.error(err.message || 'Failed to fetch nodes')
+  } finally {
+    loadingNodes.value = false
+  }
+}
+
+
+async function fetchAvailableProtocolConfigurations() {
+  loadingNodes.value = true
+  try {
+    const res = await $api('/protocol-configurations')
+
+    availableProtocolConfigurations.value = res.data ?? []
+    console.log(availableProtocolConfigurations)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -156,6 +172,7 @@ function addNewTab() {
 onMounted(() => {
   fetchAvailableNodes()
   fetchAvailablePipelines()
+  fetchAvailableProtocolConfigurations()
 })
 
 watch(availablePipelines, availablePipelines => {
@@ -226,11 +243,11 @@ async function submitPipeline() {
     }
 
     console.log('🚀 Sending pipeline payload:', payload)
-    return
     const res = await $api('/pipelines', {
       method: 'POST',
       body: payload,
     })
+    console.log(res)
 
     toast.success('✅ Pipeline saved successfully!')
   } catch (err) {
@@ -249,6 +266,29 @@ async function runPipeline() {
     loadingNodes.value = false
   }
 }
+
+async function onSubmitConfig(data) {
+  console.log('Config emitted:', data)
+
+  // cari index node yang sesuai dengan node_id dari data
+  const index = storedNodes.value.findIndex(node => node.id === data.node_id)
+
+  if (index !== -1) {
+    // update config node itu
+    storedNodes.value[index] = {
+      ...storedNodes.value[index],
+      config: {
+        ...storedNodes.value[index].config,
+        ...data, // merge data baru ke config
+      },
+    }
+
+    console.log('Node updated:', storedNodes.value[index])
+  } else {
+    console.warn('Node not found for id:', data.node_id)
+  }
+}
+
 </script>
 
 
@@ -364,12 +404,7 @@ async function runPipeline() {
             <Background/>
           </VueFlow>
 
-          <component
-            :is="ModalContent"
-            v-if="ModalContent"
-            v-model:isDialogVisible="modalOpen"
-            :node="selectedNode?.data"
-          />
+
         </div>
       </div>
 
@@ -408,6 +443,8 @@ async function runPipeline() {
     v-if="ModalContent"
     v-model:open="modalOpen"
     :node="selectedNode"
+    :protocol-configurations="availableProtocolConfigurations"
+    @config="onSubmitConfig"
   />
 </template>
 

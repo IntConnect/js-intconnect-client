@@ -5,9 +5,9 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Second page',
-    to: { name: 'second-page' },
-    icon: { icon: 'tabler-file' },
+    title: 'Dynamic Dashboard',
+    to: { name: 'dynamic-dashboard' },
+    icon: { icon: 'tabler-brand-tabler' },
   },
   {
     title: 'Drawings',
@@ -19,4 +19,5 @@ export default [
     to: { name: 'protocol-configurations' },
     icon: { icon: 'tabler-server-cog' },
   },
+
 ]

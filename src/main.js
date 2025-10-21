@@ -8,6 +8,7 @@ import '@styles/styles.scss'
 
 // Create vue app
 const app = createApp(App)
+const pinia = createPinia()
 
 
 // Register plugins
@@ -15,3 +16,4 @@ registerPlugins(app)
 
 // Mount vue app
 app.mount('#app')
+app.use(pinia)

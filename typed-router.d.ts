@@ -21,8 +21,8 @@ declare module 'vue-router/auto-routes' {
     'root': RouteRecordInfo<'root', '/', Record<never, never>, Record<never, never>>,
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
     'drawings': RouteRecordInfo<'drawings', '/drawings', Record<never, never>, Record<never, never>>,
+    'dynamic-dashboard': RouteRecordInfo<'dynamic-dashboard', '/dynamic-dashboard', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'protocol-configurations': RouteRecordInfo<'protocol-configurations', '/protocol-configurations', Record<never, never>, Record<never, never>>,
-    'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
   }
 }
