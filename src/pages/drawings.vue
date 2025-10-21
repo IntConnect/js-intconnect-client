@@ -28,8 +28,8 @@ const {
 
 // --- nodes & edges ---
 const nodes = shallowRef([])
-
 const edges = shallowRef([])
+const activePipeline = ref({})
 
 // --- sidebar collapsible ---
 // Collapsible sidebars
@@ -45,8 +45,11 @@ const modalOpen = ref(false)
 const selectedNode = ref(null)
 const modalComponents = { MqttInModal }
 const ModalContent = computed(() => {
+  console.log(selectedNode)
+
   if (!selectedNode.value) return null
-  const modalName = selectedNode.value.node.data.modal
+  console.log(selectedNode.value.data.modal)
+  const modalName = selectedNode.value.data.modal
   return modalComponents[modalName] || null
 })
 
@@ -63,12 +66,13 @@ function onConnect(params) {
   addEdges([params])
 }
 
-function handleNodeDoubleClick(node) {
-  selectedNode.value = node
+function handleNodeDoubleClick(event) {
+  console.log(event.node.data.modal)
+  selectedNode.value = event.node
   modalOpen.value = true
 }
 
-function addNode(id, type, label, backgroundColor, icon, modal) {
+function addNode(id, type, label, backgroundColor, icon, modal, defaultConfig) {
   const uniqueId = `${id}-${Date.now()}`
   setNodes(current => [
     ...current,
@@ -82,8 +86,9 @@ function addNode(id, type, label, backgroundColor, icon, modal) {
         icon,
         modal,
         nodeType: type,
-        nodeId: id, // simpan id asli jika perlu
+        nodeId: id,
       },
+      config: defaultConfig,
     },
   ])
 }
@@ -131,6 +136,7 @@ async function fetchDetailPipeline(pipelineId) {
   try {
     const res = await $api(`/pipelines/${pipelineId}`)
     const { nodes, edges } = constructPipelineFromResponse(res.data)
+    activePipeline.value = res.data
     setNodes(nodes)
     setEdges(edges)
   } catch (err) {
@@ -153,8 +159,6 @@ onMounted(() => {
 })
 
 watch(availablePipelines, availablePipelines => {
-  console.log(availablePipelines)
-  console.log(availablePipelines.length)
   if (availablePipelines.length > 0) {
     console.log((availablePipelines[0]).id)
     fetchDetailPipeline((availablePipelines)[0].id)
@@ -163,7 +167,6 @@ watch(availablePipelines, availablePipelines => {
 
 function constructPipelineFromResponse(pipelineData) {
   // Ambil nodes dari pipeline_node
-  console.log(pipelineData)
   const nodes = pipelineData.pipeline_node?.map(node => ({
     id: String(node.id), // penting: jadikan string biar cocok dengan Vue Flow
     type: 'custom', // atau bisa `node.type` kalau kamu punya variasi node
@@ -204,10 +207,7 @@ async function submitPipeline() {
       name: `Pipeline ${currentTab.value + 1}`,
       description: `Generated from VueFlow on ${new Date().toISOString()}`,
       is_active: true,
-      config: {
-        nodes: storedNodes.value,
-        edges: storedEdges.value,
-      },
+      config: {},
       nodes: storedNodes.value.map(node => ({
         temp_id: node.id, // 🔹 id dari Vue Flow (sementara)
         node_id: node.data?.nodeId, // referensi ke master Node, kalau ada
@@ -215,7 +215,7 @@ async function submitPipeline() {
         label: node.data?.label,
         position_x: node.position.x,
         position_y: node.position.y,
-        config: node.data || {},
+        config: node.config || {},
         description: node.data?.description || null,
       })),
       edges: storedEdges.value.map(edge => ({
@@ -226,7 +226,7 @@ async function submitPipeline() {
     }
 
     console.log('🚀 Sending pipeline payload:', payload)
-
+    return
     const res = await $api('/pipelines', {
       method: 'POST',
       body: payload,
@@ -239,19 +239,30 @@ async function submitPipeline() {
   }
 }
 
+async function runPipeline() {
+  loadingNodes.value = true
+  try {
+    const res = await $api(`/pipelines/run/${activePipeline.value.id}`)
+  } catch (err) {
+    toast.error(err.message || 'Failed to fetch nodes')
+  } finally {
+    loadingNodes.value = false
+  }
+}
 </script>
 
 
 <template>
   <div class="px-3 py-3 w-screen h-screen overflow-hidden flex flex-col">
     <!-- Header -->
-    <div class="flex justify-between items-center p-3 bg-white shadow">
-      <VBtn color="secondary" class="mb-3" to="/">
-        <VIcon start icon="tabler-circle-arrow-left-filled" size="26"/>
-        Dashboard
-      </VBtn>
-
-      <div class="flex flex-row items-center">
+    <div class="grid grid-cols-24 gap-4 overflow-hidden bg-gray-100 mb-2">
+      <div class="col-span-4">
+        <VBtn color="secondary" to="/">
+          <VIcon start icon="tabler-circle-arrow-left-filled" size="26"/>
+          Dashboard
+        </VBtn>
+      </div>
+      <div class="col-span-16 flex flex-row justify-center items-center">
         <VTabs v-model="currentTab"
                class="v-tabs-pill flex justify-center"
         >
@@ -270,11 +281,16 @@ async function submitPipeline() {
 
         <VBtn icon="tabler-circle-plus" rounded class="ml-2" @click="addNewTab"/>
       </div>
-
-      <VBtn @click="submitPipeline">
-        Submit
-        <VIcon end icon="tabler-send-2" size="26"/>
-      </VBtn>
+      <div class="col-span-4 flex flex-row gap-2 justify-between">
+        <VBtn @click="submitPipeline"
+        >
+          Submit
+          <VIcon end icon="tabler-send-2" size="26"/>
+        </VBtn>
+        <VBtn @click="runPipeline" color="success" class="flex-1">
+          Run
+        </VBtn>
+      </div>
     </div>
 
     <!-- Main Layout -->
@@ -310,7 +326,7 @@ async function submitPipeline() {
                 :key="n.id"
                 color="primary"
                 class="mx-0"
-                @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name)"
+                @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name, n.default_config)"
               >
                 <VIcon start :icon="n.icon"/>
                 {{ n.label }}
@@ -352,7 +368,7 @@ async function submitPipeline() {
             :is="ModalContent"
             v-if="ModalContent"
             v-model:isDialogVisible="modalOpen"
-            :node="selectedNode"
+            :node="selectedNode?.data"
           />
         </div>
       </div>
@@ -380,14 +396,7 @@ async function submitPipeline() {
           <VCardText v-show="!rightCollapsed" class="flex-1 overflow-y-auto">
             <div v-if="loadingNodes">Loading nodes...</div>
             <div v-else class="flex flex-col gap-2">
-              <button
-                v-for="n in availableNodes"
-                :key="n.id"
-                class="bg-blue-500 text-white px-4 py-2 rounded"
-                @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name)"
-              >
-                {{ n.label }}
-              </button>
+
             </div>
           </VCardText>
         </VCard>

@@ -1,4 +1,5 @@
 <script setup>
+import '@styles/tailwind.css'
 import { useTheme } from 'vuetify'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
@@ -17,8 +18,6 @@ initConfigStore()
 
 const configStore = useConfigStore()
 
-import '@styles/tailwind.css'
-
 </script>
 
 <template>
@@ -32,6 +31,4 @@ import '@styles/tailwind.css'
   </VLocaleProvider>
 </template>
 
-<style>
 
-</style>

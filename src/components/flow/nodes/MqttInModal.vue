@@ -1,56 +1,84 @@
 <script setup>
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+
 const props = defineProps({
-  isDialogVisible: {
+  open: {
     type: Boolean,
-    required: true,
+    default: false,
+  },
+  node: {
+    type: Object,
+    default: () => ({}),
   },
 })
 
-const emit = defineEmits(['update:isDialogVisible'])
+const emit = defineEmits(['update:open', 'config'])
+
+const actionOptions = [
+  { label: 'Subscriber to single topic', value: 'single_sub' },
+  { label: 'Dynamic subscription', value: 'dynamic_sub' },
+]
+
+
+const outputOptions = [
+  { label: 'auto-detect (parsed JSON Object, string or buffer)', value: 'auto_detect_1' },
+  { label: 'auto-detect (string or buffer)', value: 'auto_detect_2' },
+  { label: 'a Buffer', value: 'buffer' },
+  { label: 'a String', value: 'string' },
+  { label: 'a Parsed JSON Object', value: 'parsed_json_object' },
+  { label: 'a Base64 encoded string ', value: 'base64_encoded_string' },
+]
 
 const dialogVisibleUpdate = val => {
-  emit('update:isDialogVisible', val)
+  emit('update:open', val)
 }
+
 const currentTab = ref(0)
 
+const config = ref()
 
-const config = ref({
-  host: '',
-  port: 1883,
-  topic: '',
-  username: '',
-  password: '',
-  qos: 0,
-  retained: false,
-})
+watch(props.node, () => {
+  console.log(props.node.config)
+  if (props.node.config) {
+    config.value = {
+      broker: props.node.config.broker,
+      port: props.node.config.port,
+      topic: props.node.config.topic,
+      username: '',
+      password: '',
+      qos: 0,
+      retained: false,
+      config: 'single_sub',
+    }
+  }
+}, { immediate: true })
 
 const submitConfig = () => {
   emit('config', { ...config.value })
-  emit('update:isDialogVisible', false)
+  emit('update:open', false)
 }
 
 const resetConfig = () => {
   config.value = {
-    host: '',
-    port: 1883,
-    topic: '',
+    broker: props.node.config.broker,
+    port: props.node.config.port,
+    topic: props.node.config.topic,
     username: '',
     password: '',
     qos: 0,
     retained: false,
   }
 }
-
 </script>
 
 <template>
   <VDialog
-    :model-value="props.isDialogVisible"
+    :model-value="props.open"
     :width="$vuetify.display.smAndDown ? 'auto' : 900"
     @update:model-value="dialogVisibleUpdate"
   >
     <!-- 👉 Dialog close btn -->
-    <DialogCloseBtn @click="$emit('update:isDialogVisible', false)"/>
+    <DialogCloseBtn @click="$emit('update:open', false)"/>
 
     <VCard class="share-project-dialog pa-2 pa-sm-10">
       <VCardText>
@@ -72,50 +100,57 @@ const resetConfig = () => {
         </div>
         <VForm @submit.prevent="submitConfig">
           <VRow>
-            <!-- 👉 Host -->
+
+            <!-- 👉 QoS -->
             <VCol cols="12">
               <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
-                  <label class="v-label text-body-2 text-high-emphasis" for="mqttHost">Host</label>
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-items-center"
+                >
+                  <label
+                    class="v-label text-body-2 text-high-emphasis"
+                    for="mqttQos"
+                  >QoS</label>
                 </VCol>
-                <VCol cols="12" md="9">
-                  <AppTextField
-                    id="mqttHost"
-                    v-model="config.host"
-                    prepend-inner-icon="tabler-server"
-                    placeholder="broker.example.com"
-                    persistent-placeholder
+                <VCol
+                  cols="12"
+                  md="9"
+                >
+                  <VSelect
+                    id="mqttQos"
+                    v-model="config.action"
+                    :items="actionOptions"
+                    item-title="label"
+                    item-value="value"
+                    label="Select Actions"
+                    prepend-inner-icon="tabler-map"
                   />
                 </VCol>
               </VRow>
             </VCol>
 
-            <!-- 👉 Port -->
-            <VCol cols="12">
-              <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
-                  <label class="v-label text-body-2 text-high-emphasis" for="mqttPort">Port</label>
-                </VCol>
-                <VCol cols="12" md="9">
-                  <AppTextField
-                    id="mqttPort"
-                    v-model="config.port"
-                    type="number"
-                    prepend-inner-icon="tabler-plug"
-                    placeholder="1883"
-                    persistent-placeholder
-                  />
-                </VCol>
-              </VRow>
-            </VCol>
 
             <!-- 👉 Topic -->
             <VCol cols="12">
+
               <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
-                  <label class="v-label text-body-2 text-high-emphasis" for="mqttTopic">Topic</label>
+
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-items-center"
+                >
+                  <label
+                    class="v-label text-body-2 text-high-emphasis"
+                    for="mqttTopic"
+                  >Topic</label>
                 </VCol>
-                <VCol cols="12" md="9">
+                <VCol
+                  cols="12"
+                  md="9"
+                >
                   <AppTextField
                     id="mqttTopic"
                     v-model="config.topic"
@@ -127,56 +162,30 @@ const resetConfig = () => {
               </VRow>
             </VCol>
 
-            <!-- 👉 Username -->
-            <VCol cols="12">
-              <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
-                  <label class="v-label text-body-2 text-high-emphasis" for="mqttUser">Username</label>
-                </VCol>
-                <VCol cols="12" md="9">
-                  <AppTextField
-                    id="mqttUser"
-                    v-model="config.username"
-                    prepend-inner-icon="tabler-user"
-                    placeholder="mqtt_user"
-                    persistent-placeholder
-                  />
-                </VCol>
-              </VRow>
-            </VCol>
-
-            <!-- 👉 Password -->
-            <VCol cols="12">
-              <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
-                  <label class="v-label text-body-2 text-high-emphasis" for="mqttPass">Password</label>
-                </VCol>
-                <VCol cols="12" md="9">
-                  <AppTextField
-                    id="mqttPass"
-                    v-model="config.password"
-                    type="password"
-                    prepend-inner-icon="tabler-lock"
-                    placeholder="••••••••"
-                    persistent-placeholder
-                  />
-                </VCol>
-              </VRow>
-            </VCol>
 
             <!-- 👉 QoS -->
             <VCol cols="12">
               <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
-                  <label class="v-label text-body-2 text-high-emphasis" for="mqttQos">QoS</label>
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-items-center"
+                >
+                  <label
+                    class="v-label text-body-2 text-high-emphasis"
+                    for="mqttQos"
+                  >QoS</label>
                 </VCol>
-                <VCol cols="12" md="9">
+                <VCol
+                  cols="12"
+                  md="9"
+                >
                   <VSelect
                     id="mqttQos"
                     v-model="config.qos"
                     :items="[0, 1, 2]"
                     label="Select QoS"
-                    prepend-inner-icon="tabler-signal"
+                    prepend-inner-icon="tabler-map"
                   />
                 </VCol>
               </VRow>
@@ -185,10 +194,17 @@ const resetConfig = () => {
             <!-- 👉 Retained -->
             <VCol cols="12">
               <VRow no-gutters>
-                <VCol cols="12" md="3" class="d-flex align-items-center">
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-items-center"
+                >
                   <label class="v-label text-body-2 text-high-emphasis">Retained</label>
                 </VCol>
-                <VCol cols="12" md="9">
+                <VCol
+                  cols="12"
+                  md="9"
+                >
                   <VSwitch
                     v-model="config.retained"
                     inset
@@ -202,16 +218,33 @@ const resetConfig = () => {
             <!-- 👉 Submit & Reset -->
             <VCol cols="12">
               <VRow no-gutters>
-                <VCol cols="12" md="3"/>
-                <VCol cols="12" md="9">
-                  <VBtn type="submit" class="me-4">Save</VBtn>
-                  <VBtn color="secondary" variant="tonal" type="reset" @click="resetConfig">Reset</VBtn>
+                <VCol
+                  cols="12"
+                  md="3"
+                />
+                <VCol
+                  cols="12"
+                  md="9"
+                >
+                  <VBtn
+                    type="submit"
+                    class="me-4"
+                  >
+                    Save
+                  </VBtn>
+                  <VBtn
+                    color="secondary"
+                    variant="tonal"
+                    type="reset"
+                    @click="resetConfig"
+                  >
+                    Reset
+                  </VBtn>
                 </VCol>
               </VRow>
             </VCol>
           </VRow>
         </VForm>
-
       </VCardText>
     </VCard>
   </VDialog>

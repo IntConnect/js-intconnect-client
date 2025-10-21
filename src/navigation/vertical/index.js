@@ -14,4 +14,9 @@ export default [
     to: { name: 'drawings' },
     icon: { icon: 'tabler-circuit-changeover' },
   },
+  {
+    title: 'Protocol Configurations',
+    to: { name: 'protocol-configurations' },
+    icon: { icon: 'tabler-server-cog' },
+  },
 ]
