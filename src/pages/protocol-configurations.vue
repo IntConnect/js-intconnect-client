@@ -8,6 +8,7 @@ import AppStepper from "@core/components/AppStepper.vue"
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import { toast } from "vue3-toastify"
 import TablePagination from "@core/components/TablePagination.vue"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 
 const headers = [
   {
@@ -36,6 +37,15 @@ const headers = [
   },
 
 ]
+
+function formatKey(key) {
+  return key
+    .replace(/([A-Z])/g, ' $1')     // pisahkan camelCase → camel Case
+    .replace(/^./, str => str.toUpperCase()) // kapitalisasi huruf awal
+    .split('_')                     // pisahkan snake_case → snake case
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
 
 const loadingProtocolConfigurations = ref(false)
 const protocolConfigurations = ref([])
@@ -132,7 +142,9 @@ function selectProtocol(name) {
 
 const currentStep = ref(0)
 const page = ref(1)
-const totalData = ref(0)
+const totalData = computed(() => {
+  return protocolConfigurations.value.length
+})
 const itemsPerPage = ref(10)
 
 
@@ -832,34 +844,50 @@ onMounted(() => {
           </div>
         </template>
 
-        <!-- Expanded Row Data -->
+
         <template #expanded-row="{ item }">
           <tr class="v-data-table__tr">
             <td :colspan="headers.length" class="bg-gray-50">
               <div class="p-4 space-y-2">
-                <p class="font-medium text-primary mb-2">Configuration Details</p>
-                <VList density="compact">
-                  <VListItem
+                <table class="min-w-full border border-gray-200 rounded-lg mt-5">
+                  <thead class="bg-gray-100">
+                  <tr>
+                    <th class="text-left px-3 py-2 w-1/3">Property</th>
+                    <th class="text-left px-3 py-2">Value</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr
                     v-for="(value, key) in item.config"
                     :key="key"
+                    class="border-t border-gray-200 hover:bg-gray-50"
                   >
-                    <VListItemTitle>
-                      <strong>{{ key }}</strong>: {{ value }}
-                    </VListItemTitle>
-                  </VListItem>
-                </VList>
+                    <td class="px-3 py-2 font-medium text-gray-700">
+                      {{ formatKey(key) }}
+                    </td>
+                    <td class="px-3 py-2 text-gray-800">
+                      <template v-if="typeof value === 'object' && value !== null">
+                        <pre class="text-xs bg-gray-100 p-2 rounded-md">{{ JSON.stringify(value, null, 2) }}</pre>
+                      </template>
+                      <template v-else>
+                        {{ value }}
+                      </template>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
               </div>
             </td>
           </tr>
         </template>
 
-          <template #bottom>
-            <TablePagination
-              v-model:page="page"
-              :items-per-page="itemsPerPage"
-              :total-items="totalData"
-            />
-          </template>
+        <template #bottom>
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalData"
+          />
+        </template>
       </VDataTable>
     </VCardText>
   </VCard>

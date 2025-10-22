@@ -11,6 +11,7 @@ import 'vue3-toastify/dist/index.css'
 
 import SpecialNode from "@/components/flow/SpecialNode.vue"
 import MqttInModal from "@/components/flow/nodes/MqttInModal.vue"
+import MqttOutModal from "@/components/flow/nodes/MqttOutModal.vue"
 
 definePage({ meta: { layout: 'blank', public: true } })
 
@@ -43,12 +44,11 @@ const totalTabs = ref(3)
 // --- modal ---
 const modalOpen = ref(false)
 const selectedNode = ref(null)
-const modalComponents = { MqttInModal }
+const modalComponents = { MqttInModal, MqttOutModal }
 const ModalContent = computed(() => {
-  console.log(selectedNode)
-
+  console.log(selectedNode.value?.data.modal)
+  console.log(modalComponents[selectedNode.value?.data.modal])
   if (!selectedNode.value) return null
-  console.log(selectedNode.value.data.modal)
   const modalName = selectedNode.value.data.modal
   return modalComponents[modalName] || null
 })
@@ -67,7 +67,7 @@ function onConnect(params) {
 }
 
 function handleNodeDoubleClick(event) {
-  console.log(event.node.data.modal)
+  console.log(event)
   selectedNode.value = event.node
   modalOpen.value = true
 }
@@ -89,6 +89,10 @@ function addNode(id, type, label, backgroundColor, icon, modal, defaultConfig) {
         nodeId: id,
       },
       config: defaultConfig,
+      appearance: {
+        background_color: backgroundColor,
+        icon,
+      },
     },
   ])
 }
@@ -106,7 +110,6 @@ async function fetchAvailableNodes() {
     const res = await $api('/nodes')
 
     availableNodes.value = res.data ?? []
-    console.log(availableNodes)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -121,7 +124,6 @@ async function fetchAvailableProtocolConfigurations() {
     const res = await $api('/protocol-configurations')
 
     availableProtocolConfigurations.value = res.data ?? []
-    console.log(availableProtocolConfigurations)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -151,6 +153,7 @@ async function fetchDetailPipeline(pipelineId) {
   loadingNodes.value = true
   try {
     const res = await $api(`/pipelines/${pipelineId}`)
+    console.log(res.data)
     const { nodes, edges } = constructPipelineFromResponse(res.data)
     activePipeline.value = res.data
     setNodes(nodes)
@@ -177,7 +180,6 @@ onMounted(() => {
 
 watch(availablePipelines, availablePipelines => {
   if (availablePipelines.length > 0) {
-    console.log((availablePipelines[0]).id)
     fetchDetailPipeline((availablePipelines)[0].id)
   }
 })
@@ -195,9 +197,9 @@ function constructPipelineFromResponse(pipelineData) {
       label: node.label,
       nodeType: node.type,
       nodeId: node.node_id,
-      color: node.config?.color || '#ccc',
-      icon: node.config?.icon || 'tabler-database-heart',
-      modal: node.config?.modal || null,
+      color: node.appearance?.background_color || '#ccc',
+      icon: node.appearance?.icon || 'tabler-database-heart',
+      modal: node.node_response.component_name || null,
       config: node.config,
     },
   }))
@@ -234,6 +236,7 @@ async function submitPipeline() {
         position_y: node.position.y,
         config: node.config || {},
         description: node.data?.description || null,
+        appearance: node.appearance,
       })),
       edges: storedEdges.value.map(edge => ({
         source_node_temp_id: edge.source, // 🔹 pakai Vue Flow id sementara
@@ -247,7 +250,6 @@ async function submitPipeline() {
       method: 'POST',
       body: payload,
     })
-    console.log(res)
 
     toast.success('✅ Pipeline saved successfully!')
   } catch (err) {

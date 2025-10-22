@@ -1,6 +1,4 @@
 <script setup>
-
-
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 
 const props = defineProps({
@@ -54,8 +52,6 @@ watch(props.node, () => {
       topic: '',
       output: '',
       name: '',
-      qos: 0,
-      retain: false,
     }
   } else {
     config.value = {
@@ -64,8 +60,6 @@ watch(props.node, () => {
       topic: '',
       output: '',
       name: '',
-      qos: 0,
-      retain: false,
     }
   }
 }, { immediate: true })
@@ -117,7 +111,6 @@ const resetConfig = () => {
         </div>
         <VForm @submit.prevent="submitConfig">
           <VRow>
-
             <!-- 👉 QoS -->
             <VCol cols="12">
               <VRow no-gutters>
@@ -148,39 +141,9 @@ const resetConfig = () => {
               </VRow>
             </VCol>
 
-            <VCol cols="12">
-              <VRow no-gutters>
-                <VCol
-                  cols="12"
-                  md="3"
-                  class="d-flex align-items-center"
-                >
-                  <label
-                    class="v-label text-body-2 text-high-emphasis"
-                    for="actionOptions"
-                  >Action</label>
-                </VCol>
-                <VCol
-                  cols="12"
-                  md="9"
-                >
-                  <VSelect
-                    id="actionOptions"
-                    v-model="config.action"
-                    :items="actionOptions"
-                    item-title="label"
-                    item-value="id"
-                    label="Select Action"
-                  />
-                </VCol>
-              </VRow>
-            </VCol>
-
             <!-- 👉 Topic -->
             <VCol cols="12">
-
               <VRow no-gutters>
-
                 <VCol
                   cols="12"
                   md="3"
@@ -207,39 +170,9 @@ const resetConfig = () => {
             </VCol>
 
 
+            <!-- 👉 QoS -->
             <VCol cols="12">
               <VRow no-gutters>
-                <VCol
-                  cols="12"
-                  md="3"
-                  class="d-flex align-items-center"
-                >
-                  <label
-                    class="v-label text-body-2 text-high-emphasis"
-                    for="output"
-                  >Output</label>
-                </VCol>
-                <VCol
-                  cols="12"
-                  md="9"
-                >
-                  <VSelect
-                    id="output"
-                    v-model="config.output"
-                    :items="outputOptions"
-                    label="Select Output"
-                    prepend-inner-icon="tabler-map"
-                    item-title="label"
-                    item-value="id"
-
-                  />
-                </VCol>
-              </VRow>
-            </VCol>
-            <VCol cols="12">
-
-              <VRow no-gutters>
-
                 <VCol
                   cols="12"
                   md="3"
@@ -265,6 +198,40 @@ const resetConfig = () => {
               </VRow>
             </VCol>
 
+            <VCol cols="12">
+              <VRow no-gutters>
+                <VCol
+                  cols="12"
+                  md="3"
+                  class="d-flex align-items-center"
+                >
+                  <label
+                    class="v-label text-body-2 text-high-emphasis"
+                    for="mqttTopic"
+                  >QoS</label>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="8"
+                  class="flex flex-row gap-4"
+                >
+                  <AppSelect
+                    v-model="config.qos"
+                    label=""
+                    :items="[0,1,2]"
+                    placeholder="Select QoS"
+                    class="flex-1"
+                  />
+                  <div class="flex items-center">
+                    <VCheckbox
+                      v-model="config.retain"
+                      label="Retain"
+                      class="mt-0"
+                    />
+                  </div>
+                </VCol>
+              </VRow>
+            </VCol>
 
             <!-- 👉 Submit & Reset -->
             <VCol cols="12">
