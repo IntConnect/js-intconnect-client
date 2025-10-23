@@ -3,7 +3,7 @@ const props = defineProps({
   collapsed: {
     type: Boolean,
     required: false,
-    default: true,
+    default: false,
   },
   noActions: {
     type: Boolean,

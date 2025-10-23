@@ -19,5 +19,10 @@ export default [
     to: { name: 'protocol-configurations' },
     icon: { icon: 'tabler-server-cog' },
   },
+  {
+    title: 'Database Connections',
+    to: { name: 'database-connections' },
+    icon: { icon: 'tabler-database-star' },
+  },
 
 ]
