@@ -30,6 +30,10 @@ const headers = [
     title: 'Description',
     key: 'description',
   },
+  {
+    title: 'Action',
+    key: 'action',
+  },
 ]
 
 function formatKey(key) {
@@ -474,6 +478,29 @@ onMounted(() => {
         <template #item.no="{ index }">
           <div class="d-flex align-center gap-x-4">
             {{ (page - 1) * itemsPerPage + index + 1 }}
+          </div>
+        </template>
+        <template #item.action="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            <VBtn
+              icon="tabler-briefcase"
+              rounded
+            >
+              <VBtn
+                icon="tabler-schema"
+                rounded
+                :href="`/database-schema/${item.id}`"
+              />
+
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
+                Manage Schema
+              </VTooltip>
+            </VBtn>
+
+
           </div>
         </template>
 

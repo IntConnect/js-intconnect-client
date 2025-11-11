@@ -1,10 +1,9 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { computed, onMounted, ref } from 'vue'
+import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
 import { MiniMap } from '@vue-flow/minimap'
 import { Background } from '@vue-flow/background'
-import { ofetch } from 'ofetch'
 import { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 
@@ -12,6 +11,8 @@ import 'vue3-toastify/dist/index.css'
 import SpecialNode from "@/components/flow/SpecialNode.vue"
 import MqttInModal from "@/components/flow/nodes/MqttInModal.vue"
 import MqttOutModal from "@/components/flow/nodes/MqttOutModal.vue"
+import DatabaseModal from "@/components/flow/nodes/DatabaseModal.vue"
+import ManagePipelineDialog from "@/components/dialogs/ManagePipelineDialog.vue"
 
 definePage({ meta: { layout: 'blank', public: true } })
 
@@ -43,13 +44,17 @@ const totalTabs = ref(3)
 
 // --- modal ---
 const modalOpen = ref(false)
+const pipelineModalOpen = ref(false)
+const selectedPipeline = ref({})
 const selectedNode = ref(null)
-const modalComponents = { MqttInModal, MqttOutModal }
+const modalComponents = { MqttInModal, MqttOutModal, DatabaseModal }
+
 const ModalContent = computed(() => {
   console.log(selectedNode.value?.data.modal)
   console.log(modalComponents[selectedNode.value?.data.modal])
   if (!selectedNode.value) return null
   const modalName = selectedNode.value.data.modal
+
   return modalComponents[modalName] || null
 })
 
@@ -72,8 +77,14 @@ function handleNodeDoubleClick(event) {
   modalOpen.value = true
 }
 
+function handlePipelineClick(event) {
+  console.log(event)
+  pipelineModalOpen.value = true
+}
+
 function addNode(id, type, label, backgroundColor, icon, modal, defaultConfig) {
   const uniqueId = `${id}-${Date.now()}`
+
   setNodes(current => [
     ...current,
     {
@@ -99,17 +110,36 @@ function addNode(id, type, label, backgroundColor, icon, modal, defaultConfig) {
 
 
 // --- fetch available nodes ---
-const availableNodes = ref([])
+const availableNodes = ref({})
 const availableProtocolConfigurations = ref([])
+const availableDatabaseConnections = ref([])
 const availablePipelines = ref([])
 const loadingNodes = ref(true)
+const openedPanels = ref([])
+const items = ref(5)
 
 async function fetchAvailableNodes() {
   loadingNodes.value = true
   try {
     const res = await $api('/nodes')
 
-    availableNodes.value = res.data ?? []
+
+    availableNodes.value = res.data.reduce((acc, curr) => {
+      const key = curr.type
+
+      // kalau belum ada array untuk type ini, buat baru
+      if (!acc[key]) {
+        acc[key] = []
+      }
+
+      // masukkan elemen ke array yang sesuai type
+      acc[key].push(curr)
+
+      return acc
+    }, {})
+    await nextTick()
+    console.log(availableNodes)
+
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -131,10 +161,24 @@ async function fetchAvailableProtocolConfigurations() {
   }
 }
 
+async function fetchAvailableDatabaseConnections() {
+  loadingNodes.value = true
+  try {
+    const res = await $api('/database-connections')
+    console.log(res.data)
+    availableDatabaseConnections.value = res.data ?? []
+  } catch (err) {
+    toast.error(err.message || 'Failed to fetch nodes')
+  } finally {
+    loadingNodes.value = false
+  }
+}
+
 async function fetchAvailablePipelines() {
   loadingNodes.value = true
   try {
     const res = await $api('/pipelines')
+
     availablePipelines.value = res.data?.map(val => {
       return {
         id: val.id,
@@ -153,8 +197,11 @@ async function fetchDetailPipeline(pipelineId) {
   loadingNodes.value = true
   try {
     const res = await $api(`/pipelines/${pipelineId}`)
+
     console.log(res.data)
+
     const { nodes, edges } = constructPipelineFromResponse(res.data)
+
     activePipeline.value = res.data
     setNodes(nodes)
     setEdges(edges)
@@ -166,16 +213,35 @@ async function fetchDetailPipeline(pipelineId) {
 }
 
 function addNewTab() {
-  availablePipelines.value.push({
+  // Buat pipeline baru lokal tanpa ID
+  const newPipeline = {
     id: null,
     name: "New Pipeline",
-  })
+    description: "",
+    config: {},
+    nodes: [],
+    edges: [],
+  }
+
+  // Tambahkan ke daftar pipeline
+  availablePipelines.value.push(newPipeline)
+
+  // Set pipeline aktif ke pipeline baru ini
+  activePipeline.value = newPipeline
+
+  // Reset Vue Flow (hapus node & edge sebelumnya)
+  setNodes([])
+  setEdges([])
+
+  // Pindahkan tab ke pipeline baru (opsional)
+  currentTab.value = availablePipelines.value.length - 1
 }
 
 onMounted(() => {
   fetchAvailableNodes()
   fetchAvailablePipelines()
   fetchAvailableProtocolConfigurations()
+  fetchAvailableDatabaseConnections()
 })
 
 watch(availablePipelines, availablePipelines => {
@@ -212,21 +278,31 @@ function constructPipelineFromResponse(pipelineData) {
     data: edge.data || {},
   }))
 
+  activePipeline.value = {
+    id: pipelineData.id,
+    name: pipelineData.name,
+    description: pipelineData.description,
+  }
+
   return { nodes, edges }
 }
 
+async function handleDeletePipeline(pipeline) {
+  console.log(pipeline)
+}
 
 async function submitPipeline() {
   try {
+
 
     // Ambil snapshot dari Vue Flow
 
     // 💡 Payload sesuai DTO Go:
     const payload = {
-      name: `Pipeline ${currentTab.value + 1}`,
-      description: `Generated from VueFlow on ${new Date().toISOString()}`,
-      is_active: true,
-      config: {},
+      id: activePipeline.value.id,
+      name: activePipeline.value.name,
+      description: activePipeline.value.description,
+      config: activePipeline.value.config,
       nodes: storedNodes.value.map(node => ({
         temp_id: node.id, // 🔹 id dari Vue Flow (sementara)
         node_id: node.data?.nodeId, // referensi ke master Node, kalau ada
@@ -245,9 +321,17 @@ async function submitPipeline() {
       })),
     }
 
+
+    let activeMethod = 'POST'
+    if (activePipeline.value.id) {
+      activeMethod = 'PUT'
+    }
+    console.log(payload, activeMethod, activePipeline)
+
     console.log('🚀 Sending pipeline payload:', payload)
+
     const res = await $api('/pipelines', {
-      method: 'POST',
+      method: activeMethod,
       body: payload,
     })
 
@@ -291,6 +375,13 @@ async function onSubmitConfig(data) {
   }
 }
 
+async function onSubmitPipeline(data) {
+  console.log(data)
+  activePipeline.value.id = data.id
+  activePipeline.value.name = data.name
+  activePipeline.value.description = data.description
+  activePipeline.value.config = data.config
+}
 </script>
 
 
@@ -299,16 +390,28 @@ async function onSubmitConfig(data) {
     <!-- Header -->
     <div class="grid grid-cols-24 gap-4 overflow-hidden bg-gray-100 mb-2">
       <div class="col-span-4">
-        <VBtn color="secondary" to="/">
-          <VIcon start icon="tabler-circle-arrow-left-filled" size="26"/>
+        <VBtn
+          color="secondary"
+          to="/"
+        >
+          <VIcon
+            start
+            icon="tabler-circle-arrow-left-filled"
+            size="26"
+          />
           Dashboard
         </VBtn>
       </div>
       <div class="col-span-16 flex flex-row justify-center items-center">
-        <VTabs v-model="currentTab"
-               class="v-tabs-pill flex justify-center"
+        <VTabs
+          v-model="currentTab"
+          class="v-tabs-pill flex justify-center"
         >
-          <VTab v-for="availablePipeline in availablePipelines" :key="availablePipeline.id">
+          <VTab
+            v-for="availablePipeline in availablePipelines"
+            :key="availablePipeline.id"
+            @click="handlePipelineClick"
+          >
             {{ availablePipeline.name }}
             <VBtn
               icon="tabler-x"
@@ -316,20 +419,32 @@ async function onSubmitConfig(data) {
               size="24"
               class="shadow-md bg-white hover:scale-110 transition-transform duration-200 ml-2"
               rounded="full"
-              @click=""
+              @click="handleDeletePipeline"
             />
           </VTab>
         </VTabs>
 
-        <VBtn icon="tabler-circle-plus" rounded class="ml-2" @click="addNewTab"/>
+        <VBtn
+          icon="tabler-circle-plus"
+          rounded
+          class="ml-2"
+          @click="addNewTab"
+        />
       </div>
       <div class="col-span-4 flex flex-row gap-2 justify-between">
-        <VBtn @click="submitPipeline"
-        >
+        <VBtn @click="submitPipeline">
           Submit
-          <VIcon end icon="tabler-send-2" size="26"/>
+          <VIcon
+            end
+            icon="tabler-send-2"
+            size="26"
+          />
         </VBtn>
-        <VBtn @click="runPipeline" color="success" class="flex-1">
+        <VBtn
+          color="success"
+          class="flex-1"
+          @click="runPipeline"
+        >
           Run
         </VBtn>
       </div>
@@ -343,10 +458,12 @@ async function onSubmitConfig(data) {
         :class="leftCollapsed ? 'col-span-2' : 'col-span-4'"
       >
         <VCard class="h-full flex flex-col">
-          <VCardTitle
-            class="!flex !justify-between items-center transition-all duration-300 ease-in-out"
-          >
-            <span v-show="!leftCollapsed" class="transition-all duration-300">All Nodes</span>
+          <VCardTitle class="!flex !justify-between items-center transition-all duration-300 ease-in-out">
+            <span
+              v-show="!leftCollapsed"
+              class="transition-all duration-300"
+            >All Nodes</span>
+
             <VBtn
               icon
               class="transition-all duration-300 ease-in-out"
@@ -360,20 +477,47 @@ async function onSubmitConfig(data) {
           </VCardTitle>
 
           <!-- Scrollable content -->
-          <VCardText v-show="!leftCollapsed" class="flex-1 overflow-y-auto px-2">
-            <div v-if="loadingNodes">Loading nodes...</div>
-            <div v-else class="flex flex-col gap-2">
-              <VBtn
-                v-for="n in availableNodes"
-                :key="n.id"
-                color="primary"
-                class="mx-0"
-                @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name, n.default_config)"
+          <VCardText
+            v-show="!leftCollapsed"
+            class="flex-1 overflow-y-auto px-2"
+          >
+
+
+            <VExpansionPanels
+              v-model="openedPanels"
+              multiple
+            >
+              <VExpansionPanel
+                v-for="(group, type) in availableNodes"
+                :key="type"
               >
-                <VIcon start :icon="n.icon"/>
-                {{ n.label }}
-              </VBtn>
-            </div>
+                <VExpansionPanelTitle>{{ type }}</VExpansionPanelTitle>
+                <VExpansionPanelText>
+                  <div v-if="loadingNodes">
+                    Loading nodes...
+                  </div>
+                  <div
+                    v-else
+                    class="flex flex-col gap-2"
+                  >
+                    <VBtn
+                      v-for="n in group"
+                      :key="n.id"
+                      color="primary"
+                      class="mx-0"
+                      @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name, n.default_config)"
+                    >
+                      <VIcon
+                        start
+                        :icon="n.icon"
+                      />
+                      {{ n.label }}
+                    </VBtn>
+                  </div>
+
+                </VExpansionPanelText>
+              </VExpansionPanel>
+            </VExpansionPanels>
           </VCardText>
         </VCard>
       </div>
@@ -391,8 +535,9 @@ async function onSubmitConfig(data) {
       >
         <div class="h-full w-full">
           <VueFlow
-            :nodes="nodes"
-            :edges="edges"
+            v-if="activePipeline && (activePipeline.id || activePipeline.name)"
+            :nodes="storedNodes"
+            :edges="storedEdges"
             :node-types="{ custom: markRaw(SpecialNode) }"
             fit-view
             style="width: 100%; height: 100%;"
@@ -405,8 +550,12 @@ async function onSubmitConfig(data) {
             <MiniMap/>
             <Background/>
           </VueFlow>
-
-
+          <div
+            v-else
+            class="flex items-center justify-center w-full h-full text-gray-400 text-lg"
+          >
+            No pipeline selected
+          </div>
         </div>
       </div>
 
@@ -430,11 +579,17 @@ async function onSubmitConfig(data) {
           </VCardTitle>
 
           <!-- Scrollable right content -->
-          <VCardText v-show="!rightCollapsed" class="flex-1 overflow-y-auto">
-            <div v-if="loadingNodes">Loading nodes...</div>
-            <div v-else class="flex flex-col gap-2">
-
+          <VCardText
+            v-show="!rightCollapsed"
+            class="flex-1 overflow-y-auto"
+          >
+            <div v-if="loadingNodes">
+              Loading nodes...
             </div>
+            <div
+              v-else
+              class="flex flex-col gap-2"
+            />
           </VCardText>
         </VCard>
       </div>
@@ -446,7 +601,13 @@ async function onSubmitConfig(data) {
     v-model:open="modalOpen"
     :node="selectedNode"
     :protocol-configurations="availableProtocolConfigurations"
+    :database-connections="availableDatabaseConnections"
     @config="onSubmitConfig"
+  />
+  <ManagePipelineDialog
+    v-model:is-dialog-visible="pipelineModalOpen"
+    :pipeline="activePipeline"
+    @submit="onSubmitPipeline"
   />
 </template>
 
@@ -455,3 +616,4 @@ async function onSubmitConfig(data) {
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 </style>
+

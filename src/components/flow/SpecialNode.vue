@@ -41,22 +41,23 @@ watch(props.data, () => {
       v-if="props.data.nodeType === 'output' || props.data.nodeType === 'processor'"
       type="target"
       :position="Position.Left"
-      class="h-12 w-5 rounded-xs !bg-teal-500"
     />
-
     <!-- Handle kanan untuk output ke node lain -->
     <Handle
       v-if="props.data.nodeType === 'input' || props.data.nodeType === 'processor'"
       type="source"
       :position="Position.Right"
-      class="h-12 w-5 rounded-xs !bg-teal-500"
+      class="h-12 w-12 rounded-xs !bg-teal-500"
     />
   </div>
 </template>
 
 <style scoped>
-.tabler-database-heart {
-  font-size: 22px;
-  color: #333;
+
+
+.vue-flow__handle {
+  width: 8px;
+  height: 8px;
 }
+
 </style>

@@ -24,5 +24,11 @@ export default [
     to: { name: 'database-connections' },
     icon: { icon: 'tabler-database-star' },
   },
+  {
+    title: 'Machines',
+    to: { name: 'database-connections' },
+    icon: { icon: 'tabler-building-factory' },
+  },
+
 
 ]

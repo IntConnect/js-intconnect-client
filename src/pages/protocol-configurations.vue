@@ -344,7 +344,9 @@ onMounted(() => {
                                 size="small"
                                 @click="toggleDetails(protocol.name)"
                               >
-                                <VIcon :icon="isVisible(protocol.name) ? 'tabler-chevron-up' : 'tabler-chevron-down'"/>
+                                <VIcon :icon="isVisible(protocol.name) ? 'tabler-chevron-up' : 'tabler-chevron-down'"
+                                       :class="selectedProtocol === protocol.name ? 'text-white': 'text-primary'"
+                                />
                               </VBtn>
                             </VCardActions>
 
