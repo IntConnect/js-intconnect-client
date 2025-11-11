@@ -7,6 +7,12 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AcademyAssignmentProgress: typeof import('./src/components/dashboard/AcademyAssignmentProgress.vue')['default']
+    AcademyCardPopularInstructors: typeof import('./src/components/dashboard/AcademyCardPopularInstructors.vue')['default']
+    AcademyCardTopCourses: typeof import('./src/components/dashboard/AcademyCardTopCourses.vue')['default']
+    AcademyCourseTable: typeof import('./src/components/dashboard/AcademyCourseTable.vue')['default']
+    AcademyTopicYouAreInterested: typeof import('./src/components/dashboard/AcademyTopicYouAreInterested.vue')['default']
+    AcademyUpcomingWebinar: typeof import('./src/components/dashboard/AcademyUpcomingWebinar.vue')['default']
     AddAuthenticatorAppDialog: typeof import('./src/components/dialogs-demo/AddAuthenticatorAppDialog.vue')['default']
     AddEditAddressDialog: typeof import('./src/components/dialogs-demo/AddEditAddressDialog.vue')['default']
     AddEditPermissionDialog: typeof import('./src/components/dialogs-demo/AddEditPermissionDialog.vue')['default']

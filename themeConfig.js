@@ -13,8 +13,8 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
     logo: h('img', {
       src: logo, style: 'height: 40px; line-height:0;',
     }),
-    contentWidth: ContentWidth.Boxed,
-    contentLayoutNav: AppContentLayoutNav.Vertical,
+    contentWidth: ContentWidth.Fluid,
+    contentLayoutNav: AppContentLayoutNav.Horizontal,
     overlayNavFromBreakpoint: breakpointsVuetifyV3.lg - 1, // 1 for matching with vuetify breakpoint. Docs: https://next.vuetifyjs.com/en/features/display-and-platform/
     i18n: {
       enable: false,
@@ -42,14 +42,14 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
     iconRenderer: VIcon,
   },
   navbar: {
-    type: NavbarType.Sticky,
+    type: NavbarType.Hidden,
     navbarBlur: true,
   },
-  footer: { type: FooterType.Static },
+  footer: { type: FooterType.Sticky },
   verticalNav: {
     isVerticalNavCollapsed: false,
     defaultNavItemIconProps: { icon: 'tabler-circle' },
-    isVerticalNavSemiDark: false,
+    isVerticalNavSemiDark: true,
   },
   horizontalNav: {
     type: 'sticky',
