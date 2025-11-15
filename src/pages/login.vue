@@ -26,12 +26,39 @@ const form = ref({
 const isPasswordVisible = ref(false)
 const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+
+const onSubmit = async () => {
+  try {
+    const { data, response } = await useApi('/authentication/login', {
+      method: 'POST',
+      body: {
+        email: form.value.email,
+        password: form.value.password,
+      },
+    })
+
+    console.log('Login response:', data)
+
+    // ✅ Simpan token ke cookie jika login sukses
+    if (data?.accessToken) {
+      useCookie('accessToken').value = data.accessToken
+    }
+
+    // ✅ Redirect ke halaman utama
+    if (response.ok) {
+      window.location.href = '/'
+    }
+  } catch (error) {
+    console.error('Login failed:', error)
+  }
+}
+
 </script>
 
 <template>
   <a href="javascript:void(0)">
     <div class="auth-logo d-flex align-center gap-x-3">
-      <VNodeRenderer :nodes="themeConfig.app.logo" />
+      <VNodeRenderer :nodes="themeConfig.app.logo"/>
       <h1 class="auth-title">
         {{ themeConfig.app.title }}
       </h1>
@@ -87,7 +114,7 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
           </p>
         </VCardText>
         <VCardText>
-          <VForm @submit.prevent="() => {}">
+          <VForm @submit.prevent="onSubmit">
             <VRow>
               <!-- email -->
               <VCol cols="12">
@@ -133,38 +160,7 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
                 </VBtn>
               </VCol>
 
-              <!-- create account -->
-              <VCol
-                cols="12"
-                class="text-body-1 text-center"
-              >
-                <span class="d-inline-block">
-                  New on our platform?
-                </span>
-                <a
-                  class="text-primary ms-1 d-inline-block text-body-1"
-                  href="javascript:void(0)"
-                >
-                  Create an account
-                </a>
-              </VCol>
 
-              <VCol
-                cols="12"
-                class="d-flex align-center"
-              >
-                <VDivider />
-                <span class="mx-4">or</span>
-                <VDivider />
-              </VCol>
-
-              <!-- auth providers -->
-              <VCol
-                cols="12"
-                class="text-center"
-              >
-                <AuthProvider />
-              </VCol>
             </VRow>
           </VForm>
         </VCardText>
