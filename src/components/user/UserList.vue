@@ -3,24 +3,48 @@ import { ref, computed, watch } from 'vue'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
-import { format } from "date-fns"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import { format } from "date-fns"
+import { useApi } from "@/composables/useApi"
+import AddNewUserDrawer from "@/components/user/AddNewUserDrawer.vue"
 
-// --- Reactive states
+// --- Constants
+const ITEMS_PER_PAGE_OPTIONS = [
+  { value: 10, title: '10' },
+  { value: 25, title: '25' },
+  { value: 50, title: '50' },
+  { value: 100, title: '100' },
+  { value: -1, title: 'All' },
+]
+
+const TABLE_HEADERS = [
+  { title: 'Id', key: 'id', sortable: true },
+  { title: 'Username', key: 'username', sortable: true },
+  { title: 'Name', key: 'name', sortable: true },
+  { title: 'Email', key: 'email', sortable: true },
+  { title: 'Role', key: 'role', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false },
+]
+
+// --- Reactive States
 const users = ref([])
-const totalUsers = computed(() => users.value.length)
-
-const searchQuery = ref('')
-const selectedRole = ref('')
-const selectedPlan = ref('')
-const selectedStatus = ref('')
-
-const itemsPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref('')
-const orderBy = ref('')
+const itemsPerPage = ref(10)
+const searchQuery = ref('')
+const sortBy = ref('id')
+const orderBy = ref('asc')
+const loading = ref(false)
 
-// --- Helper: build query string
+// --- UI States
+const isAddNewUserDrawerVisible = ref(false)
+const showDeleteDialog = ref(false)
+const selectedUser = ref(null)
+const formErrors = ref({})
+
+// --- Computed
+const totalUsers = computed(() => users.value?.length ?? 0)
+
+// --- Build query string
 function buildQuery(params) {
   return Object.entries(params)
     .filter(([_, v]) => v !== null && v !== undefined && v !== '')
@@ -28,234 +52,205 @@ function buildQuery(params) {
     .join('&')
 }
 
-const isAddNewUserDrawerVisible = ref(false)
-const formErrors = ref({})
+// --- Fetch users from API
+async function fetchUsers() {
+  loading.value = true
+  try {
+    const queryStr = buildQuery({
+      query: searchQuery.value,
+      page: page.value,
+      size: itemsPerPage.value,
+      sort: sortBy.value,
+      order: orderBy.value,
+    })
 
-const toggleAddNewUserDrawerVisible = () => {
-  isAddNewUserDrawerVisible.value = !isAddNewUserDrawerVisible.value
+    const { data, error } = await useApi(`/users?${queryStr}`).get().json()
+
+    if (error.value) {
+      throw new Error(error.value.message || 'Failed to fetch users')
+    }
+
+    users.value = data.value?.users ?? []
+  } catch (err) {
+    console.error('Failed to fetch users:', err)
+    users.value = []
+  } finally {
+    loading.value = false
+  }
 }
 
-const showDeleteDialog = ref(false)
-const selectedUser = ref(null)
+// --- Drawer handlers
+const openAddUserDrawer = () => {
+  selectedUser.value = null
+  formErrors.value = {}
+  isAddNewUserDrawerVisible.value = true
+}
 
-const openDeleteDialog = (paramSelectedUser) => {
-  selectedUser.value = paramSelectedUser
+const closeAddUserDrawer = () => {
+  isAddNewUserDrawerVisible.value = false
+  selectedUser.value = null
+  formErrors.value = {}
+}
+
+// --- Edit user
+function handleEdit(row) {
+  selectedUser.value = { ...row }
+  isAddNewUserDrawerVisible.value = true
+}
+
+// --- Delete dialog
+const openDeleteDialog = user => {
+  selectedUser.value = user
   showDeleteDialog.value = true
 }
 
-// --- Fetch users
-async function fetchUsers() {
-  try {
-    const query = buildQuery({
-      q: searchQuery.value,
-      role: selectedRole.value,
-      plan: selectedPlan.value,
-      status: selectedStatus.value,
-      itemsPerPage: itemsPerPage.value,
-      page: page.value,
-      sortBy: sortBy.value,
-      orderBy: orderBy.value,
-    })
-
-    const response = await $api(`/users?${query}`, { method: 'GET' })
-
-    users.value = response.users
-  } catch (err) {
-    console.error('Failed to fetch users:', err)
-  }
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  selectedUser.value = null
 }
 
-function handleEdit(row) {
-  selectedUser.value = { ...row }
-  isAddNewUserDrawerVisible.value = true          // buka drawer
-}
+// --- Save user (Create or Update)
+async function saveUser(userData) {
+  const isUpdate = Boolean(userData.id)
+  const method = isUpdate ? 'put' : 'post'
+  const endpoint = isUpdate ? `/users/${userData.id}` : '/users'
 
-const filteredUsers = computed(() => {
-  let temp = users.value
-
-  // Search filter
-  if (searchQuery.value)
-    temp = temp.filter(u =>
-      u.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.value.toLowerCase()),
-    )
-
-  // Sorting
-  if (sortBy.value) {
-    temp = [...temp].sort((a, b) => {
-      if (a[sortBy.value] < b[sortBy.value]) return orderBy.value === 'desc' ? 1 : -1
-      if (a[sortBy.value] > b[sortBy.value]) return orderBy.value === 'desc' ? -1 : 1
-      return 0
-    })
-  }
-
-  return temp
-})
-
-
-// --- Watch filters to refetch
-watch([searchQuery, selectedRole, selectedPlan, selectedStatus, itemsPerPage, page, sortBy, orderBy], fetchUsers, { immediate: true })
-
-// --- Create user
-async function addNewUser(userData) {
-  let requestMethod = 'POST'
-  let requestEndpoint = '/users'
-  if (userData.id) {
-    requestMethod = 'PUT'
-    requestEndpoint = `/users/${userData.id}`
-  }
+  console.log(userData)
   try {
-    const newUser = await $api(requestEndpoint, {
-      method: requestMethod,
-      body: JSON.stringify(userData),
-      headers: { 'Content-Type': 'application/json' },
-    })
+    const { data, error } = await useApi(endpoint)[method](userData).json()
 
-    isAddNewUserDrawerVisible.value = false // tutup drawer kalau sukses
-    formErrors.value = {} // reset error
+    if (error.value) {
+      const errorData = error.value
+      if (errorData.status === 422 && errorData.errors) {
+        formErrors.value = errorData.errors
 
-    fetchUsers()
-
-    return newUser
-  } catch (err) {
-    if (err.response?.status === 422) {
-      // Laravel validation errors
-      formErrors.value = err.response._data.errors
-    } else {
-      processApiError(err, formErrors)
+        return
+      }
+      throw new Error(errorData.message || 'Failed to save user')
     }
+
+    closeAddUserDrawer()
+    await fetchUsers()
+  } catch (err) {
+    console.error('Failed to save user:', err)
   }
 }
-
-const hmiUserResponses = ref([])
-
 
 // --- Delete user
 async function deleteUser(description) {
-  try {
-    if (selectedUser.value.id === null) {
-      toast.error('Pick a data first')
-    }
-    const response = await $api(`/users/${selectedUser.value.id}`, {
-      method: 'DELETE',
-      body: { description },
-    })
-    users.value = response.users
+  if (!selectedUser.value?.id) {
+    console.warn('No user selected for deletion')
 
+    return
+  }
+
+  try {
+    const { error } = await useApi(`/users/${selectedUser.value.id}`).delete({ description }).json()
+
+    if (error.value) {
+      throw new Error(error.value.message || 'Failed to delete user')
+    }
+
+    closeDeleteDialog()
+    await fetchUsers()
   } catch (err) {
     console.error('Failed to delete user:', err)
   }
 }
 
-// --- Table headers
-const headers = [
-  { title: 'Id', key: 'id' },
-  { title: 'Email', key: 'email' },
-  { title: 'Name', key: 'name' },
-  { title: 'Role', key: 'role' },
-  { title: 'HMI User', key: 'hmi_user' },
-  { title: 'Username', key: 'username' },
-  { title: 'Created At', key: 'created_at' },
-  { title: 'Updated At', key: 'updated_at' },
-  { title: 'Actions', key: 'actions', sortable: false },
-]
+// --- Reset pagination when search changes
+const resetPage = () => {
+  page.value = 1
+}
 
+// --- Watch filters to refetch
+watch([searchQuery], resetPage)
+watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediate: true })
 </script>
 
 <template>
   <section>
     <VCard>
-      <VCardText class="d-flex flex-wrap gap-4">
+      <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">
+        <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
-          <p class="text-body-1 mb-0">
-            Show
-          </p>
+          <span class="text-body-1">Show</span>
           <AppSelect
+            :items="ITEMS_PER_PAGE_OPTIONS"
             :model-value="itemsPerPage"
-            :items="[
-              { value: 10, title: '10' },
-              { value: 25, title: '25' },
-              { value: 50, title: '50' },
-              { value: 100, title: '100' },
-              { value: -1, title: 'All' },
-            ]"
             style="inline-size: 5.5rem;"
             @update:model-value="itemsPerPage = parseInt($event, 10)"
           />
         </div>
 
-        <VSpacer/>
-
-        <div class="d-flex align-center flex-wrap gap-4">
-          <VBtn color="primary"
-                @click="toggleAddNewUserDrawerVisible"
-          >
-            Create New User
-          </VBtn>
-          <!-- 👉 Search  -->
+        <!-- Right side controls -->
+        <div class="d-flex gap-2 align-center flex-wrap">
           <AppTextField
             v-model="searchQuery"
-            placeholder="Search User"
+            clearable
+            placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-
-          <!-- 👉 Add user button -->
-
+          <VBtn
+            color="primary"
+            @click="openAddUserDrawer"
+          >
+            + New User
+          </VBtn>
         </div>
       </VCardText>
 
-      <VDivider/>
+      <VDivider />
 
-      <!-- SECTION datatable -->
+      <!-- Data Table -->
       <VDataTable
-        :headers="headers"
-        :items="filteredUsers"
-        :items-per-page="itemsPerPage"
         v-model:page="page"
+        :headers="TABLE_HEADERS"
+        :items="users"
+        :items-per-page="itemsPerPage"
+        :loading="loading"
         class="text-no-wrap"
-        @update:options="updateOptions"
+        no-data-text="No users found"
       >
+        <!-- ID Column -->
         <template #item.id="{ index }">
-          <div class="d-flex align-center gap-x-4">
-            {{ (page - 1) * itemsPerPage + index + 1 }}
-          </div>
+          {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
-        <template #item.updated_at="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            {{ format(item.updated_at, 'dd MMM yyyy HH:mm:ss') }}
-          </div>
-        </template>
+
+
+        <!-- Created At Column -->
         <template #item.created_at="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            {{ format(item.created_at, 'dd MMM yyyy HH:mm:ss') }}
-          </div>
-        </template>
-        <template #item.hmi_user="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            {{ item.hmi_user?.username }}
-          </div>
+          {{ format(new Date(item.created_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
 
-        <template #item.role="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            {{ item.name }}
-          </div>
+        <!-- Updated At Column -->
+        <template #item.updated_at="{ item }">
+          {{ format(new Date(item.updated_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
 
-        <!-- Actions -->
+        <!-- Actions Column -->
         <template #item.actions="{ item }">
-
-
-          <IconBtn>
-            <VIcon icon="tabler-pencil" @click="handleEdit(item)"/>
-          </IconBtn>
-          <IconBtn @click="openDeleteDialog(item)">
-            <VIcon icon="tabler-trash"/>
-          </IconBtn>
-
-
+          <template
+            size="x-small"
+            @click="handleEdit(item)"
+          >
+            <VIcon
+              icon="tabler-pencil"
+              size="20"
+            />
+          </template>
+          <template
+            size="x-small"
+            @click="openDeleteDialog(item)"
+          >
+            <VIcon
+              icon="tabler-trash"
+              size="20"
+            />
+          </template>
         </template>
 
+        <!-- Bottom Pagination -->
         <template #bottom>
           <TablePagination
             v-model:page="page"
@@ -264,37 +259,33 @@ const headers = [
           />
         </template>
       </VDataTable>
-      <!-- SECTION -->
     </VCard>
 
+    <!-- Delete Dialog -->
     <DeleteDialog
       v-model="showDeleteDialog"
+      :fields="[{
+        key: 'reason',
+        label: 'Reason',
+        placeholder: 'Type your reason...',
+        type: 'text'
+      }]"
+      message="Please provide a reason for deletion"
       title="Delete User"
-      message="Tell a reason why?"
-      :fields="[{ key: 'reason', label: 'Reason', placeholder: 'Type your reason...', type: 'text' }]"
       @submit="deleteUser"
     />
 
-    <!-- 👉 Add New User -->
-    <!--    <AddNewUserDrawer-->
-    <!--      v-model:is-drawer-open="isAddNewUserDrawerVisible"-->
-    <!--      :user-data="selectedUser"-->
-    <!--      :form-errors="formErrors"-->
-    <!--      @user-data="addNewUser"-->
-    <!--    />-->
+    <!-- Add/Edit User Drawer -->
+    <AddNewUserDrawer
+      v-model:is-drawer-open="isAddNewUserDrawerVisible"
+      :form-errors="formErrors"
+      :user-data="selectedUser"
+      @close="closeAddUserDrawer"
+      @user-data="saveUser"
+    />
   </section>
 </template>
 
 <style scoped>
-.filter-list {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.filter-list > * {
-  flex: 1 1 150px;
-  max-width: 300px;
-}
+/* Remove unused styles */
 </style>

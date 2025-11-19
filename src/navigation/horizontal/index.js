@@ -5,9 +5,8 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Drawings',
-    to: { name: 'dynamic-dashboard' },
-    icon: { icon: 'tabler-brand-tabler' },
+    title: 'Pipeline',
+    icon: { icon: 'tabler-code' },
     children: [
       {
         title: 'Dynamic Dashboard',
@@ -29,11 +28,7 @@ export default [
         to: { name: 'database-connections' },
         icon: { icon: 'tabler-database-star' },
       },
-      {
-        title: 'Machines',
-        to: { name: 'database-connections' },
-        icon: { icon: 'tabler-building-factory' },
-      },
+
     ],
   },
   {
@@ -41,6 +36,11 @@ export default [
     to: { name: 'root' },
     icon: { icon: 'tabler-device-desktop-cog' },
     children: [
+      {
+        title: 'Machines',
+        to: { name: 'database-connections' },
+        icon: { icon: 'tabler-building-factory' },
+      },
       {
         title: 'User',
         to: { name: 'user' },
@@ -53,5 +53,4 @@ export default [
       },
     ],
   },
-
 ]

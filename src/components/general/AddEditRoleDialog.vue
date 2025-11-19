@@ -1,5 +1,7 @@
 <script setup>
 import { VForm } from 'vuetify/components/VForm'
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import DialogCloseBtn from "@core/components/DialogCloseBtn.vue"
 
 const props = defineProps({
   rolePermissions: {
@@ -17,18 +19,18 @@ const props = defineProps({
   },
 })
 
-const permissions = ref([])
-
 const emit = defineEmits([
   'update:isDialogVisible',
-  'update:rolePermissions',
+  'submit',
 ])
 
-
-const role = ref('')
+const permissions = ref([])
+const name = ref('')
+const description = ref('')
 const refPermissionForm = ref()
+
 const checkedCount = computed(() =>
-  permissions.value.filter(p => p.checked).length,
+  permissions?.value.filter(p => p.checked).length,
 )
 
 const totalPermissionCount = computed(() => permissions.value.length)
@@ -44,7 +46,7 @@ const isIndeterminate = computed(() =>
 
 const isSelectAll = computed({
   get: () => checkedCount.value === totalPermissionCount.value && totalPermissionCount.value > 0,
-  set: (val) => {
+  set: val => {
     permissions.value = permissions.value.map(p => ({ ...p, checked: val }))
   },
 })
@@ -56,11 +58,12 @@ const isSelectAll = computed({
 // if rolePermissions is not empty, then set permissions
 watch(
   () => props.rolePermissions,
-  (newVal) => {
+  newVal => {
     if (newVal && newVal.permissions?.length) {
       role.value = newVal.name
       permissions.value = permissions.value.map(permission => {
         const rolePermission = newVal.permissions.find(item => item.name === permission.name)
+
         return rolePermission ? { ...permission, ...rolePermission, checked: true } : { ...permission, checked: false }
       })
     }
@@ -72,25 +75,29 @@ watch(
 // Group by feature
 const groupedPermissions = computed(() => {
   const groups = {}
+
   permissions.value.forEach(p => {
     if (!groups[p.feature]) {
       groups[p.feature] = { feature: p.feature, name: p.label, permissions: [] }
     }
     groups[p.feature].permissions.push(p)
   })
+
   return groups
 })
 
 const fetchPermissions = async () => {
   try {
     const response = await $api(`/permissions`, { method: 'GET' })
-    permissions.value = response.permissions
+
+    permissions.value = response.permissions ?? []
 
     // Jika rolePermissions dari parent sudah ada, merge disini
     if (props.rolePermissions && props.rolePermissions.permissions?.length) {
       role.value = props.rolePermissions.name
       permissions.value = permissions.value.map(permission => {
         const rolePermission = props.rolePermissions.permissions.find(item => item.name === permission.name)
+
         return rolePermission ? { ...permission, ...rolePermission, checked: true } : permission
       })
     }
@@ -106,18 +113,19 @@ onMounted(() => {
 })
 
 const onSubmit = async () => {
-  const selectedPermissionIds = permissions.value
-    .filter(p => p.checked) // ambil hanya yang dicentang
-    .map(p => p.id)
+  // const selectedPermissionIds = permissions.value
+  //   .filter(p => p.checked) // ambil hanya yang dicentang
+  //   .map(p => p.id)
+  console.log(name, description)
 
   const payload = {
-    role_id: props.rolePermissions?.id || null,
-    permission_id: selectedPermissionIds,
+    name: name.value,
+    description: description.value,
   }
 
 
   emit('update:isDialogVisible', false)
-  emit('update:rolePermissions', payload)
+  emit('submit', payload)
 
   isSelectAll.value = false
   refPermissionForm.value?.reset()
@@ -134,12 +142,12 @@ const onReset = () => {
 
 <template>
   <VDialog
-    :width="$vuetify.display.smAndDown ? 'auto' : 900"
     :model-value="props.isDialogVisible"
+    :width="$vuetify.display.smAndDown ? 'auto' : 900"
     @update:model-value="onReset"
   >
     <!-- 👉 Dialog close btn -->
-    <DialogCloseBtn @click="onReset"/>
+    <DialogCloseBtn @click="onReset" />
 
     <VCard class="pa-sm-10 pa-2">
       <VCardText>
@@ -155,9 +163,15 @@ const onReset = () => {
         <VForm ref="refPermissionForm">
           <!-- 👉 Role name -->
           <AppTextField
-            v-model="role"
+            v-model="name"
             label="Role Name"
             placeholder="Enter Role Name"
+          />
+          <AppTextField
+            v-model="description"
+            class="my-3"
+            label="Description"
+            placeholder="Enter Description"
           />
 
           <h5 class="text-h5 my-6">
@@ -177,8 +191,8 @@ const onReset = () => {
               <td colspan="4">
                 <div class="d-flex justify-end">
                   <VCheckbox
-                    :model-value="isSelectAll"
                     :indeterminate="isIndeterminate"
+                    :model-value="isSelectAll"
                     label="Select All"
                     @update:model-value="isSelectAll = $event"
                   />
@@ -187,14 +201,22 @@ const onReset = () => {
             </tr>
 
             <!-- 👉 Other permission loop -->
-            <template v-for="group in groupedPermissions" :key="group.feature">
+            <template
+              v-for="group in groupedPermissions"
+              :key="group.feature"
+            >
               <tr>
                 <td>
-                  <h6 class="text-h6">{{ group.feature }}</h6>
+                  <h6 class="text-h6">
+                    {{ group.feature }}
+                  </h6>
                 </td>
 
                 <!-- Permission checkboxes -->
-                <td v-for="permission in group.permissions" :key="permission.id">
+                <td
+                  v-for="permission in group.permissions"
+                  :key="permission.id"
+                >
                   <div class="d-flex justify-end text-danger">
                     <VCheckbox
                       v-model="permission.checked"

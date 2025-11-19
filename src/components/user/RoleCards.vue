@@ -2,9 +2,9 @@
 import girlUsingMobile from '@images/pages/girl-using-mobile.png'
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import AddEditRoleDialog from "@/components/general/AddEditRoleDialog.vue"
+import { toast } from "vue3-toastify"
 
 
-const isRoleDialogVisible = ref(false)
 const roleDetail = ref()
 const isAddRoleDialogVisible = ref(false)
 const roles = ref([])
@@ -12,7 +12,10 @@ const formErrors = ref({})
 
 async function fetchRoles() {
   try {
-    roles.value = await $api(`/roles`, { method: 'GET' })
+    const response = await $api(`/roles`, { method: 'GET' })
+
+    roles.value = response.data
+    console.log(response)
   } catch (err) {
     console.error('Failed to fetch users:', err)
   }
@@ -21,7 +24,7 @@ async function fetchRoles() {
 const showDeleteDialog = ref(false)
 const selectedRole = ref(null)
 
-const openDeleteDialog = (paramSelectedRole) => {
+const openDeleteDialog = paramSelectedRole => {
   selectedRole.value = paramSelectedRole
   showDeleteDialog.value = true
 }
@@ -29,12 +32,12 @@ const openDeleteDialog = (paramSelectedRole) => {
 const saveRole = async payload => {
   try {
 
-    const response = await $api('/permissions/relation', {
+    const response = await $api('/roles', {
       method: 'POST',
       body: payload,
     })
 
-    toast.success('Permission succesfully changed!, please login again to take effects')
+    toast.success('Permission successfully changed!, please login again to take effects')
 
   } catch (err) {
     console.error('❌ Failed to save role relation:', err)
@@ -47,7 +50,7 @@ onMounted(() => {
 
 const editPermission = value => {
 
-  isRoleDialogVisible.value = true
+  isAddRoleDialogVisible.value = true
   roleDetail.value = value
 }
 
@@ -70,13 +73,12 @@ async function deleteRole(description) {
 
 <template>
   <VRow>
-    <!-- 👉 Roles -->
     <VCol
       v-for="item in roles"
       :key="item.id"
       cols="12"
-      sm="6"
       lg="4"
+      sm="6"
     >
       <VCard>
         <VCardText class="d-flex align-center pb-4">
@@ -84,14 +86,13 @@ async function deleteRole(description) {
             Total {{ item.users?.length }} users
           </div>
 
-          <VSpacer/>
-
+          <VSpacer />
         </VCardText>
 
         <VCardText>
           <div class="d-flex justify-space-between align-center">
             <div>
-              <h5 class="text-h5">
+              <h5 class="text-h4">
                 {{ item.name }}
               </h5>
               <div class="d-flex align-center">
@@ -104,34 +105,33 @@ async function deleteRole(description) {
               </div>
             </div>
             <IconBtn @click="openDeleteDialog(item)">
-              <VIcon icon="tabler-trash"/>
+              <VIcon icon="tabler-trash" />
             </IconBtn>
           </div>
         </VCardText>
       </VCard>
     </VCol>
-
     <!-- 👉 Add New Role -->
     <VCol
       cols="12"
-      sm="6"
       lg="4"
+      sm="6"
     >
       <VCard
-        class="h-100"
         :ripple="false"
+        class="h-100"
       >
         <VRow
-          no-gutters
           class="h-100"
+          no-gutters
         >
           <VCol
-            cols="5"
             class="d-flex flex-column justify-end align-center mt-5"
+            cols="5"
           >
             <img
-              width="85"
               :src="girlUsingMobile"
+              width="85"
             >
           </VCol>
 
@@ -150,20 +150,19 @@ async function deleteRole(description) {
           </VCol>
         </VRow>
       </VCard>
-      <AddEditRoleDialog v-model:is-dialog-visible="isAddRoleDialogVisible"/>
     </VCol>
   </VRow>
 
   <AddEditRoleDialog
-    v-model:is-dialog-visible="isRoleDialogVisible"
+    v-model:is-dialog-visible="isAddRoleDialogVisible"
     v-model:role-permissions="roleDetail"
-    @update:role-permissions="saveRole"
+    @submit="saveRole"
   />
   <DeleteDialog
     v-model="showDeleteDialog"
-    title="Delete Role"
-    message="Tell a reason why?"
     :fields="[{ key: 'reason', label: 'Reason', placeholder: 'Type your reason...', type: 'text' }]"
+    message="Tell a reason why?"
+    title="Delete Role"
     @submit="deleteRole"
   />
 </template>
