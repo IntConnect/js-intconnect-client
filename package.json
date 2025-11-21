@@ -17,6 +17,7 @@
     "@casl/vue": "2.2.2",
     "@floating-ui/dom": "1.6.8",
     "@formkit/drag-and-drop": "0.1.6",
+    "@jaxtheprime/vue3-dropzone": "^3.4.5",
     "@sindresorhus/is": "7.0.1",
     "@tailwindcss/postcss": "^4.1.14",
     "@tailwindcss/vite": "^4.1.14",

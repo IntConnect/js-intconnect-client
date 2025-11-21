@@ -25,6 +25,9 @@ importers:
       '@formkit/drag-and-drop':
         specifier: 0.1.6
         version: 0.1.6
+      '@jaxtheprime/vue3-dropzone':
+        specifier: ^3.4.5
+        version: 3.4.5(vue@3.5.14(typescript@5.9.3))
       '@sindresorhus/is':
         specifier: 7.0.1
         version: 7.0.1
@@ -916,6 +919,11 @@ packages:
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
+
+  '@jaxtheprime/vue3-dropzone@3.4.5':
+    resolution: {integrity: sha512-y+hOC20nTgc0VLe/uwyAml2Sq7eTOucM0DTNu9BZCI3uhgIW9vIGEhquE8OwAif8dpn8BZ/4NIX+/0PZfB0P9w==}
+    peerDependencies:
+      vue: ^3.4.19
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -5780,6 +5788,10 @@ snapshots:
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.2
+
+  '@jaxtheprime/vue3-dropzone@3.4.5(vue@3.5.14(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.14(typescript@5.9.3)
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

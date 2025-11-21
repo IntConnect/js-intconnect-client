@@ -38,8 +38,8 @@ export default [
     children: [
       {
         title: 'Machines',
-        to: { name: 'database-connections' },
-        icon: { icon: 'tabler-building-factory' },
+        to: { name: 'machines' },
+        icon: { icon: 'tabler-brand-databricks' },
       },
       {
         title: 'User',
