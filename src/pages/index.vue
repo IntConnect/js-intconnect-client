@@ -10,6 +10,15 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
   <div>
     <VRow class="match-height">
       <VCol
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <AnalyticsEarningReportsWeeklyOverview />
+      </VCol>
+    </VRow>
+    <VRow class="match-height">
+      <VCol
         class="d-flex"
         cols="7"
         lg="7"

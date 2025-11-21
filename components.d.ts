@@ -20,6 +20,7 @@ declare module 'vue' {
     AddNewUserDrawer: typeof import('./src/components/user/AddNewUserDrawer.vue')['default']
     AddPaymentMethodDialog: typeof import('./src/components/dialogs-demo/AddPaymentMethodDialog.vue')['default']
     AnalyticsAverageDailySales: typeof import('./src/components/dashboard/AnalyticsAverageDailySales.vue')['default']
+    AnalyticsEarningReportsWeeklyOverview: typeof import('./src/components/dashboard/AnalyticsEarningReportsWeeklyOverview.vue')['default']
     ApexChartAreaChart: typeof import('./src/components/dashboard/ApexChartAreaChart.vue')['default']
     ApexChartBalance: typeof import('./src/components/dashboard/ApexChartBalance.vue')['default']
     ApexChartDataScience: typeof import('./src/components/dashboard/ApexChartDataScience.vue')['default']
