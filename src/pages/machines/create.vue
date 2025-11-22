@@ -29,6 +29,7 @@ const formData = ref({
   name: '',
   code: '',
   description: '',
+  model: '',
   documents: [
     {
       title: '',
@@ -138,8 +139,11 @@ const removeDocument = index => {
                 cols="12"
                 md="6"
               >
+                <p class="text-body-2">
+                  3D Model
+                </p>
                 <Vue3Dropzone
-                  v-model="doc.files"
+                  v-model="formData.model"
                   :max-file-size="1"
                 />
               </VCol>
