@@ -47,8 +47,8 @@ export default [
         icon: { icon: 'tabler-user' },
       },
       {
-        title: 'Permission',
-        to: { name: 'permission' },
+        title: 'Permissions',
+        to: { name: 'permissions' },
         icon: { icon: 'tabler-brand-auth0' },
       },
     ],

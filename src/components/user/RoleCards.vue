@@ -2,74 +2,27 @@
 import girlUsingMobile from '@images/pages/girl-using-mobile.png'
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import AddEditRoleDialog from "@/components/general/AddEditRoleDialog.vue"
-import { toast } from "vue3-toastify"
 
+const {
+  roles,
+  roleDetail,
+  selectedRole,
+  formErrors,
+  isAddRoleDialogVisible,
+  showDeleteDialog,
 
-const roleDetail = ref()
-const isAddRoleDialogVisible = ref(false)
-const roles = ref([])
-const formErrors = ref({})
-
-async function fetchRoles() {
-  try {
-    const response = await $api(`/roles`, { method: 'GET' })
-
-    roles.value = response.data
-    console.log(response)
-  } catch (err) {
-    console.error('Failed to fetch users:', err)
-  }
-}
-
-const showDeleteDialog = ref(false)
-const selectedRole = ref(null)
-
-const openDeleteDialog = paramSelectedRole => {
-  selectedRole.value = paramSelectedRole
-  showDeleteDialog.value = true
-}
-
-const saveRole = async payload => {
-  try {
-
-    const response = await $api('/roles', {
-      method: 'POST',
-      body: payload,
-    })
-
-    toast.success('Permission successfully changed!, please login again to take effects')
-
-  } catch (err) {
-    console.error('❌ Failed to save role relation:', err)
-  }
-}
+  fetchRoles,
+  saveRole,
+  deleteRole,
+  openDeleteDialog,
+  editPermission,
+} = useRole()
 
 onMounted(() => {
   fetchRoles()
 })
-
-const editPermission = value => {
-
-  isAddRoleDialogVisible.value = true
-  roleDetail.value = value
-}
-
-async function deleteRole(description) {
-  try {
-    if (selectedRole.value.id === null) {
-      toast.error('Pick a data first')
-    }
-    await $api(`/roles/${selectedRole.value.id}`, {
-      method: 'DELETE',
-      body: { description },
-    })
-    fetchRoles()
-    toast.success('Role successfully deleted')
-  } catch (err) {
-    processApiError(err, formErrors)
-  }
-}
 </script>
+
 
 <template>
   <VRow>

@@ -60,6 +60,7 @@ declare module 'vue' {
     EnableOneTimePasswordDialog: typeof import('./src/components/dialogs-demo/EnableOneTimePasswordDialog.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
+    ItemsPerPage: typeof import('./src/components/table/ItemsPerPage.vue')['default']
     ManagePipelineDialog: typeof import('./src/components/dialogs/ManagePipelineDialog.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
     MqttInModal: typeof import('./src/components/flow/nodes/MqttInModal.vue')['default']

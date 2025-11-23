@@ -361,6 +361,13 @@
     "watchWithFilter": true,
     "whenever": true,
     "useCreateStaff": true,
-    "useCreateMachine": true
+    "useCreateMachine": true,
+    "useCreateRole": true,
+    "useRole": true,
+    "ITEMS_PER_PAGE_OPTIONS": true,
+    "useFetchPermission": true,
+    "useManageRole": true,
+    "itemsPerPage": true,
+    "ItemsPerPage": true
   }
 }

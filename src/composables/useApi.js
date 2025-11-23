@@ -10,7 +10,8 @@ export const useApi = createFetch({
   },
   options: {
     refetch: true,
-    async beforeFetch({ options }) {
+    beforeFetch({ url, options }) {
+
       const accessToken = useCookie('accessToken').value
       if (accessToken) {
         options.headers = {
@@ -18,7 +19,7 @@ export const useApi = createFetch({
           Authorization: `Bearer ${accessToken}`,
         }
       }
-      
+
       return { options }
     },
     afterFetch(ctx) {
@@ -28,11 +29,10 @@ export const useApi = createFetch({
       let parsedData = null
       try {
         parsedData = destr(data)
-      }
-      catch (error) {
+      } catch (error) {
         console.error(error)
       }
-      
+
       return { data: parsedData, response }
     },
   },
