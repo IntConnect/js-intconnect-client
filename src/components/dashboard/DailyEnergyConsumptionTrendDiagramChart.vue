@@ -108,7 +108,7 @@ const series = [{
   <VueApexCharts
     :options="chartConfig"
     :series="series"
-    height="400"
+    height="300"
     type="bar"
   />
 </template>

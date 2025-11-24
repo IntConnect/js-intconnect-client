@@ -133,6 +133,9 @@ importers:
       three:
         specifier: ^0.181.1
         version: 0.181.1
+      three-mesh-ui:
+        specifier: ^6.5.4
+        version: 6.5.4(three@0.181.1)
       ufo:
         specifier: 1.6.1
         version: 1.6.1
@@ -4629,6 +4632,12 @@ packages:
 
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
+
+  three-mesh-ui@6.5.4:
+    resolution: {integrity: sha512-QA2KlHrbj7zGjKqpNXcwvini8g5gOXb44ExdupVpxCqmHln/sWNGOmN0yIa/HjnMGYJWP4M+NchTHvwUp+MWIw==}
+    engines: {node: x.x.x}
+    peerDependencies:
+      three: '>=0.144.0'
 
   three@0.181.1:
     resolution: {integrity: sha512-bz9xZUQMw3pJbjKy7roiwXWgAp+oVUa+4k5o0oBAQ+IFJuru1xzvtk63h6k72XZanXS/SgoEhV6927Vgazyq2w==}
@@ -9972,6 +9981,10 @@ snapshots:
     optional: true
 
   text-table@0.2.0: {}
+
+  three-mesh-ui@6.5.4(three@0.181.1):
+    dependencies:
+      three: 0.181.1
 
   three@0.181.1: {}
 
