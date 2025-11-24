@@ -1,8 +1,10 @@
 <script setup>
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
+import { useApi } from "@/composables/useApi"
 
 const props = defineProps({
   isDrawerOpen: {
@@ -17,100 +19,161 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits([
   'update:isDrawerOpen',
   'userData',
+  'close',
 ])
 
-
+// ==========================================
+// Form State
+// ==========================================
 const isFormValid = ref(false)
 const refForm = ref()
 
-// form fields
+// Form fields
 const id = ref('')
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+const username = ref('johndoe')
+const name = ref('John Doe')
+const email = ref('johndoe@gmail.com')
+const password = ref('123')
+const confirmPassword = ref('123')
 const roleId = ref('')
-const roles = ref([])
-const username = ref('')
 
-// eye toggle
+// Password visibility
 const isPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
 
-// 👉 drawer close
+// ==========================================
+// Computed
+// ==========================================
+const isEditMode = computed(() => Boolean(id.value))
+
+const passwordRules = computed(() => {
+  // Password required only for create mode
+  return isEditMode.value ? [] : [requiredValidator]
+})
+
+// ==========================================
+// Methods
+// ==========================================
+
+/**
+ * Close drawer and reset form
+ */
 const closeNavigationDrawer = () => {
   emit('update:isDrawerOpen', false)
+  emit('close')
+
   nextTick(() => {
     refForm.value?.reset()
     refForm.value?.resetValidation()
   })
 }
 
+/**
+ * Handle form submission
+ */
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
-    if (valid) {
-      if (password.value !== confirmPassword.value) {
-        alert('Passwords do not match')
+    if (!valid) return
 
-        return
-      }
+    // Validate password match (only if password is provided)
+    if (password.value && password.value !== confirmPassword.value) {
+      alert('Passwords do not match')
 
-      emit('userData', {
-        id: id.value,
-        username: username.value,
-        name: name.value,
-        email: email.value,
-        password: password.value,
-        confirmPassword: confirmPassword.value,
-        roleId: roleId.value,
-      })
-
-      nextTick(() => {
-        if (!props.isDrawerOpen) {
-          refForm.value?.reset()
-          refForm.value?.resetValidation()
-        }
-      })
+      return
     }
+
+    // Prepare user data
+    const userData = {
+      username: username.value,
+      name: name.value,
+      email: email.value,
+      role_id: roleId.value,
+    }
+
+    // Include id for update
+    if (id.value) {
+      userData.id = id.value
+    }
+
+    // Include password if provided (required for create, optional for update)
+    if (password.value) {
+      userData.password = password.value
+    }
+
+    emit('userData', userData)
   })
 }
 
+const processedRoles = ref([])
 
+const {
+  roles,
+  fetchRoles,
+} = useManageRole()
+
+onMounted(async () => {
+  await fetchRoles()
+  await nextTick()
+  console.log(roles.value)
+  processedRoles.value = roles.value.map(role => ({
+    title: role.name,
+    value: role.id,
+  }))
+})
+
+
+// ==========================================
+// Watchers
+// ==========================================
+
+/**
+ * Watch for userData changes (for edit mode)
+ */
 watch(
   () => props.userData,
   val => {
     if (val && Object.keys(val).length) {
       id.value = val.id || ''
+      username.value = val.username || ''
       name.value = val.name || ''
       email.value = val.email || ''
-      roleId.value = val.role.id
-      username.value = val.username || ''
+      roleId.value = val.role?.id || ''
+
+      // Clear password fields for edit mode
+      password.value = ''
+      confirmPassword.value = ''
     }
   },
-  { immediate: true, deep: true }, // deep: true bisa berguna kalau properti dalam objek bisa berubah
+  { immediate: true, deep: true },
 )
 
-async function fetchRoles() {
-  try {
-    const { data: response } = await useApi(`/roles`).get().json()
+/**
+ * Watch drawer close to reset form
+ */
+watch(
+  () => props.isDrawerOpen,
+  isOpen => {
+    if (!isOpen) {
+      nextTick(() => {
+        refForm.value?.reset()
+        refForm.value?.resetValidation()
+      })
+    }
+  },
+)
 
-    console.log(response.value)
-    roles.value = response.value.data.map(role => ({
-      title: role.name, // ditampilkan
-      value: role.id,     // jadi value
-    }))
-    console.log(roles)
-  } catch (err) {
-    console.error('Failed to fetch roles:', err)
-  }
-}
-
-
+// ==========================================
+// Lifecycle
+// ==========================================
 onMounted(() => {
   fetchRoles()
 })
@@ -125,14 +188,13 @@ const handleDrawerModelValueUpdate = val => {
     :model-value="props.isDrawerOpen"
     :width="400"
     class="scrollable-content"
-    data-allow-mismatch
     location="end"
     temporary
     @update:model-value="handleDrawerModelValueUpdate"
   >
-    <!-- 👉 Title -->
+    <!-- Header -->
     <AppDrawerHeaderSection
-      title="Register User"
+      :title="isEditMode ? 'Edit User' : 'Register User'"
       @cancel="closeNavigationDrawer"
     />
 
@@ -141,22 +203,25 @@ const handleDrawerModelValueUpdate = val => {
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>
         <VCardText>
-          <!-- 👉 Form -->
+          <!-- Form -->
           <VForm
             ref="refForm"
             v-model="isFormValid"
             @submit.prevent="onSubmit"
           >
             <VRow>
+              <!-- Username -->
               <VCol cols="12">
                 <AppTextField
                   v-model="username"
                   :error-messages="props.formErrors.username || []"
                   :rules="[requiredValidator]"
                   label="Username"
-                  placeholder="administrator"
+                  placeholder="johndoe"
                 />
               </VCol>
+
+              <!-- Name -->
               <VCol cols="12">
                 <AppTextField
                   v-model="name"
@@ -167,7 +232,7 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 Email -->
+              <!-- Email -->
               <VCol cols="12">
                 <AppTextField
                   v-model="email"
@@ -178,58 +243,63 @@ const handleDrawerModelValueUpdate = val => {
                 />
               </VCol>
 
-              <!-- 👉 Password -->
+              <!-- Password -->
               <VCol cols="12">
                 <AppTextField
                   v-model="password"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   :error-messages="props.formErrors.password || []"
-                  :rules="[
-                    ...(id ? [] : [requiredValidator]),
-                  ]"
+                  :label="isEditMode ? 'New Password (optional)' : 'Password'"
+                  :rules="passwordRules"
                   :type="isPasswordVisible ? 'text' : 'password'"
-                  label="Password"
                   placeholder="••••••••"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+                <div
+                  v-if="isEditMode"
+                  class="text-caption text-disabled mt-1"
+                >
+                  Leave empty to keep current password
+                </div>
               </VCol>
 
-              <!-- 👉 Confirm Password -->
+              <!-- Confirm Password -->
               <VCol cols="12">
                 <AppTextField
                   v-model="confirmPassword"
                   :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   :error-messages="props.formErrors.confirmPassword || []"
-                  :rules="[
-                    ...(id ? [] : [requiredValidator]),
-                  ]"
+                  :rules="passwordRules"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
                   label="Confirm Password"
                   placeholder="••••••••"
                   @click:append-inner="isConfirmPasswordVisible = !isConfirmPasswordVisible"
                 />
               </VCol>
+
+              <!-- Role -->
               <VCol cols="12">
                 <AppSelect
                   v-model="roleId"
-                  :items="roles"
+                  :error-messages="props.formErrors.role_id || []"
+                  :items="processedRoles"
+                  :rules="[requiredValidator]"
                   label="Role"
                   placeholder="Select role"
                 />
               </VCol>
 
-
-              <!-- 👉 Submit and Cancel -->
+              <!-- Actions -->
               <VCol cols="12">
                 <VBtn
+                  :loading="props.loading"
                   class="me-3"
                   type="submit"
                 >
-                  Register
+                  {{ isEditMode ? 'Update' : 'Register' }}
                 </VBtn>
                 <VBtn
                   color="error"
-                  type="reset"
                   variant="tonal"
                   @click="closeNavigationDrawer"
                 >

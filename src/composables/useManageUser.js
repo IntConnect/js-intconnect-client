@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-export const useManageMachine = () => {
+export const useManageUser = () => {
   // State
-  const machines = ref([])
+  const users = ref([])
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -13,17 +13,16 @@ export const useManageMachine = () => {
   const formErrors = ref({})
   const actionLoading = ref(false)
 
-
   /**
-   * Fetch machines with pagination
+   * Fetch users with pagination
    */
-  const fetchMachines = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
+  const fetchUsers = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
     loading.value = true
     error.value = null
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/machines/pagination', {
+        createUrl('/users/pagination', {
           query: { page, size, query, sort, order },
         }),
       )
@@ -31,40 +30,39 @@ export const useManageMachine = () => {
         .json()
 
       if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to fetch machines')
+        throw new Error(apiError.value.message || 'Failed to fetch users')
       }
 
       const res = response.value
 
-      console.log(res)
       if (res.success) {
-        machines.value = res.data ?? []
+        users.value = res.data ?? []
         totalItems.value = res.pagination.total_items
         currentPage.value = res.pagination.current_page
         pageSize.value = res.pagination.page_size
         totalPages.value = res.pagination.total_pages
       } else {
-        throw new Error(res.message || 'Failed to fetch machines')
+        throw new Error(res.message || 'Failed to fetch users')
       }
     } catch (err) {
       error.value = err.message
-      console.error('Failed to fetch machines:', err)
+      console.error('Failed to fetch users:', err)
     } finally {
       loading.value = false
     }
   }
 
   /**
-   * Create new machine
+   * Create new user
    */
-  const createMachine = async machineData => {
+  const createUser = async userData => {
     actionLoading.value = true
     formErrors.value = {}
     error.value = null
 
     try {
-      const { data: response, error: apiError } = await useApi('/machines')
-        .post(machineData)
+      const { data: response, error: apiError } = await useApi('/users')
+        .post(userData)
         .json()
 
       console.log(error, response)
@@ -85,7 +83,7 @@ export const useManageMachine = () => {
           return { success: false, errors: formErrors.value }
         }
 
-        throw new Error(errorData.message || 'Failed to create machine')
+        throw new Error(errorData.message || 'Failed to create user')
       }
 
       const res = response.value
@@ -93,11 +91,11 @@ export const useManageMachine = () => {
       if (res.success) {
         return { success: true, data: res.data }
       } else {
-        throw new Error(res.message || 'Failed to create machine')
+        throw new Error(res.message || 'Failed to create user')
       }
     } catch (err) {
       error.value = err.message
-      console.error('Failed to create machine:', err)
+      console.error('Failed to create user:', err)
 
       return { success: false, error: err.message }
     } finally {
@@ -106,16 +104,16 @@ export const useManageMachine = () => {
   }
 
   /**
-   * Update existing machine
+   * Update existing user
    */
-  const updateMachine = async (machineId, machineData) => {
+  const updateUser = async (userId, userData) => {
     actionLoading.value = true
     formErrors.value = {}
     error.value = null
 
     try {
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`)
-        .put(machineData)
+      const { data: response, error: apiError } = await useApi(`/users/${userId}`)
+        .put(userData)
         .json()
 
       if (apiError.value) {
@@ -132,7 +130,7 @@ export const useManageMachine = () => {
           return { success: false, errors: formErrors.value }
         }
 
-        throw new Error(errorData.message || 'Failed to update machine')
+        throw new Error(errorData.message || 'Failed to update user')
       }
 
       const res = response.value
@@ -140,11 +138,11 @@ export const useManageMachine = () => {
       if (res.success) {
         return { success: true, data: res.data }
       } else {
-        throw new Error(res.message || 'Failed to update machine')
+        throw new Error(res.message || 'Failed to update user')
       }
     } catch (err) {
       error.value = err.message
-      console.error('Failed to update machine:', err)
+      console.error('Failed to update user:', err)
 
       return { success: false, error: err.message }
     } finally {
@@ -153,19 +151,19 @@ export const useManageMachine = () => {
   }
 
   /**
-   * Delete machine
+   * Delete user
    */
-  const deleteMachine = async (machineId, reason = '') => {
+  const deleteUser = async (userId, reason = '') => {
     actionLoading.value = true
     error.value = null
 
     try {
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`)
+      const { data: response, error: apiError } = await useApi(`/users/${userId}`)
         .delete({ description: reason })
         .json()
 
       if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to delete machine')
+        throw new Error(apiError.value.message || 'Failed to delete user')
       }
 
       const res = response.value
@@ -173,11 +171,11 @@ export const useManageMachine = () => {
       if (res.success) {
         return { success: true, message: res.message }
       } else {
-        throw new Error(res.message || 'Failed to delete machine')
+        throw new Error(res.message || 'Failed to delete user')
       }
     } catch (err) {
       error.value = err.message
-      console.error('Failed to delete machine:', err)
+      console.error('Failed to delete user:', err)
 
       return { success: false, error: err.message }
     } finally {
@@ -186,20 +184,20 @@ export const useManageMachine = () => {
   }
 
   /**
-   * Save machine (create or update)
+   * Save user (create or update)
    */
-  const saveMachine = async machineData => {
-    const isUpdate = Boolean(machineData.id)
+  const saveUser = async userData => {
+    const isUpdate = Boolean(userData.id)
 
     if (isUpdate) {
-      const machineId = machineData.id
+      const userId = userData.id
 
-      // Remove id from machineData untuk update
-      const { id, ...updateData } = machineData
+      // Remove id from userData untuk update
+      const { id, ...updateData } = userData
 
-      return await updateMachine(machineId, updateData)
+      return await updateUser(userId, updateData)
     } else {
-      return await createMachine(machineData)
+      return await createUser(userData)
     }
   }
 
@@ -220,7 +218,7 @@ export const useManageMachine = () => {
 
   return {
     // State
-    machines,
+    users,
     totalItems,
     currentPage,
     pageSize,
@@ -231,11 +229,11 @@ export const useManageMachine = () => {
     formErrors,
 
     // Methods
-    fetchMachines,
-    createMachine,
-    updateMachine,
-    deleteMachine,
-    saveMachine,
+    fetchUsers,
+    createUser,
+    updateUser,
+    deleteUser,
+    saveUser,
     clearFormErrors,
     clearErrors,
   }

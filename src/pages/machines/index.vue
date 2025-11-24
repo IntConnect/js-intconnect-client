@@ -5,77 +5,48 @@ import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { format } from "date-fns"
-import { useApi } from "@/composables/useApi.js"
+
+// ==========================================
+// Composable
+// ==========================================
+const {
+  machines,
+  loading,
+  actionLoading,
+  fetchMachines,
+  saveMachine,
+  deleteMachine,
+  totalItems,
+  totalPages,
+  error,
+  formErrors,
+  clearFormErrors,
+  clearErrors,
+} = useManageMachine()
+
 
 // --- Constants
-const ITEMS_PER_PAGE_OPTIONS = [
-  { value: 10, title: '10' },
-  { value: 25, title: '25' },
-  { value: 50, title: '50' },
-  { value: 100, title: '100' },
-  { value: -1, title: 'All' },
-]
-
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
-  { title: 'Username', key: 'username', sortable: true },
+  { title: 'Code', key: 'code', sortable: true },
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Email', key: 'email', sortable: true },
-  { title: 'Role', key: 'role', sortable: true },
+  { title: 'Location', key: 'location', sortable: true },
+  { title: 'Status', key: 'status', sortable: true },
+  { title: 'Created At', key: 'created_at', sortable: true },
+  { title: 'Updated At', key: 'updated_at', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
 // --- Reactive States
-const users = ref([])
 const page = ref(1)
 const itemsPerPage = ref(10)
 const searchQuery = ref('')
 const sortBy = ref('id')
-const orderBy = ref('asc')
-const loading = ref(false)
+const sortOrder = ref("asc")
 
 // --- UI States
 const showDeleteDialog = ref(false)
 const selectedUser = ref(null)
-const formErrors = ref({})
-
-// --- Computed
-const totalUsers = computed(() => users.value?.length ?? 0)
-
-// --- Build query string
-function buildQuery(params) {
-  return Object.entries(params)
-    .filter(([_, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-    .join('&')
-}
-
-// --- Fetch users from API
-async function fetchUsers() {
-  loading.value = true
-  try {
-    const queryStr = buildQuery({
-      query: searchQuery.value,
-      page: page.value,
-      size: itemsPerPage.value,
-      sort: sortBy.value,
-      order: orderBy.value,
-    })
-
-    const { data, error } = await useApi(`/users?${queryStr}`).get().json()
-
-    if (error.value) {
-      throw new Error(error.value.message || 'Failed to fetch users')
-    }
-
-    users.value = data.value?.users ?? []
-  } catch (err) {
-    console.error('Failed to fetch users:', err)
-    users.value = []
-  } finally {
-    loading.value = false
-  }
-}
 
 
 // --- Edit user
@@ -89,41 +60,20 @@ const openDeleteDialog = user => {
   showDeleteDialog.value = true
 }
 
-const closeDeleteDialog = () => {
-  showDeleteDialog.value = false
-  selectedUser.value = null
+
+const loadMachines = async () => {
+  await fetchMachines({
+    page: page.value,
+    size: itemsPerPage.value,
+    query: searchQuery.value,
+    sort: sortBy.value,
+    order: sortOrder.value,
+  })
 }
 
-// --- Delete user
-async function deleteUser(description) {
-  if (!selectedUser.value?.id) {
-    console.warn('No user selected for deletion')
-
-    return
-  }
-
-  try {
-    const { error } = await useApi(`/users/${selectedUser.value.id}`).delete({ description }).json()
-
-    if (error.value) {
-      throw new Error(error.value.message || 'Failed to delete user')
-    }
-
-    closeDeleteDialog()
-    await fetchUsers()
-  } catch (err) {
-    console.error('Failed to delete user:', err)
-  }
-}
-
-// --- Reset pagination when search changes
-const resetPage = () => {
-  page.value = 1
-}
-
-// --- Watch filters to refetch
-watch([searchQuery], resetPage)
-watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediate: true })
+onMounted(() => {
+  loadMachines()
+})
 </script>
 
 <template>
@@ -177,11 +127,11 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
           <VDataTable
             v-model:page="page"
             :headers="TABLE_HEADERS"
-            :items="users"
+            :items="machines"
             :items-per-page="itemsPerPage"
             :loading="loading"
             class="text-no-wrap"
-            no-data-text="No users found"
+            no-data-text="No machines found"
           >
             <!-- ID Column -->
             <template #item.id="{ index }">
@@ -191,43 +141,90 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
 
             <!-- Created At Column -->
             <template #item.created_at="{ item }">
-              {{ format(new Date(item.created_at), 'dd MMM yyyy HH:mm:ss') }}
+              {{ format(new Date(item.auditable.created_at), 'dd MMM yyyy HH:mm:ss') }}
             </template>
 
             <!-- Updated At Column -->
             <template #item.updated_at="{ item }">
-              {{ format(new Date(item.updated_at), 'dd MMM yyyy HH:mm:ss') }}
+              {{ format(new Date(item.auditable.updated_at), 'dd MMM yyyy HH:mm:ss') }}
             </template>
 
             <!-- Actions Column -->
             <template #item.actions="{ item }">
-              <template
-                size="x-small"
-                @click="handleEdit(item)"
-              >
-                <VIcon
-                  icon="tabler-pencil"
-                  size="20"
-                />
-              </template>
-              <div
-                size="x-small"
-                @click="openDeleteDialog(item)"
-              >
-                <VIcon
-                  icon="tabler-trash"
-                  size="20"
-                />
+              <div class="d-flex gap-2">
+                <VBtn
+                  icon
+                  size="small"
+                  variant="tonal"
+                >
+                  <RouterLink :to="{ name: 'machines-mapping' }">
+                    <VBtn
+                      color="success"
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="openDeleteDialog(item)"
+                    >
+                      <VIcon
+                        icon="tabler-flag-3"
+                        size="20"
+                      />
+                    </VBtn>
+                  </RouterLink>
+                  <VTooltip
+                    activator="parent"
+                    location="end"
+                  >
+                    Mapping Parameter
+                  </VTooltip>
+                </VBtn>
+                <VBtn
+                  color="info"
+                  icon
+                  size="small"
+                  variant="text"
+                  @click="handleEdit(item)"
+                >
+                  <VIcon
+                    icon="tabler-pencil"
+                    size="20"
+                  />
+                </VBtn>
+                <VBtn
+                  color="error"
+                  icon
+                  size="small"
+                  variant="text"
+                  @click="openDeleteDialog(item)"
+                >
+                  <VIcon
+                    icon="tabler-trash"
+                    size="20"
+                  />
+                </VBtn>
               </div>
             </template>
 
             <!-- Bottom Pagination -->
             <template #bottom>
-              <TablePagination
-                v-model:page="page"
-                :items-per-page="itemsPerPage"
-                :total-items="totalUsers"
-              />
+              <VCardText class="pt-2">
+                <div class="d-flex flex-wrap justify-space-between gap-4 align-center">
+                  <!-- Pagination Info -->
+                  <div class="text-body-2">
+                    Showing {{ ((page - 1) * itemsPerPage) + 1 }}
+                    to {{ Math.min(page * itemsPerPage, totalItems) }}
+                    of {{ totalItems }} entries
+                  </div>
+
+                  <!-- Pagination Controls -->
+                  <VPagination
+                    v-model="page"
+                    :disabled="loading"
+                    :length="totalPages"
+                    :total-visible="5"
+                  />
+                </div>
+              </VCardText>
             </template>
           </VDataTable>
         </VCard>
@@ -243,7 +240,7 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
           }]"
           message="Please provide a reason for deletion"
           title="Delete User"
-          @submit="deleteUser"
+          @submit="deleteMachine"
         />
       </section>
     </VCol>

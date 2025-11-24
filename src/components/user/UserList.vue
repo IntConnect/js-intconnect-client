@@ -1,22 +1,34 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { format } from "date-fns"
-import { useApi } from "@/composables/useApi"
 import AddNewUserDrawer from "@/components/user/AddNewUserDrawer.vue"
+import { useManageUser } from "@/composables/useManageUser"
 
-// --- Constants
-const ITEMS_PER_PAGE_OPTIONS = [
-  { value: 10, title: '10' },
-  { value: 25, title: '25' },
-  { value: 50, title: '50' },
-  { value: 100, title: '100' },
-  { value: -1, title: 'All' },
-]
+// ==========================================
+// Composable
+// ==========================================
+const {
+  users,
+  loading,
+  actionLoading,
+  fetchUsers,
+  saveUser,
+  deleteUser,
+  totalItems,
+  totalPages,
+  error,
+  formErrors,
+  clearFormErrors,
+  clearErrors,
+} = useManageUser()
 
+// ==========================================
+// Constants
+// ==========================================
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
   { title: 'Username', key: 'username', sortable: true },
@@ -26,146 +38,147 @@ const TABLE_HEADERS = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-// --- Reactive States
-const users = ref([])
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100]
+
+// ==========================================
+// Reactive States
+// ==========================================
 const page = ref(1)
 const itemsPerPage = ref(10)
-const searchQuery = ref('')
-const sortBy = ref('id')
-const orderBy = ref('asc')
-const loading = ref(false)
+const searchQuery = ref("")
+const sortBy = ref("id")
+const sortOrder = ref("asc")
 
-// --- UI States
+// UI States
 const isAddNewUserDrawerVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedUser = ref(null)
-const formErrors = ref({})
 
-// --- Computed
-const totalUsers = computed(() => users.value?.length ?? 0)
+// ==========================================
+// Methods
+// ==========================================
 
-// --- Build query string
-function buildQuery(params) {
-  return Object.entries(params)
-    .filter(([_, v]) => v !== null && v !== undefined && v !== '')
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-    .join('&')
+/**
+ * Load users from API
+ */
+const loadUsers = async () => {
+  await fetchUsers({
+    page: page.value,
+    size: itemsPerPage.value,
+    query: searchQuery.value,
+    sort: sortBy.value,
+    order: sortOrder.value,
+  })
 }
 
-// --- Fetch users from API
-async function fetchUsers() {
-  loading.value = true
-  try {
-    const queryStr = buildQuery({
-      query: searchQuery.value,
-      page: page.value,
-      size: itemsPerPage.value,
-      sort: sortBy.value,
-      order: orderBy.value,
-    })
-
-    const { data, error } = await useApi(`/users?${queryStr}`).get().json()
-
-    if (error.value) {
-      throw new Error(error.value.message || 'Failed to fetch users')
-    }
-
-    users.value = data.value?.users ?? []
-  } catch (err) {
-    console.error('Failed to fetch users:', err)
-    users.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-// --- Drawer handlers
+/**
+ * Open drawer for adding new user
+ */
 const openAddUserDrawer = () => {
   selectedUser.value = null
-  formErrors.value = {}
+  clearFormErrors()
   isAddNewUserDrawerVisible.value = true
 }
 
+/**
+ * Close add/edit drawer
+ */
 const closeAddUserDrawer = () => {
   isAddNewUserDrawerVisible.value = false
   selectedUser.value = null
-  formErrors.value = {}
+  clearFormErrors()
 }
 
-// --- Edit user
-function handleEdit(row) {
-  selectedUser.value = { ...row }
+/**
+ * Open drawer for editing user
+ */
+const handleEdit = user => {
+  selectedUser.value = { ...user }
+  clearFormErrors()
   isAddNewUserDrawerVisible.value = true
 }
 
-// --- Delete dialog
+/**
+ * Open delete confirmation dialog
+ */
 const openDeleteDialog = user => {
   selectedUser.value = user
   showDeleteDialog.value = true
 }
 
+/**
+ * Close delete dialog
+ */
 const closeDeleteDialog = () => {
   showDeleteDialog.value = false
   selectedUser.value = null
 }
 
-// --- Save user (Create or Update)
-async function saveUser(userData) {
-  const isUpdate = Boolean(userData.id)
-  const method = isUpdate ? 'put' : 'post'
-  const endpoint = isUpdate ? `/users/${userData.id}` : '/users'
+/**
+ * Handle save user (create or update)
+ */
+const handleSaveUser = async userData => {
+  const result = await saveUser(userData)
 
-  console.log(userData)
-  try {
-    const { data, error } = await useApi(endpoint)[method](userData).json()
-
-    if (error.value) {
-      const errorData = error.value
-      if (errorData.status === 422 && errorData.errors) {
-        formErrors.value = errorData.errors
-
-        return
-      }
-      throw new Error(errorData.message || 'Failed to save user')
-    }
-
+  if (result.success) {
     closeAddUserDrawer()
-    await fetchUsers()
-  } catch (err) {
-    console.error('Failed to save user:', err)
+    await loadUsers()
+
+    // Optional: Show success notification
+    console.log('User saved successfully')
+  } else {
+    // Errors sudah di-set di formErrors oleh composable
+    console.error('Failed to save user:', result.error || result.errors)
   }
 }
 
-// --- Delete user
-async function deleteUser(description) {
+/**
+ * Handle delete user
+ */
+const handleDeleteUser = async formData => {
   if (!selectedUser.value?.id) {
     console.warn('No user selected for deletion')
 
     return
   }
 
-  try {
-    const { error } = await useApi(`/users/${selectedUser.value.id}`).delete({ description }).json()
+  const reason = formData.reason || ''
+  const result = await deleteUser(selectedUser.value.id, reason)
 
-    if (error.value) {
-      throw new Error(error.value.message || 'Failed to delete user')
-    }
-
+  if (result.success) {
     closeDeleteDialog()
-    await fetchUsers()
-  } catch (err) {
-    console.error('Failed to delete user:', err)
+    await loadUsers()
+
+    // Optional: Show success notification
+    console.log('User deleted successfully')
+  } else {
+    console.error('Failed to delete user:', result.error)
+
+    // Optional: Show error notification
   }
 }
 
-// --- Reset pagination when search changes
-const resetPage = () => {
-  page.value = 1
-}
+// ==========================================
+// Watchers
+// ==========================================
 
-// --- Watch filters to refetch
-watch([searchQuery], resetPage)
-watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediate: true })
+// Reset to page 1 when search query changes
+watch(searchQuery, () => {
+  page.value = 1
+  loadUsers()
+})
+
+// Reload data when page or itemsPerPage changes
+watch([page, itemsPerPage], () => {
+  loadUsers()
+})
+
+// ==========================================
+// Lifecycle
+// ==========================================
+onMounted(() => {
+  loadUsers()
+})
 </script>
 
 <template>
@@ -176,10 +189,9 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
           <AppSelect
+            v-model="itemsPerPage"
             :items="ITEMS_PER_PAGE_OPTIONS"
-            :model-value="itemsPerPage"
             style="inline-size: 5.5rem;"
-            @update:model-value="itemsPerPage = parseInt($event, 10)"
           />
         </div>
 
@@ -192,6 +204,7 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
             style="inline-size: 15.625rem;"
           />
           <VBtn
+            :loading="actionLoading"
             color="primary"
             @click="openAddUserDrawer"
           >
@@ -202,6 +215,17 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
 
       <VDivider />
 
+      <!-- Error Alert -->
+      <VAlert
+        v-if="error"
+        class="mx-4 mt-4"
+        closable
+        type="error"
+        @click:close="clearErrors"
+      >
+        {{ error }}
+      </VAlert>
+
       <!-- Data Table -->
       <VDataTable
         v-model:page="page"
@@ -210,6 +234,7 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
         :items-per-page="itemsPerPage"
         :loading="loading"
         class="text-no-wrap"
+        hide-default-footer
         no-data-text="No users found"
       >
         <!-- ID Column -->
@@ -217,37 +242,44 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
 
-
-        <!-- Created At Column -->
-        <template #item.created_at="{ item }">
-          {{ format(new Date(item.created_at), 'dd MMM yyyy HH:mm:ss') }}
-        </template>
-
-        <!-- Updated At Column -->
-        <template #item.updated_at="{ item }">
-          {{ format(new Date(item.updated_at), 'dd MMM yyyy HH:mm:ss') }}
+        <!-- Role Column -->
+        <template #item.role="{ item }">
+          <VChip
+            color="primary"
+            size="small"
+          >
+            {{ item.role?.name || 'N/A' }}
+          </VChip>
         </template>
 
         <!-- Actions Column -->
         <template #item.actions="{ item }">
-          <template
-            size="x-small"
-            @click="handleEdit(item)"
-          >
-            <VIcon
-              icon="tabler-pencil"
-              size="20"
-            />
-          </template>
-          <template
-            size="x-small"
-            @click="openDeleteDialog(item)"
-          >
-            <VIcon
-              icon="tabler-trash"
-              size="20"
-            />
-          </template>
+          <div class="d-flex gap-2">
+            <VBtn
+              color="info"
+              icon
+              size="small"
+              variant="text"
+              @click="handleEdit(item)"
+            >
+              <VIcon
+                icon="tabler-pencil"
+                size="20"
+              />
+            </VBtn>
+            <VBtn
+              color="error"
+              icon
+              size="small"
+              variant="text"
+              @click="openDeleteDialog(item)"
+            >
+              <VIcon
+                icon="tabler-trash"
+                size="20"
+              />
+            </VBtn>
+          </div>
         </template>
 
         <!-- Bottom Pagination -->
@@ -255,7 +287,7 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
           <TablePagination
             v-model:page="page"
             :items-per-page="itemsPerPage"
-            :total-items="totalUsers"
+            :total-items="totalItems"
           />
         </template>
       </VDataTable>
@@ -270,22 +302,20 @@ watch([searchQuery, page, itemsPerPage, sortBy, orderBy], fetchUsers, { immediat
         placeholder: 'Type your reason...',
         type: 'text'
       }]"
+      :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete User"
-      @submit="deleteUser"
+      @submit="handleDeleteUser"
     />
 
     <!-- Add/Edit User Drawer -->
     <AddNewUserDrawer
       v-model:is-drawer-open="isAddNewUserDrawerVisible"
       :form-errors="formErrors"
+      :loading="actionLoading"
       :user-data="selectedUser"
       @close="closeAddUserDrawer"
-      @user-data="saveUser"
+      @user-data="handleSaveUser"
     />
   </section>
 </template>
-
-<style scoped>
-/* Remove unused styles */
-</style>

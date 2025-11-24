@@ -72,21 +72,26 @@ const formatDate = dateString => {
       no-actions
       title="Permissions"
     >
-      <VCardText>
-        <div class="d-flex justify-space-between flex-wrap gap-y-4">
+      <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">
+        <!-- Items per page selector -->
+        <div class="d-flex gap-2 align-center">
+          <span class="text-body-1">Show</span>
+          <AppSelect
+            :items="ITEMS_PER_PAGE_OPTIONS"
+            :model-value="itemsPerPage"
+            style="inline-size: 5.5rem;"
+            @update:model-value="itemsPerPage = parseInt($event, 10)"
+          />
+        </div>
+
+        <!-- Right side controls -->
+        <div class="d-flex gap-2 align-center flex-wrap">
           <AppTextField
             v-model="searchQuery"
-            :loading="loading"
-            placeholder="Search Name"
-            style="max-inline-size: 280px; min-inline-size: 280px;"
+            clearable
+            placeholder="Search something..."
+            style="inline-size: 15.625rem;"
           />
-          <div class="d-flex flex-row gap-4 align-center flex-wrap">
-            <AppSelect
-              v-model="itemsPerPage"
-              :items="[5, 10, 20, 50, 100]"
-              label="Items per page"
-            />
-          </div>
         </div>
       </VCardText>
 

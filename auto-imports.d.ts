@@ -6,7 +6,6 @@
 // biome-ignore lint: disable
 export {}
 declare global {
-  const $api: typeof import('./src/utils/api.js')['$api']
   const COOKIE_MAX_AGE_1_YEAR: typeof import('./src/utils/constants.js')['COOKIE_MAX_AGE_1_YEAR']
   const EffectScope: typeof import('vue')['EffectScope']
   const ITEMS_PER_PAGE_OPTIONS: typeof import('./src/utils/constants.js')['ITEMS_PER_PAGE_OPTIONS']
@@ -71,7 +70,6 @@ declare global {
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
   const isToday: typeof import('./src/@core/utils/helpers.js')['isToday']
-  const itemsPerPage: typeof import('./src/utils/constants.js')['itemsPerPage']
   const kFormatter: typeof import('./src/@core/utils/formatters.js')['kFormatter']
   const lengthValidator: typeof import('./src/@core/utils/validators.js')['lengthValidator']
   const logicAnd: typeof import('@vueuse/math')['logicAnd']
@@ -195,8 +193,6 @@ declare global {
   const useCookie: typeof import('./src/@core/composable/useCookie.js')['useCookie']
   const useCounter: typeof import('@vueuse/core')['useCounter']
   const useCreateMachine: typeof import('./src/composables/useManageMachine.js')['useCreateMachine']
-  const useCreateRole: typeof import('./src/composables/useManageRole.js')['useCreateRole']
-  const useCreateStaff: typeof import('./src/composables/useManageMachine.js')['useCreateStaff']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVar: typeof import('@vueuse/core')['useCssVar']
   const useCssVars: typeof import('vue')['useCssVars']
@@ -249,7 +245,9 @@ declare global {
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
+  const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
   const useManageRole: typeof import('./src/composables/useManageRole.js')['useManageRole']
+  const useManageUser: typeof import('./src/composables/useManageUser.js')['useManageUser']
   const useManualRefHistory: typeof import('@vueuse/core')['useManualRefHistory']
   const useMath: typeof import('@vueuse/math')['useMath']
   const useMax: typeof import('@vueuse/math')['useMax']
@@ -290,7 +288,6 @@ declare global {
   const useRefHistory: typeof import('@vueuse/core')['useRefHistory']
   const useResizeObserver: typeof import('@vueuse/core')['useResizeObserver']
   const useResponsiveLeftSidebar: typeof import('./src/@core/composable/useResponsiveSidebar.js')['useResponsiveLeftSidebar']
-  const useRole: typeof import('./src/composables/useManageRole.js')['useRole']
   const useRound: typeof import('@vueuse/math')['useRound']
   const useRoute: typeof import('vue-router/auto')['useRoute']
   const useRouter: typeof import('vue-router/auto')['useRouter']
@@ -560,7 +557,6 @@ declare module 'vue' {
     readonly useConfirmDialog: UnwrapRef<typeof import('@vueuse/core')['useConfirmDialog']>
     readonly useCookie: UnwrapRef<typeof import('./src/@core/composable/useCookie.js')['useCookie']>
     readonly useCounter: UnwrapRef<typeof import('@vueuse/core')['useCounter']>
-    readonly useCreateMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useCreateMachine']>
     readonly useCssModule: UnwrapRef<typeof import('vue')['useCssModule']>
     readonly useCssVar: UnwrapRef<typeof import('@vueuse/core')['useCssVar']>
     readonly useCssVars: UnwrapRef<typeof import('vue')['useCssVars']>
@@ -613,7 +609,9 @@ declare module 'vue' {
     readonly useLastChanged: UnwrapRef<typeof import('@vueuse/core')['useLastChanged']>
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
+    readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>
+    readonly useManageUser: UnwrapRef<typeof import('./src/composables/useManageUser.js')['useManageUser']>
     readonly useManualRefHistory: UnwrapRef<typeof import('@vueuse/core')['useManualRefHistory']>
     readonly useMath: UnwrapRef<typeof import('@vueuse/math')['useMath']>
     readonly useMax: UnwrapRef<typeof import('@vueuse/math')['useMax']>

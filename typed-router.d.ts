@@ -27,7 +27,7 @@ declare module 'vue-router/auto-routes' {
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'machines': RouteRecordInfo<'machines', '/machines', Record<never, never>, Record<never, never>>,
     'machines-create': RouteRecordInfo<'machines-create', '/machines/create', Record<never, never>, Record<never, never>>,
-    'machines-mapping': RouteRecordInfo<'machines-mapping', '/machines/mapping', Record<never, never>, Record<never, never>>,
+    'machines-mapping-id': RouteRecordInfo<'machines-mapping-id', '/machines/mapping/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'operation': RouteRecordInfo<'operation', '/operation', Record<never, never>, Record<never, never>>,
     'permissions': RouteRecordInfo<'permissions', '/permissions', Record<never, never>, Record<never, never>>,
     'protocol-configurations': RouteRecordInfo<'protocol-configurations', '/protocol-configurations', Record<never, never>, Record<never, never>>,

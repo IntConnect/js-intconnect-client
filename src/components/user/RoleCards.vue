@@ -5,18 +5,9 @@ import AddEditRoleDialog from "@/components/general/AddEditRoleDialog.vue"
 
 const {
   roles,
-  roleDetail,
-  selectedRole,
-  formErrors,
-  isAddRoleDialogVisible,
-  showDeleteDialog,
-
+  loading,
   fetchRoles,
-  saveRole,
-  deleteRole,
-  openDeleteDialog,
-  editPermission,
-} = useRole()
+} = useManageRole()
 
 onMounted(() => {
   fetchRoles()
