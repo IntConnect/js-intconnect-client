@@ -26,7 +26,7 @@ onMounted(async () => {
 
   const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
 
-  camera.position.set(0, 1.2, 3)
+  camera.position.set(181.814, 70.837, -40.251)
 
   const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.value, antialias: true })
 
@@ -40,8 +40,30 @@ onMounted(async () => {
   const loader = new GLTFLoader()
 
   loader.load('/models/schema-5.glb', gltf => {
-    scene.add(gltf.scene)
-    gltf.scene.position.set(0, 0, 0)
+    const model = gltf.scene
+
+    // perlu agar matrix world dari model bisa dihitung
+    model.updateMatrixWorld(true)
+
+    // hitung bounding box & pusat
+    const box = new THREE.Box3().setFromObject(model)
+    const center = box.getCenter(new THREE.Vector3())
+
+    // 1) pindahkan model sehingga pusatnya berada di origin
+    model.position.x -= center.x
+    model.position.y -= center.y
+    model.position.z -= center.z
+
+    // 2) setelah center di origin, geser sedikit ke kiri (nilai negatif)
+    const leftShift = 0.3 // coba 0.1, 0.3, 1.0 tergantung ukuran model
+
+    model.position.x += -leftShift
+
+    scene.add(model)
+
+    // update controls target ke titik baru (biasanya origin)
+    controls.target.set(0, 0, 0)
+    controls.update()
   })
 
   const controls = new OrbitControls(camera, renderer.domElement)

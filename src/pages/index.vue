@@ -1,9 +1,13 @@
 <script setup>
 import ThreeViewer from "@/components/ThreeViewer.vue"
-import ApexChartBalance from "@/components/dashboard/ApexChartBalance.vue"
-import ApexChartDataScience from "@/components/dashboard/ApexChartDataScience.vue"
+import SystemEfficiencyChart from "@/components/dashboard/SystemEfficiencyChart.vue"
 import AnalyticsAverageDailySales from "@/components/dashboard/AnalyticsAverageDailySales.vue"
 import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceExpensesRadialBarCharts.vue"
+import PowerChart from "@/components/dashboard/PowerChart.vue"
+import ProductionChart from "@/components/dashboard/ProductionChart.vue"
+import DailyEnergyConsumptionTrendDiagramChart from "@/components/dashboard/DailyEnergyConsumptionTrendDiagramChart.vue"
+import HourlyEnergyConsumptionTrendDiagramChart
+  from "@/components/dashboard/HourlyEnergyConsumptionTrendDiagramChart.vue"
 </script>
 
 <template>
@@ -35,13 +39,10 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
         <VCard class="flex-grow-1">
           <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
             <VCardTitle>System Efficiency (kW/hr)</VCardTitle>
-            <VCardSubtitle>Commercial networks &amp; enterprises</VCardSubtitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
 
             <template #append>
               <div class="d-flex align-center">
-                <h6 class="text-h6 me-3">
-                  $221,267
-                </h6>
                 <VChip
                   color="success"
                   label
@@ -51,14 +52,46 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
                     size="15"
                     start
                   />
-                  <span>22%</span>
+                  <span>22</span>
                 </VChip>
               </div>
             </template>
           </VCardItem>
 
           <VCardText>
-            <ApexChartBalance />
+            <SystemEfficiencyChart />
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+    <VRow class="match-height">
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+      >
+        <VCard>
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Power (kW/hr)</VCardTitle>
+          </VCardItem>
+
+          <VCardText>
+            <PowerChart />
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+      >
+        <VCard>
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Production (kW/hr)</VCardTitle>
+          </VCardItem>
+
+          <VCardText>
+            <ProductionChart />
           </VCardText>
         </VCard>
       </VCol>
@@ -72,8 +105,8 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
       >
         <VCard class="fill-height">
           <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Area Chart</VCardTitle>
-            <VCardSubtitle>Commercial networks</VCardSubtitle>
+            <VCardTitle>COP vs ENERGY</VCardTitle>
+            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
           </VCardItem>
 
           <VCardText>
@@ -88,10 +121,7 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
         md="5"
       >
         <!-- 👇 Bungkus semua dengan VRow -->
-        <VRow
-          class="fill-height"
-          no-gutters
-        >
+        <VRow class="fill-height">
           <VCol cols="12">
             <EcommerceExpensesRadialBarCharts />
           </VCol>
@@ -112,7 +142,6 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
         </VRow>
       </VCol>
     </VRow>
-
     <VRow class="match-height">
       <VCol
         cols="12"
@@ -121,11 +150,11 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
       >
         <VCard>
           <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Data Science</VCardTitle>
+            <VCardTitle>Daily Energy Consumption Trend Diagram</VCardTitle>
           </VCardItem>
 
           <VCardText>
-            <ApexChartDataScience />
+            <DailyEnergyConsumptionTrendDiagramChart />
           </VCardText>
         </VCard>
       </VCol>
@@ -136,11 +165,11 @@ import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceEx
       >
         <VCard>
           <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Data Science</VCardTitle>
+            <VCardTitle>Hourly Energy Consumption Trend Diagram</VCardTitle>
           </VCardItem>
 
           <VCardText>
-            <ApexChartDataScience />
+            <HourlyEnergyConsumptionTrendDiagramChart />
           </VCardText>
         </VCard>
       </VCol>

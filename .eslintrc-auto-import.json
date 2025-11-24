@@ -372,6 +372,7 @@
     "useFetchRole": true,
     "useManageUser": true,
     "useManageMachine": true,
-    "useManageParameter": true
+    "useManageParameter": true,
+    "colorVariables": true
   }
 }

@@ -39,7 +39,7 @@ const chartOptions = computed(() => {
     },
     grid: {
       show: false,
-      padding: { bottom: 5 },
+      padding: { bottom: 1 },
     },
     stroke: { lineCap: 'round' },
     labels: ['Progress'],
@@ -47,7 +47,7 @@ const chartOptions = computed(() => {
       {
         breakpoint: 1442,
         options: {
-          chart: { height: 140 },
+          chart: { height: 255 },
           plotOptions: {
             radialBar: {
               dataLabels: { value: { fontSize: '24px' } },
@@ -93,7 +93,7 @@ const chartOptions = computed(() => {
   <VCard>
     <VCardItem class="pb-3">
       <VCardTitle>
-        82.5K
+        Coefficient of Performance
       </VCardTitle>
       <VCardSubtitle>
         Expenses
@@ -101,7 +101,7 @@ const chartOptions = computed(() => {
     </VCardItem>
     <VCardText>
       <VueApexCharts
-        :height="135"
+        :height="300"
         :options="chartOptions"
         :series="series"
         type="radialBar"
