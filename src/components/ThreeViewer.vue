@@ -15,12 +15,14 @@ onMounted(async () => {
   await new Promise(resolve => setTimeout(resolve, 100))
 
   const scene = new THREE.Scene()
+
   scene.background = new THREE.Color(0xffffff)
 
   const width = wrapperRef.value.clientWidth
   const height = wrapperRef.value.clientHeight
 
   const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+
   camera.position.set(181.814, 70.837, -40.251)
 
   const renderer = new THREE.WebGLRenderer({
@@ -34,6 +36,7 @@ onMounted(async () => {
   scene.add(new THREE.AmbientLight(0xffffff, 1))
 
   const controls = new OrbitControls(camera, renderer.domElement)
+
   controls.enableDamping = true
   controls.target.set(0, 0.5, 0)
   controls.update()
@@ -45,13 +48,13 @@ onMounted(async () => {
   // ----------------------------------------
   const createSmallLabel = (title = "Parameter", value = "Value") => {
     const panel = new ThreeMeshUI.Block({
-      width: 100,
-      height: 100,
+      width: 0.6,
+      height: 0.3,
       padding: 0.02,
       borderRadius: 0.03,
       justifyContent: 'center',
       alignContent: 'center',
-      fontSize: 25,
+      fontSize: 0.045,
       backgroundColor: new THREE.Color(0x222222),
       backgroundOpacity: 0.85,
       fontFamily: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.json',
@@ -93,16 +96,19 @@ onMounted(async () => {
     controls.target.set(0, 0, 0)
     controls.update()
 
-// Buat label dengan posisi bebas (x, y, z)
+    // Buat label dengan posisi bebas (x, y, z)
     const label1 = createSmallLabel("Temp", "24°C")
+
     label1.position.set(0, 0.5, 0) // posisi bebas
     labels.push(label1)
 
     const label2 = createSmallLabel("Pressure", "1.5 bar")
+
     label2.position.set(0.5, 0.5, 0.5) // posisi bebas
     labels.push(label2)
 
     const label3 = createSmallLabel("Status", "OK")
+
     label3.position.set(-0.5, 0.5, -0.5) // posisi bebas
     labels.push(label3)
   })
