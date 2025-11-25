@@ -42,6 +42,11 @@ export default [
         icon: { icon: 'tabler-brand-databricks' },
       },
       {
+        title: 'Parameter',
+        to: { name: 'parameters' },
+        icon: { icon: 'tabler-binary-tree-2' },
+      },
+      {
         title: 'User',
         to: { name: 'user' },
         icon: { icon: 'tabler-user' },

@@ -63,6 +63,7 @@ declare module 'vue' {
     HourlyEnergyConsumptionTrendDiagramChart: typeof import('./src/components/dashboard/HourlyEnergyConsumptionTrendDiagramChart.vue')['default']
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
     ItemsPerPage: typeof import('./src/components/table/ItemsPerPage.vue')['default']
+    ManageParameterDrawer: typeof import('./src/components/drawer/ManageParameterDrawer.vue')['default']
     ManagePipelineDialog: typeof import('./src/components/dialogs/ManagePipelineDialog.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
     MqttInModal: typeof import('./src/components/flow/nodes/MqttInModal.vue')['default']

@@ -17,7 +17,7 @@ export const useManageMachine = () => {
   /**
    * Fetch machines with pagination
    */
-  const fetchMachines = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
+  const fetchMachinesPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
     loading.value = true
     error.value = null
 
@@ -53,6 +53,41 @@ export const useManageMachine = () => {
       loading.value = false
     }
   }
+
+  /**
+   * Fetch machines with pagination
+   */
+  const fetchMachines = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl('/machines', {}),
+      )
+        .get()
+        .json()
+
+      if (apiError.value) {
+        throw new Error(apiError.value.message || 'Failed to fetch machines')
+      }
+
+      const res = response.value
+
+      console.log(res)
+      if (res.status) {
+        machines.value = res.data ?? []
+      } else {
+        throw new Error(res.message || 'Failed to fetch machines')
+      }
+    } catch (err) {
+      error.value = err.message
+      console.error('Failed to fetch machines:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
 
   /**
    * Create new machine
@@ -231,6 +266,7 @@ export const useManageMachine = () => {
     formErrors,
 
     // Methods
+    fetchMachinesPagination,
     fetchMachines,
     createMachine,
     updateMachine,

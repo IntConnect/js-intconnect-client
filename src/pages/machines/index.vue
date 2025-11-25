@@ -121,7 +121,7 @@ onMounted(() => {
             </div>
           </VCardText>
 
-          <VDivider />
+          <VDivider/>
 
           <!-- Data Table -->
           <VDataTable
@@ -157,7 +157,7 @@ onMounted(() => {
                   size="small"
                   variant="tonal"
                 >
-                  <RouterLink :to="{ name: 'machines-mapping' }">
+                  <RouterLink :to="{ name: 'machines-mapping-id', params: { id: item.id } }">
                     <VBtn
                       color="success"
                       icon
