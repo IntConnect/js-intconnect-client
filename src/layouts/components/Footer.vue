@@ -5,14 +5,13 @@
       &copy;
       {{ new Date().getFullYear() }}
       IntConnect
-      dibuat oleh
-      By <a
-      href="#"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="text-primary ms-1 mr-1"
-    >Aditya Alfarezy Damanik</a>
-      untuk Tugas Akhir
+      dikembangkan
+      Oleh <a
+        class="text-primary ms-1 mr-1"
+        href="#"
+        rel="noopener noreferrer"
+        target="_blank"
+      >PT Kalbe Morinaga Indonesia</a>
     </span>
     <!-- 👉 Footer: right content -->
   </div>
