@@ -373,6 +373,8 @@
     "useManageUser": true,
     "useManageMachine": true,
     "useManageParameter": true,
-    "colorVariables": true
+    "colorVariables": true,
+    "useManageMqttTopic": true,
+    "useManageMachines": true
   }
 }

@@ -247,6 +247,8 @@ declare global {
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
+  const useManageMachines: typeof import('./src/composables/useManageMachine.js')['useManageMachines']
+  const useManageMqttTopic: typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']
   const useManageParameter: typeof import('./src/composables/useManageParameter.js')['useManageParameter']
   const useManageRole: typeof import('./src/composables/useManageRole.js')['useManageRole']
   const useManageUser: typeof import('./src/composables/useManageUser.js')['useManageUser']
@@ -613,6 +615,7 @@ declare module 'vue' {
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
+    readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>
     readonly useManageParameter: UnwrapRef<typeof import('./src/composables/useManageParameter.js')['useManageParameter']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>
     readonly useManageUser: UnwrapRef<typeof import('./src/composables/useManageUser.js')['useManageUser']>

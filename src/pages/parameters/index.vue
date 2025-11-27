@@ -4,8 +4,7 @@ import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { useManageParameter } from "@/composables/useManageParameter"
-import ManageParameterDrawer from "@/components/drawer/ManageParameterDrawer.vue"
+import { useManageParameter } from "@/composables/useManageParameter.js"
 
 // ==========================================
 // Composable
@@ -50,7 +49,6 @@ const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 // UI States
-const isManageParameterDrawerVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedParameter = ref(null)
 
@@ -76,33 +74,6 @@ const loadParameters = async () => {
 }
 
 /**
- * Open drawer for adding new parameter
- */
-const openAddParameterDrawer = () => {
-  selectedParameter.value = null
-  clearFormErrors()
-  isManageParameterDrawerVisible.value = true
-}
-
-/**
- * Close add/edit drawer
- */
-const closeAddParameterDrawer = () => {
-  isManageParameterDrawerVisible.value = false
-  selectedParameter.value = null
-  clearFormErrors()
-}
-
-/**
- * Open drawer for editing parameter
- */
-const handleEdit = parameter => {
-  selectedParameter.value = { ...parameter }
-  clearFormErrors()
-  isManageParameterDrawerVisible.value = true
-}
-
-/**
  * Open delete confirmation dialog
  */
 const openDeleteDialog = parameter => {
@@ -125,7 +96,6 @@ const handleSaveParameter = async parameterData => {
   const result = await saveParameter(parameterData)
 
   if (result.success) {
-    closeAddParameterDrawer()
     await loadParameters()
 
     // Optional: Show success notification
@@ -188,6 +158,14 @@ onMounted(() => {
 
 <template>
   <section>
+    <VCol cols="12">
+      <h4 class="text-h4 mb-1">
+        All Parameters
+      </h4>
+      <p class="text-body-1 mb-0">
+        Find all of your company’s administrator accounts and their associate roles.
+      </p>
+    </VCol>
     <VCard>
       <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">
         <!-- Items per page selector -->
@@ -208,13 +186,11 @@ onMounted(() => {
             placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-          <VBtn
-            :loading="actionLoading"
-            color="primary"
-            @click="openAddParameterDrawer"
-          >
-            + New Parameter
-          </VBtn>
+          <RouterLink :to="{ name: 'parameters-manage-id', params: { id: 'new' } }">
+            <VBtn color="primary">
+              New Parameter
+            </VBtn>
+          </RouterLink>
         </div>
       </VCardText>
 
@@ -259,18 +235,19 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <VBtn
-              color="info"
-              icon
-              size="small"
-              variant="text"
-              @click="handleEdit(item)"
-            >
-              <VIcon
-                icon="tabler-pencil"
-                size="20"
-              />
-            </VBtn>
+            <RouterLink :to="{ name: 'parameters-manage-id', params: { id: item.id } }">
+              <VBtn
+                color="info"
+                icon
+                size="small"
+                variant="text"
+              >
+                <VIcon
+                  icon="tabler-pencil"
+                  size="20"
+                />
+              </VBtn>
+            </RouterLink>
             <VBtn
               color="error"
               icon
@@ -310,16 +287,6 @@ onMounted(() => {
       message="Please provide a reason for deletion"
       title="Delete Parameter"
       @submit="handleDeleteParameter"
-    />
-
-    <!-- Add/Edit Parameter Drawer -->
-    <ManageParameterDrawer
-      v-model:is-drawer-open="isManageParameterDrawerVisible"
-      :form-errors="formErrors"
-      :loading="actionLoading"
-      :parameter-data="selectedParameter"
-      @close="closeAddParameterDrawer"
-      @parameter-data="handleSaveParameter"
     />
   </section>
 </template>

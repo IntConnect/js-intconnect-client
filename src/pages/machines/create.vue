@@ -78,7 +78,7 @@ const removeDocument = index => {
 <template>
   <VCol cols="12">
     <h4 class="text-h4 mb-1 mt-1">
-      Create New Machine
+      Create New Test
     </h4>
     <p class="text-body-1 mb-2">
       Find all of your company’s administrator accounts and their associate roles.
