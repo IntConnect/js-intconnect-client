@@ -1,16 +1,129 @@
 <script setup>
 import girlUsingMobile from '@images/pages/girl-using-mobile.png'
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import AddEditRoleDialog from "@/components/general/AddEditRoleDialog.vue"
+import ManageRoleDialog from "@/components/role/ManageRoleDialog.vue"
 
 const {
   roles,
   loading,
   fetchRoles,
+  saveRole,
+  createRole,
+  updateRole,
+  deleteRole,
+  clearFormErrors,
 } = useManageRole()
 
+
+const selectedRole = ref(null)
+const isManageRoleDrawerVisible = ref(false)
+const showDeleteDialog = ref(false)
+
+
+const loadRoles = async () => {
+  await fetchRoles()
+}
+
+
+/**
+ * Open drawer for adding new role
+ */
+const openAddRoleDialog = () => {
+  selectedRole.value = null
+  clearFormErrors()
+  isManageRoleDrawerVisible.value = true
+}
+
+/**
+ * Close add/edit drawer
+ */
+const closeAddRoleDialog = () => {
+  isManageRoleDrawerVisible.value = false
+  selectedRole.value = null
+  clearFormErrors()
+}
+
+
+/**
+ * Open drawer for adding new role
+ */
+
+/**
+ * Close add/edit drawer
+ */
+
+
+/**
+ * Open drawer for editing role
+ */
+const handleEdit = role => {
+  selectedRole.value = { ...role }
+  clearFormErrors()
+  isManageRoleDrawerVisible.value = true
+}
+
+/**
+ * Open delete confirmation dialog
+ */
+const openDeleteDialog = role => {
+  selectedRole.value = role
+  showDeleteDialog.value = true
+}
+
+/**
+ * Close delete dialog
+ */
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  selectedRole.value = null
+}
+
+/**
+ * Handle save role (create or update)
+ */
+const handleSaveRole = async roleData => {
+  const result = await saveRole(roleData)
+
+  if (result.success) {
+    closeAddRoleDrawer()
+    await loadRoles()
+
+    // Optional: Show success notification
+    console.log('Role saved successfully')
+  } else {
+    // Errors sudah di-set di formErrors oleh composable
+    console.error('Failed to save role:', result.error || result.errors)
+  }
+}
+
+/**
+ * Handle delete role
+ */
+const handleDeleteRole = async formData => {
+  if (!selectedRole.value?.id) {
+    console.warn('No role selected for deletion')
+
+    return
+  }
+
+  const reason = formData.reason || ''
+  const result = await deleteRole(selectedRole.value.id, reason)
+
+  if (result.success) {
+    closeDeleteDialog()
+    await loadRoles()
+
+    // Optional: Show success notification
+    console.log('Role deleted successfully')
+  } else {
+    console.error('Failed to delete role:', result.error)
+
+    // Optional: Show error notification
+  }
+}
+
 onMounted(() => {
-  fetchRoles()
+  loadRoles()
 })
 </script>
 
@@ -27,7 +140,7 @@ onMounted(() => {
       <VCard>
         <VCardText class="d-flex align-center pb-4">
           <div class="text-body-1">
-            Total {{ item.users?.length }} users
+            Total {{ item.roles?.length }} roles
           </div>
 
           <VSpacer />
@@ -83,7 +196,7 @@ onMounted(() => {
             <VCardText class="d-flex flex-column align-end justify-end gap-4">
               <VBtn
                 size="small"
-                @click="isAddRoleDialogVisible = true"
+                @click="openAddRoleDialog"
               >
                 Add New Role
               </VBtn>
@@ -97,9 +210,9 @@ onMounted(() => {
     </VCol>
   </VRow>
 
-  <AddEditRoleDialog
-    v-model:is-dialog-visible="isAddRoleDialogVisible"
-    v-model:role-permissions="roleDetail"
+  <ManageRoleDialog
+    v-model:is-dialog-visible="isManageRoleDrawerVisible"
+    v-model:role-permissions="selectedRole"
     @submit="saveRole"
   />
   <DeleteDialog
@@ -107,6 +220,6 @@ onMounted(() => {
     :fields="[{ key: 'reason', label: 'Reason', placeholder: 'Type your reason...', type: 'text' }]"
     message="Tell a reason why?"
     title="Delete Role"
-    @submit="deleteRole"
+    @submit="deleteRole(selectedRole.id, $event)"
   />
 </template>

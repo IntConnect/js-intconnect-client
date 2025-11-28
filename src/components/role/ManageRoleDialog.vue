@@ -24,10 +24,11 @@ const emit = defineEmits([
   'submit',
 ])
 
-const permissions = ref([])
+const role = ref('')
 const name = ref('')
 const description = ref('')
 const refPermissionForm = ref()
+
 
 const checkedCount = computed(() =>
   permissions?.value.filter(p => p.checked).length,
@@ -72,55 +73,54 @@ watch(
 )
 
 
-// Group by feature
+// Group by category
 const groupedPermissions = computed(() => {
   const groups = {}
 
   permissions.value.forEach(p => {
-    if (!groups[p.feature]) {
-      groups[p.feature] = { feature: p.feature, name: p.label, permissions: [] }
+    if (!groups[p.category]) {
+      groups[p.category] = { category: p.category, name: p.name, permissions: [] }
     }
-    groups[p.feature].permissions.push(p)
+    groups[p.category].permissions.push(p)
   })
 
   return groups
 })
 
-const fetchPermissions = async () => {
-  try {
-    const response = await $api(`/permissions`, { method: 'GET' })
+const {
+  permissions,
+  fetchPermissions,
+} = useFetchPermission()
 
-    permissions.value = response.permissions ?? []
+const loadPermissions = async () => {
+  await fetchPermissions()
+  await nextTick()
+  if (props.rolePermissions && props.rolePermissions.permissions?.length) {
+    role.value = props.rolePermissions.name
+    permissions.value = permissions.value.map(permission => {
+      const rolePermission = props.rolePermissions.permissions.find(item => item.name === permission.name)
 
-    // Jika rolePermissions dari parent sudah ada, merge disini
-    if (props.rolePermissions && props.rolePermissions.permissions?.length) {
-      role.value = props.rolePermissions.name
-      permissions.value = permissions.value.map(permission => {
-        const rolePermission = props.rolePermissions.permissions.find(item => item.name === permission.name)
-
-        return rolePermission ? { ...permission, ...rolePermission, checked: true } : permission
-      })
-    }
-  } catch (err) {
-    console.error('Failed to fetch registers:', err)
+      return rolePermission ? { ...permission, ...rolePermission, checked: true } : permission
+    })
   }
 }
 
+
 onMounted(() => {
-  fetchPermissions().then(() => {
-    initialized.value = true
-  })
+  loadPermissions()
 })
 
 const onSubmit = async () => {
-  // const selectedPermissionIds = permissions.value
-  //   .filter(p => p.checked) // ambil hanya yang dicentang
-  //   .map(p => p.id)
-  console.log(name, description)
+  const selectedPermissionIds = permissions.value
+    .filter(p => p.checked) // ambil hanya yang dicentang
+    .map(p => p.id)
+
+  console.log(selectedPermissionIds)
 
   const payload = {
     name: name.value,
     description: description.value,
+    permission_ids: selectedPermissionIds,
   }
 
 
@@ -153,7 +153,7 @@ const onReset = () => {
       <VCardText>
         <!-- 👉 Title -->
         <h4 class="text-h4 text-center mb-2">
-          {{ props.rolePermissions.name ? 'Edit' : 'Add New' }} Role
+          {{ props.rolePermissions?.name ? 'Edit' : 'Add New' }} Role
         </h4>
         <p class="text-body-1 text-center mb-6">
           Set Role Permissions
@@ -203,12 +203,12 @@ const onReset = () => {
             <!-- 👉 Other permission loop -->
             <template
               v-for="group in groupedPermissions"
-              :key="group.feature"
+              :key="group.category"
             >
               <tr>
                 <td>
                   <h6 class="text-h6">
-                    {{ group.feature }}
+                    {{ group.category }}
                   </h6>
                 </td>
 
@@ -220,7 +220,7 @@ const onReset = () => {
                   <div class="d-flex justify-end text-danger">
                     <VCheckbox
                       v-model="permission.checked"
-                      :label="permission.label"
+                      :label="permission.name"
                     />
                   </div>
                 </td>

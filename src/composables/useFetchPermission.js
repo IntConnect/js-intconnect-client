@@ -9,7 +9,7 @@ export const useFetchPermission = () => {
   const totalPages = ref(0)
   const loading = ref(false)
 
-  const fetchPermissions = async ({ page, size, query, sort, order }) => {
+  const fetchPermissionsPagination = async ({ page, size, query, sort, order }) => {
     loading.value = true
 
     try {
@@ -37,6 +37,28 @@ export const useFetchPermission = () => {
       totalPages.value = res.pagination.total_pages
       loading.value = false
     } catch (err) {
+      console.error('Failed to fetch permissions:', err)
+    }
+  }
+
+  const fetchPermissions = async () => {
+    loading.value = true
+
+    try {
+
+      const { data: response } = await useApi(createUrl('/permissions', {}))
+        .get()
+        .json()
+
+
+      const res = response.value
+
+      console.log(res)
+      permissions.value = res.data ?? []
+     
+      loading.value = false
+    } catch
+    (err) {
       console.error('Failed to fetch permissions:', err)
     }
   }
