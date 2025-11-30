@@ -377,6 +377,8 @@
     "useManageMqttTopic": true,
     "useManageMachines": true,
     "useManageAuthentication": true,
-    "handleApiError": true
+    "handleApiError": true,
+    "applyPaginationResponse": true,
+    "useFetchAuditLog": true
   }
 }

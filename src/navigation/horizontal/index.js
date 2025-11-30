@@ -58,4 +58,26 @@ export default [
       },
     ],
   },
+  {
+    title: 'User Management',
+    icon: { icon: 'tabler-user' },
+    children: [
+      {
+        title: 'Role & User',
+        to: { name: 'users' },
+        icon: { icon: 'tabler-user' },
+      },
+      {
+        title: 'Permissions',
+        to: { name: 'permissions' },
+        icon: { icon: 'tabler-brand-auth0' },
+      },
+      {
+        title: 'Audit Log',
+        to: { name: 'audit-logs' },
+        icon: { icon: 'tabler-adjustments-cog' },
+      },
+    ],
+  },
+
 ]

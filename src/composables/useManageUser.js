@@ -15,18 +15,6 @@ export const useManageUser = () => {
   const formErrors = ref({})
   const actionLoading = ref(false)
 
-  // --------------------
-  // Helpers
-  // --------------------
-
-  // Update state pagination setelah response API
-  const applyPaginationResponse = res => {
-    users.value = res.entries ?? []
-    totalItems.value = res.pagination.total_items
-    currentPage.value = res.pagination.current_page
-    pageSize.value = res.pagination.page_size
-    totalPages.value = res.pagination.total_pages
-  }
 
   const clearFormErrors = () => (formErrors.value = {})
 
@@ -55,7 +43,16 @@ export const useManageUser = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      applyPaginationResponse(response.value)
+      applyPaginationResponse(
+        {
+          entries: users,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -75,7 +72,16 @@ export const useManageUser = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      applyPaginationResponse(response.value)
+      applyPaginationResponse(
+        {
+          entries: users,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
       
       return { success: true }
     } catch (_) {
@@ -97,7 +103,16 @@ export const useManageUser = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      applyPaginationResponse(response.value)
+      applyPaginationResponse(
+        {
+          entries: users,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
       
       return { success: true }
     } catch (_) {
@@ -119,7 +134,16 @@ export const useManageUser = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      applyPaginationResponse(response.value)
+      applyPaginationResponse(
+        {
+          entries: users,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
       
       return { success: true }
     } catch (_) {
@@ -132,10 +156,10 @@ export const useManageUser = () => {
   const saveUser = async userData => {
     if (userData.id) {
       const { id, ...payload } = userData
-      
+
       return updateUser(id, payload)
     }
-    
+
     return createUser(userData)
   }
 
