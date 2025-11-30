@@ -9,6 +9,7 @@ import { themeConfig } from '@themeConfig'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import { useManageAuthentication } from "@/composables/useManageAuthentication.js"
 import GeneralAlert from "@/components/general/GeneralAlert.vue"
+import AlertDialog from "@/components/dialogs/AlertDialog.vue"
 
 definePage({
   meta: {
@@ -31,6 +32,25 @@ const {
   formErrors,
   errorMessage,
 } = useManageAuthentication()
+
+const showAlertDialog = ref(false)
+const alertMessage = ref('')
+
+const route = useRoute()
+const router = useRouter()
+
+
+onMounted(() => {
+  if (route.query.alert === 'session_expired') {
+    showAlertDialog.value = true
+    alertMessage.value = 'Your session has expired, please login again.'
+  } else if (route.query.alert === 'not_login') {
+    showAlertDialog.value = true
+    alertMessage.value = 'You are not login yet.'
+  }
+  router.replace({ query: {} })
+
+})
 </script>
 
 <template>
@@ -102,6 +122,7 @@ const {
                   icon="tabler-bug"
                 />
               </VCol>
+
               <!-- email -->
               <VCol cols="12">
                 <AppTextField
@@ -143,6 +164,10 @@ const {
       </VCard>
     </VCol>
   </VRow>
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :title-alert="alertMessage"
+  />
 </template>
 
 <style lang="scss">

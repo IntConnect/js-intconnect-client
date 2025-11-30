@@ -42,8 +42,8 @@ const id = ref('')
 const username = ref('johndoe')
 const name = ref('John Doe')
 const email = ref('johndoe@gmail.com')
-const password = ref('123')
-const confirmPassword = ref('123')
+const password = ref('Password2412@$!@')
+const confirmPassword = ref('Password2412@$!@')
 const roleId = ref('')
 
 // Password visibility
@@ -213,7 +213,8 @@ const handleDrawerModelValueUpdate = val => {
               <VCol cols="12">
                 <AppTextField
                   v-model="username"
-                  :error-messages="props.formErrors.username || []"
+                  :error="!!props.formErrors.username"
+                  :error-messages="props.formErrors.username"
                   :rules="[requiredValidator]"
                   label="Username"
                   placeholder="johndoe"
@@ -224,6 +225,7 @@ const handleDrawerModelValueUpdate = val => {
               <VCol cols="12">
                 <AppTextField
                   v-model="name"
+                  :error="!!props.formErrors.name"
                   :error-messages="props.formErrors.name || []"
                   :rules="[requiredValidator]"
                   label="Name"
@@ -235,6 +237,7 @@ const handleDrawerModelValueUpdate = val => {
               <VCol cols="12">
                 <AppTextField
                   v-model="email"
+                  :error="!!props.formErrors.email"
                   :error-messages="props.formErrors.email || []"
                   :rules="[requiredValidator, emailValidator]"
                   label="Email"
@@ -247,7 +250,8 @@ const handleDrawerModelValueUpdate = val => {
                 <AppTextField
                   v-model="password"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
-                  :error-messages="props.formErrors.password || []"
+                  :error="!!props.formErrors.password"
+                  :error-messages="props.formErrors.password"
                   :label="isEditMode ? 'New Password (optional)' : 'Password'"
                   :rules="passwordRules"
                   :type="isPasswordVisible ? 'text' : 'password'"
@@ -280,6 +284,7 @@ const handleDrawerModelValueUpdate = val => {
               <VCol cols="12">
                 <AppSelect
                   v-model="roleId"
+                  :error="!!props.formErrors.role_id"
                   :error-messages="props.formErrors.role_id || []"
                   :items="processedRoles"
                   :rules="[requiredValidator]"

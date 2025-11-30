@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import DeleteDialog from "@/components/dialogs/DeleteDialog.vue"
 import { format } from "date-fns"
 
 // ==========================================
@@ -121,7 +121,7 @@ onMounted(() => {
             </div>
           </VCardText>
 
-          <VDivider/>
+          <VDivider />
 
           <!-- Data Table -->
           <VDataTable

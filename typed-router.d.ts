@@ -34,6 +34,6 @@ declare module 'vue-router/auto-routes' {
     'parameters-manage-id': RouteRecordInfo<'parameters-manage-id', '/parameters/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'permissions': RouteRecordInfo<'permissions', '/permissions', Record<never, never>, Record<never, never>>,
     'protocol-configurations': RouteRecordInfo<'protocol-configurations', '/protocol-configurations', Record<never, never>, Record<never, never>>,
-    'user': RouteRecordInfo<'user', '/user', Record<never, never>, Record<never, never>>,
+    'users': RouteRecordInfo<'users', '/users', Record<never, never>, Record<never, never>>,
   }
 }

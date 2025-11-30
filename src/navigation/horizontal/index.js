@@ -48,7 +48,7 @@ export default [
       },
       {
         title: 'User',
-        to: { name: 'user' },
+        to: { name: 'users' },
         icon: { icon: 'tabler-user' },
       },
       {

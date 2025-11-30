@@ -1,56 +1,35 @@
+// composables/useApi.js
 import { createFetch } from '@vueuse/core'
 import { destr } from 'destr'
 
 export const useApi = createFetch({
   baseUrl: import.meta.env.VITE_API_BASE_URL || '/api',
   fetchOptions: {
-    headers: {
-      Accept: 'application/json',
-    },
+    headers: { Accept: 'application/json' },
   },
   options: {
     refetch: true,
-
-    /**
-     * Before fetch - Add authorization token
-     */
-    beforeFetch({ url, options }) {
+    beforeFetch({ options }) {
       const accessToken = useCookie('access_token').value
-
       if (accessToken) {
-        options.headers = {
-          ...options.headers,
-          Authorization: `Bearer ${accessToken}`,
-        }
+        options.headers = { ...options.headers, Authorization: `Bearer ${accessToken}` }
       }
 
       return { options }
     },
-
-    /**
-     * After fetch - Parse JSON response
-     */
     afterFetch(ctx) {
-      const { data, response } = ctx
-
-      // Parse data if it's JSON
       let parsedData = null
       try {
-        parsedData = destr(data)
-      } catch (error) {
-        console.error('Failed to parse response:', error)
+        parsedData = destr(ctx.data)
+      } catch (e) {
+        console.error('Failed to parse response:', e)
       }
 
-      return { data: parsedData, response }
+      return { data: parsedData, response: ctx.response }
     },
-
-    /**
-     * On fetch error - Handle all errors
-     */
     onFetchError(ctx) {
-      const { data, response, error } = ctx
+      const { response, data } = ctx
 
-      // Parse error response data
       let errorData = null
       try {
         errorData = destr(data)
@@ -58,22 +37,31 @@ export const useApi = createFetch({
         console.error('Failed to parse error response:', e)
       }
 
-      // Create standardized error object
-      const standardizedError = {
-        status: response?.status || 500,
-        statusText: response?.statusText || 'Unknown Error',
-        message: errorData?.message || error?.message || 'An error occurred',
-        data: errorData,
-        error: errorData?.error || null,
-        errors: errorData?.errors || null, // validation errors
+      const status = response?.status || 500
+      const message = errorData?.message || 'An error occurred'
+      const token = useCookie('access_token').value
+
+      // 🔹 Handle 401 Unauthorized
+      if (status === 401) {
+        // User belum login
+        if (!token) {
+          window.location.href = '/login?alert=not_login'
+        } else {
+          // Session expired
+          window.location.href = '/login?alert=session_expired'
+        }
       }
 
-      console.error('API Error:', standardizedError)
-
-      // Return error in ctx.data so it's accessible via error.value
+      // Return standardized error object
       return {
         data: null,
-        error: standardizedError,
+        error: {
+          status,
+          message,
+          data: errorData,
+          error: errorData?.error || null,
+          errors: errorData?.errors || null,
+        },
       }
     },
   },

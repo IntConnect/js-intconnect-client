@@ -3,7 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import DeleteDialog from "@/components/dialogs/DeleteDialog.vue"
 import { format } from "date-fns"
 import AddNewUserDrawer from "@/components/user/AddNewUserDrawer.vue"
 import { useManageUser } from "@/composables/useManageUser"
@@ -53,6 +53,9 @@ const sortOrder = ref("asc")
 const isAddNewUserDrawerVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedUser = ref(null)
+const showAlertDialog = ref(false)
+const alertMessage = ref('')
+
 
 // ==========================================
 // Methods
@@ -122,11 +125,9 @@ const handleSaveUser = async userData => {
 
   if (result.success) {
     closeAddUserDrawer()
-    await loadUsers()
-
-    // Optional: Show success notification
+    showAlertDialog.value = true
+    alertMessage.value = 'Success'
   } else {
-    // Errors sudah di-set di formErrors oleh composable
     console.error('Failed to save user:', result.error || result.errors)
   }
 }
@@ -141,14 +142,13 @@ const handleDeleteUser = async formData => {
     return
   }
 
-  const reason = formData.reason || ''
-  const result = await deleteUser(selectedUser.value.id, reason)
+
+  const result = await deleteUser(selectedUser.value.id, formData)
 
   if (result.success) {
     closeDeleteDialog()
-    await loadUsers()
-
-    // Optional: Show success notification
+    showAlertDialog.value = true
+    
   } else {
     console.error('Failed to delete user:', result.error)
 
@@ -226,7 +226,6 @@ onMounted(() => {
 
       <!-- Data Table -->
       <VDataTable
-        v-model:page="page"
         :headers="TABLE_HEADERS"
         :items="users"
         :items-per-page="itemsPerPage"
@@ -316,4 +315,8 @@ onMounted(() => {
       @user-data="handleSaveUser"
     />
   </section>
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :title-alert="alertMessage"
+  />
 </template>

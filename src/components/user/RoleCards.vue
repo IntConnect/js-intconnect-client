@@ -1,6 +1,6 @@
 <script setup>
 import girlUsingMobile from '@images/pages/girl-using-mobile.png'
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import DeleteDialog from "@/components/dialogs/DeleteDialog.vue"
 import ManageRoleDialog from "@/components/role/ManageRoleDialog.vue"
 
 const {

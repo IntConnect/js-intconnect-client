@@ -55,7 +55,7 @@ declare module 'vue' {
     CustomRadiosWithImage: typeof import('./src/@core/components/app-form-elements/CustomRadiosWithImage.vue')['default']
     DailyEnergyConsumptionTrendDiagramChart: typeof import('./src/components/dashboard/DailyEnergyConsumptionTrendDiagramChart.vue')['default']
     DatabaseModal: typeof import('./src/components/flow/nodes/DatabaseModal.vue')['default']
-    DeleteDialog: typeof import('./src/components/general/DeleteDialog.vue')['default']
+    DeleteDialog: typeof import('./src/components/dialogs/DeleteDialog.vue')['default']
     DialogCloseBtn: typeof import('./src/@core/components/DialogCloseBtn.vue')['default']
     DropZone: typeof import('./src/@core/components/DropZone.vue')['default']
     EcommerceExpensesRadialBarCharts: typeof import('./src/components/dashboard/EcommerceExpensesRadialBarCharts.vue')['default']
