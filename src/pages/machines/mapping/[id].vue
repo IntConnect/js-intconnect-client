@@ -221,7 +221,6 @@ onMounted(async () => {
       // 3️⃣ tampilkan popup adjust
       showAdjustPopup.value = true
 
-      console.log("Temporary marker created at:", point)
     }
   }
 
@@ -308,11 +307,9 @@ const confirmMapping = () => {
     // update posisi marker sesuai input terakhir
     tempMapping.value.marker.position.copy(tempMapping.value.position)
 
-    console.log(tempMapping)
     // simpan ke mapping list
     mappingList.push(tempMapping.value)
 
-    console.log("Mapping confirmed:", mappingList)
   }
 
   // reset
@@ -347,11 +344,9 @@ const updateMarkerRotation = () => {
 }
 
 const deleteMapping = (index) => {
-  console.log("Delete clicked for index:", index)
 
   const mapping = mappingList[index]
   if (mapping?.marker) {
-    console.log("Removing marker:", mapping.marker)
 
     // Method 1: Remove langsung dari parent
     if (mapping.marker.parent) {
@@ -382,7 +377,6 @@ const deleteMapping = (index) => {
   }
 
   mappingList.splice(index, 1)
-  console.log("Mapping deleted, remaining:", mappingList.length)
 }
 
 </script>

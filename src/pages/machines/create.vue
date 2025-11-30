@@ -40,19 +40,16 @@ const formData = ref({
 })
 
 const onSubmit = () => {
-  console.log(formData.value)
 }
 
 async function fetchFacilities() {
   try {
     const { data: response } = await useApi(`/facilities`).get().json()
 
-    console.log(response)
     facilities.value = response.value.data.map(facility => ({
       title: facility.name, // ditampilkan
       value: facility.id,     // jadi value
     }))
-    console.log(facilities)
   } catch (err) {
     console.error('Failed to fetch roles:', err)
   }

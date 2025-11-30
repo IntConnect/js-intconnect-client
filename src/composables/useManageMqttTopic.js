@@ -36,7 +36,6 @@ export const useManageMqttTopic = () => {
 
       const res = response.value
 
-      console.log(res)
       if (res.success) {
         mqttTopics.value = res.data ?? []
         totalItems.value = res.pagination.total_items
@@ -74,7 +73,6 @@ export const useManageMqttTopic = () => {
 
       const res = response.value
 
-      console.log(res)
       if (res.status) {
         mqttTopics.value = res.data ?? []
       } else {
@@ -102,7 +100,6 @@ export const useManageMqttTopic = () => {
         .post(mqttTopicData)
         .json()
 
-      console.log(error, response)
 
       if (apiError.value) {
         const errorData = apiError.value

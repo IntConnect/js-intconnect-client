@@ -123,7 +123,6 @@ const {
 onMounted(async () => {
   await fetchRoles()
   await nextTick()
-  console.log(roles.value)
   processedRoles.value = roles.value.map(role => ({
     title: role.name,
     value: role.id,

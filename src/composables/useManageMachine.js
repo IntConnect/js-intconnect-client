@@ -36,7 +36,6 @@ export const useManageMachine = () => {
 
       const res = response.value
 
-      console.log(res)
       if (res.success) {
         machines.value = res.data ?? []
         totalItems.value = res.pagination.total_items
@@ -74,7 +73,6 @@ export const useManageMachine = () => {
 
       const res = response.value
 
-      console.log(res)
       if (res.status) {
         machines.value = res.data ?? []
       } else {
@@ -102,7 +100,6 @@ export const useManageMachine = () => {
         .post(machineData)
         .json()
 
-      console.log(error, response)
 
       if (apiError.value) {
         const errorData = apiError.value

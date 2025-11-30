@@ -29,7 +29,6 @@ export const useFetchPermission = () => {
 
       const res = response.value
 
-      console.log(res)
       permissions.value = res.data ?? []
       totalItems.value = res.pagination.total_items
       currentPage.value = res.pagination.current_page
@@ -53,9 +52,8 @@ export const useFetchPermission = () => {
 
       const res = response.value
 
-      console.log(res)
       permissions.value = res.data ?? []
-     
+
       loading.value = false
     } catch
     (err) {

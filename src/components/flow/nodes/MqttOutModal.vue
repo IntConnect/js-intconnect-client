@@ -23,10 +23,6 @@ const actionOptions = [
   { label: 'Dynamic subscription', value: 'dynamic_sub' },
 ]
 
-watch(() => (props.protocolConfigurations), () => {
-  console.log(props.protocolConfigurations)
-}, { immediate: true })
-
 const outputOptions = [
   { label: 'auto-detect (parsed JSON Object, string or buffer)', value: 'auto_detect_1' },
   { label: 'auto-detect (string or buffer)', value: 'auto_detect_2' },
@@ -89,7 +85,7 @@ const resetConfig = () => {
     @update:model-value="dialogVisibleUpdate"
   >
     <!-- 👉 Dialog close btn -->
-    <DialogCloseBtn @click="$emit('update:open', false)"/>
+    <DialogCloseBtn @click="$emit('update:open', false)" />
 
     <VCard class="share-project-dialog pa-2 pa-sm-10">
       <VCardText>
@@ -115,9 +111,9 @@ const resetConfig = () => {
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -145,9 +141,9 @@ const resetConfig = () => {
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -161,9 +157,9 @@ const resetConfig = () => {
                   <AppTextField
                     id="mqttTopic"
                     v-model="config.topic"
-                    prepend-inner-icon="tabler-hash"
-                    placeholder="sensor/data"
                     persistent-placeholder
+                    placeholder="sensor/data"
+                    prepend-inner-icon="tabler-hash"
                   />
                 </VCol>
               </VRow>
@@ -174,9 +170,9 @@ const resetConfig = () => {
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -190,9 +186,9 @@ const resetConfig = () => {
                   <AppTextField
                     id="mqttTopic"
                     v-model="config.name"
-                    prepend-inner-icon="tabler-hash"
-                    placeholder="MQTT 1"
                     persistent-placeholder
+                    placeholder="MQTT 1"
+                    prepend-inner-icon="tabler-hash"
                   />
                 </VCol>
               </VRow>
@@ -201,9 +197,9 @@ const resetConfig = () => {
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -211,22 +207,22 @@ const resetConfig = () => {
                   >QoS</label>
                 </VCol>
                 <VCol
+                  class="flex flex-row gap-4"
                   cols="12"
                   md="8"
-                  class="flex flex-row gap-4"
                 >
                   <AppSelect
                     v-model="config.qos"
-                    label=""
                     :items="[0,1,2]"
-                    placeholder="Select QoS"
                     class="flex-1"
+                    label=""
+                    placeholder="Select QoS"
                   />
                   <div class="flex items-center">
                     <VCheckbox
                       v-model="config.retain"
-                      label="Retain"
                       class="mt-0"
+                      label="Retain"
                     />
                   </div>
                 </VCol>
@@ -245,15 +241,15 @@ const resetConfig = () => {
                   md="9"
                 >
                   <VBtn
-                    type="submit"
                     class="me-4"
+                    type="submit"
                   >
                     Save
                   </VBtn>
                   <VBtn
                     color="secondary"
-                    variant="tonal"
                     type="reset"
+                    variant="tonal"
                     @click="resetConfig"
                   >
                     Reset

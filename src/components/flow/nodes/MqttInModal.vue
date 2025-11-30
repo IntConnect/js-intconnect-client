@@ -1,6 +1,4 @@
 <script setup>
-
-
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 
 const props = defineProps({
@@ -24,10 +22,6 @@ const actionOptions = [
   { label: 'Subscriber to single topic', value: 'single_sub' },
   { label: 'Dynamic subscription', value: 'dynamic_sub' },
 ]
-
-watch(() => (props.protocolConfigurations), () => {
-  console.log(props.protocolConfigurations)
-}, { immediate: true })
 
 const outputOptions = [
   { label: 'auto-detect (parsed JSON Object, string or buffer)', value: 'auto_detect_1' },
@@ -95,7 +89,7 @@ const resetConfig = () => {
     @update:model-value="dialogVisibleUpdate"
   >
     <!-- 👉 Dialog close btn -->
-    <DialogCloseBtn @click="$emit('update:open', false)"/>
+    <DialogCloseBtn @click="$emit('update:open', false)" />
 
     <VCard class="share-project-dialog pa-2 pa-sm-10">
       <VCardText>
@@ -117,14 +111,13 @@ const resetConfig = () => {
         </div>
         <VForm @submit.prevent="submitConfig">
           <VRow>
-
             <!-- 👉 QoS -->
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -151,9 +144,9 @@ const resetConfig = () => {
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -178,13 +171,11 @@ const resetConfig = () => {
 
             <!-- 👉 Topic -->
             <VCol cols="12">
-
               <VRow no-gutters>
-
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -198,9 +189,9 @@ const resetConfig = () => {
                   <AppTextField
                     id="mqttTopic"
                     v-model="config.topic"
-                    prepend-inner-icon="tabler-hash"
-                    placeholder="sensor/data"
                     persistent-placeholder
+                    placeholder="sensor/data"
+                    prepend-inner-icon="tabler-hash"
                   />
                 </VCol>
               </VRow>
@@ -210,9 +201,9 @@ const resetConfig = () => {
             <VCol cols="12">
               <VRow no-gutters>
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -227,23 +218,20 @@ const resetConfig = () => {
                     id="output"
                     v-model="config.output"
                     :items="outputOptions"
-                    label="Select Output"
-                    prepend-inner-icon="tabler-map"
                     item-title="label"
                     item-value="id"
-
+                    label="Select Output"
+                    prepend-inner-icon="tabler-map"
                   />
                 </VCol>
               </VRow>
             </VCol>
             <VCol cols="12">
-
               <VRow no-gutters>
-
                 <VCol
+                  class="d-flex align-items-center"
                   cols="12"
                   md="3"
-                  class="d-flex align-items-center"
                 >
                   <label
                     class="v-label text-body-2 text-high-emphasis"
@@ -257,9 +245,9 @@ const resetConfig = () => {
                   <AppTextField
                     id="mqttTopic"
                     v-model="config.name"
-                    prepend-inner-icon="tabler-hash"
-                    placeholder="MQTT 1"
                     persistent-placeholder
+                    placeholder="MQTT 1"
+                    prepend-inner-icon="tabler-hash"
                   />
                 </VCol>
               </VRow>
@@ -278,15 +266,15 @@ const resetConfig = () => {
                   md="9"
                 >
                   <VBtn
-                    type="submit"
                     class="me-4"
+                    type="submit"
                   >
                     Save
                   </VBtn>
                   <VBtn
                     color="secondary"
-                    variant="tonal"
                     type="reset"
+                    variant="tonal"
                     @click="resetConfig"
                   >
                     Reset

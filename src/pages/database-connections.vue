@@ -101,7 +101,6 @@ const selectedDatabaseConnection = ref('')
 function selectDatabaseConnection(name) {
   selectedDatabaseConnection.value = name
   payload.value.protocol = name
-  console.log(selectedDatabaseConnection.value)
 }
 
 const currentStep = ref(0)
@@ -122,7 +121,6 @@ const fetchDatabaseConnectionConfigurations = async () => {
     const res = await $api('/database-connections')
 
     databaseConnections.value = res.data ?? []
-    console.log(databaseConnections)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -140,7 +138,6 @@ const onSubmit = async () => {
       config: config.value,
     }
 
-    console.log(finalPayload)
 
     // Kirim data ke API
     const res = await $api('/database-connections', {
@@ -148,7 +145,6 @@ const onSubmit = async () => {
       body: finalPayload,
     })
 
-    console.log('✅ Configuration saved successfully:', res)
   } catch (error) {
     console.error('❌ Failed to submit configuration:', error)
   }
@@ -162,8 +158,8 @@ onMounted(() => {
 <template>
   <AppCardActions
     action-collapsed
-    title="Setup & Manage Database Connections"
     class="mb-5"
+    title="Setup & Manage Database Connections"
   >
     <VCardText>
       <VRow>
@@ -175,10 +171,10 @@ onMounted(() => {
           <div class="pa-6">
             <AppStepper
               v-model:current-step="currentStep"
-              direction="vertical"
               :items="numberedSteps"
-              icon-size="24"
               class="stepper-icon-step-bg"
+              direction="vertical"
+              icon-size="24"
             />
           </div>
         </VCol>
@@ -214,8 +210,8 @@ onMounted(() => {
                           sm="6"
                         >
                           <VCard
-                            class="hover:shadow-lg transition-all duration-200 "
                             :class="selectedDatabaseConnection === databaseConnection.name ? 'bg-primary-darken-1 opacity-100' : 'opacity-80'"
+                            class="hover:shadow-lg transition-all duration-200 "
                             @click="selectDatabaseConnection(databaseConnection.name)"
                           >
                             <!-- Logo -->
@@ -233,14 +229,12 @@ onMounted(() => {
                             <!-- Actions -->
                             <VCardActions>
                               <VBtn @click="toggleDetails(databaseConnection.name)">
-                                <span
-                                  :class="selectedDatabaseConnection === databaseConnection.name ? 'text-white': 'text-primary'"
-                                >
+                                <span :class="selectedDatabaseConnection === databaseConnection.name ? 'text-white': 'text-primary'">
                                   Details
                                 </span>
                               </VBtn>
 
-                              <VSpacer/>
+                              <VSpacer />
 
                               <VBtn
                                 icon
@@ -257,7 +251,7 @@ onMounted(() => {
                             <!-- Expandable Details -->
                             <VExpandTransition>
                               <div v-show="isVisible(databaseConnection.name)">
-                                <VDivider/>
+                                <VDivider />
                                 <VCardText class="text-body-2 text-gray-600">
                                   {{ databaseConnection.description }}
                                 </VCardText>
@@ -285,11 +279,11 @@ onMounted(() => {
                         cols="12"
                       >
                         <VAlert
+                          border="start"
+                          class="mt-3"
+                          icon="tabler-alert-triangle"
                           type="warning"
                           variant="tonal"
-                          class="mt-3"
-                          border="start"
-                          icon="tabler-alert-triangle"
                         >
                           Please select a database type first in the previous step.
                         </VAlert>
@@ -336,11 +330,11 @@ onMounted(() => {
                         cols="12"
                       >
                         <VAlert
+                          border="start"
+                          class="mt-3"
+                          icon="tabler-alert-triangle"
                           type="warning"
                           variant="tonal"
-                          class="mt-3"
-                          border="start"
-                          icon="tabler-alert-triangle"
                         >
                           Please select a database type first in the previous step.
                         </VAlert>
@@ -400,21 +394,20 @@ onMounted(() => {
                           />
                         </VCol>
                       </template>
-
                     </VRow>
                   </VWindowItem>
                 </VWindow>
                 <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
                   <VBtn
+                    :disabled="currentStep === 0"
                     color="secondary"
                     variant="tonal"
-                    :disabled="currentStep === 0"
                     @click="currentStep--"
                   >
                     <VIcon
+                      class="flip-in-rtl"
                       icon="tabler-arrow-left"
                       start
-                      class="flip-in-rtl"
                     />
                     Previous
                   </VBtn>
@@ -431,9 +424,9 @@ onMounted(() => {
                   >
                     Next
                     <VIcon
-                      icon="tabler-arrow-right"
-                      end
                       class="flip-in-rtl"
+                      end
+                      icon="tabler-arrow-right"
                     />
                   </VBtn>
                 </div>
@@ -455,7 +448,6 @@ onMounted(() => {
           Show
         </p>
         <AppSelect
-          :model-value="itemsPerPage"
           :items="[
             { value: 10, title: '10' },
             { value: 25, title: '25' },
@@ -463,6 +455,7 @@ onMounted(() => {
             { value: 100, title: '100' },
             { value: -1, title: 'All' },
           ]"
+          :model-value="itemsPerPage"
           style="inline-size: 5.5rem;"
           @update:model-value="itemsPerPage = parseInt($event, 10)"
         />
@@ -472,8 +465,8 @@ onMounted(() => {
         :items="databaseConnections"
         :items-per-page="itemsPerPage"
         :loading="loadingDatabaseConnectionConfigurations"
-        loading-text="Loading data, please wait..."
         expand-on-click
+        loading-text="Loading data, please wait..."
       >
         <template #item.no="{ index }">
           <div class="d-flex align-center gap-x-4">
@@ -487,9 +480,9 @@ onMounted(() => {
               rounded
             >
               <VBtn
+                :href="`/database-schema/${item.id}`"
                 icon="tabler-schema"
                 rounded
-                :href="`/database-schema/${item.id}`"
               />
 
               <VTooltip
@@ -499,8 +492,6 @@ onMounted(() => {
                 Manage Schema
               </VTooltip>
             </VBtn>
-
-
           </div>
         </template>
 
@@ -514,33 +505,33 @@ onMounted(() => {
               <div class="p-4 space-y-2">
                 <table class="min-w-full border border-gray-200 rounded-lg mt-5">
                   <thead class="bg-gray-100">
-                  <tr>
-                    <th class="text-left px-3 py-2 w-1/3">
-                      Property
-                    </th>
-                    <th class="text-left px-3 py-2">
-                      Value
-                    </th>
-                  </tr>
+                    <tr>
+                      <th class="text-left px-3 py-2 w-1/3">
+                        Property
+                      </th>
+                      <th class="text-left px-3 py-2">
+                        Value
+                      </th>
+                    </tr>
                   </thead>
                   <tbody>
-                  <tr
-                    v-for="(value, key) in item.config"
-                    :key="key"
-                    class="border-t border-gray-200 hover:bg-gray-50"
-                  >
-                    <td class="px-3 py-2 font-medium text-gray-700">
-                      {{ formatKey(key) }}
-                    </td>
-                    <td class="px-3 py-2 text-gray-800">
-                      <template v-if="typeof value === 'object' && value !== null">
-                        <pre class="text-xs bg-gray-100 p-2 rounded-md">{{ JSON.stringify(value, null, 2) }}</pre>
-                      </template>
-                      <template v-else>
-                        {{ value }}
-                      </template>
-                    </td>
-                  </tr>
+                    <tr
+                      v-for="(value, key) in item.config"
+                      :key="key"
+                      class="border-t border-gray-200 hover:bg-gray-50"
+                    >
+                      <td class="px-3 py-2 font-medium text-gray-700">
+                        {{ formatKey(key) }}
+                      </td>
+                      <td class="px-3 py-2 text-gray-800">
+                        <template v-if="typeof value === 'object' && value !== null">
+                          <pre class="text-xs bg-gray-100 p-2 rounded-md">{{ JSON.stringify(value, null, 2) }}</pre>
+                        </template>
+                        <template v-else>
+                          {{ value }}
+                        </template>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

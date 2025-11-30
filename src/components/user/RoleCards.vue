@@ -89,7 +89,6 @@ const handleSaveRole = async roleData => {
     await loadRoles()
 
     // Optional: Show success notification
-    console.log('Role saved successfully')
   } else {
     // Errors sudah di-set di formErrors oleh composable
     console.error('Failed to save role:', result.error || result.errors)
@@ -114,7 +113,6 @@ const handleDeleteRole = async formData => {
     await loadRoles()
 
     // Optional: Show success notification
-    console.log('Role deleted successfully')
   } else {
     console.error('Failed to delete role:', result.error)
 

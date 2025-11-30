@@ -68,9 +68,6 @@ const loadParameters = async () => {
     order: sortOrder.value,
   })
   await nextTick()
-  console.log('Current page:', page.value)
-  console.log('Parameters:', parameters.value)
-  console.log('Total items:', totalItems.value)
 }
 
 /**
@@ -98,8 +95,6 @@ const handleSaveParameter = async parameterData => {
   if (result.success) {
     await loadParameters()
 
-    // Optional: Show success notification
-    console.log('Parameter saved successfully')
   } else {
     // Errors sudah di-set di formErrors oleh composable
     console.error('Failed to save parameter:', result.error || result.errors)
@@ -123,8 +118,6 @@ const handleDeleteParameter = async formData => {
     closeDeleteDialog()
     await loadParameters()
 
-    // Optional: Show success notification
-    console.log('Parameter deleted successfully')
   } else {
     console.error('Failed to delete parameter:', result.error)
 
@@ -144,7 +137,6 @@ watch(searchQuery, () => {
 
 // Reload data when page or itemsPerPage changes
 watch([page, itemsPerPage], () => {
-  console.log('Page changed to:', page.value)
   loadParameters()
 })
 

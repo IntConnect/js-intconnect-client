@@ -54,7 +54,6 @@ export const useManageRole = () => {
         .post(roleData)
         .json()
 
-      console.log(error, response)
 
       if (apiError.value) {
         const errorData = apiError.value
@@ -147,7 +146,6 @@ export const useManageRole = () => {
     error.value = null
 
     try {
-      console.log(reason)
 
       const { data: response, error: apiError } = await useApi(`/roles/${roleId}`)
         .delete({ description: reason })

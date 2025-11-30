@@ -14,9 +14,7 @@ export const useManageAuthentication = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
 
-      console.log(errorMessage)
       if (!result.success) return result
-      console.log(response)
 
       const token = response.value?.entry?.token
 

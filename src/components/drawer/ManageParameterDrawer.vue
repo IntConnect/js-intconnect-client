@@ -110,7 +110,6 @@ const {
 onMounted(async () => {
   await fetchMachines()
   await nextTick()
-  console.log(machines)
   processedMachines.value = machines.value.map(role => ({
     title: role.name,
     value: role.id,

@@ -65,7 +65,6 @@ export const useManageUser = () => {
         .post(userData)
         .json()
 
-      console.log(error, response)
 
       if (apiError.value) {
         const errorData = apiError.value

@@ -50,8 +50,6 @@ const selectedNode = ref(null)
 const modalComponents = { MqttInModal, MqttOutModal, DatabaseModal }
 
 const ModalContent = computed(() => {
-  console.log(selectedNode.value?.data.modal)
-  console.log(modalComponents[selectedNode.value?.data.modal])
   if (!selectedNode.value) return null
   const modalName = selectedNode.value.data.modal
 
@@ -72,13 +70,11 @@ function onConnect(params) {
 }
 
 function handleNodeDoubleClick(event) {
-  console.log(event)
   selectedNode.value = event.node
   modalOpen.value = true
 }
 
 function handlePipelineClick(event) {
-  console.log(event)
   pipelineModalOpen.value = true
 }
 
@@ -138,7 +134,6 @@ async function fetchAvailableNodes() {
       return acc
     }, {})
     await nextTick()
-    console.log(availableNodes)
 
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
@@ -165,7 +160,7 @@ async function fetchAvailableDatabaseConnections() {
   loadingNodes.value = true
   try {
     const res = await $api('/database-connections')
-    console.log(res.data)
+
     availableDatabaseConnections.value = res.data ?? []
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
@@ -198,7 +193,6 @@ async function fetchDetailPipeline(pipelineId) {
   try {
     const res = await $api(`/pipelines/${pipelineId}`)
 
-    console.log(res.data)
 
     const { nodes, edges } = constructPipelineFromResponse(res.data)
 
@@ -288,7 +282,6 @@ function constructPipelineFromResponse(pipelineData) {
 }
 
 async function handleDeletePipeline(pipeline) {
-  console.log(pipeline)
 }
 
 async function submitPipeline() {
@@ -326,9 +319,7 @@ async function submitPipeline() {
     if (activePipeline.value.id) {
       activeMethod = 'PUT'
     }
-    console.log(payload, activeMethod, activePipeline)
 
-    console.log('🚀 Sending pipeline payload:', payload)
 
     const res = await $api('/pipelines', {
       method: activeMethod,
@@ -354,7 +345,6 @@ async function runPipeline() {
 }
 
 async function onSubmitConfig(data) {
-  console.log('Config emitted:', data)
 
   // cari index node yang sesuai dengan node_id dari data
   const index = storedNodes.value.findIndex(node => node.id === data.node_id)
@@ -369,14 +359,12 @@ async function onSubmitConfig(data) {
       },
     }
 
-    console.log('Node updated:', storedNodes.value[index])
   } else {
     console.warn('Node not found for id:', data.node_id)
   }
 }
 
 async function onSubmitPipeline(data) {
-  console.log(data)
   activePipeline.value.id = data.id
   activePipeline.value.name = data.name
   activePipeline.value.description = data.description
@@ -395,9 +383,9 @@ async function onSubmitPipeline(data) {
           to="/"
         >
           <VIcon
-            start
             icon="tabler-circle-arrow-left-filled"
             size="26"
+            start
           />
           Dashboard
         </VBtn>
@@ -414,20 +402,20 @@ async function onSubmitPipeline(data) {
           >
             {{ availablePipeline.name }}
             <VBtn
-              icon="tabler-x"
-              color="secondary"
-              size="24"
               class="shadow-md bg-white hover:scale-110 transition-transform duration-200 ml-2"
+              color="secondary"
+              icon="tabler-x"
               rounded="full"
+              size="24"
               @click="handleDeletePipeline"
             />
           </VTab>
         </VTabs>
 
         <VBtn
+          class="ml-2"
           icon="tabler-circle-plus"
           rounded
-          class="ml-2"
           @click="addNewTab"
         />
       </div>
@@ -441,8 +429,8 @@ async function onSubmitPipeline(data) {
           />
         </VBtn>
         <VBtn
-          color="success"
           class="flex-1"
+          color="success"
           @click="runPipeline"
         >
           Run
@@ -454,8 +442,8 @@ async function onSubmitPipeline(data) {
     <div class="grid grid-cols-24 gap-4 flex-1 overflow-hidden bg-gray-100 p-3">
       <!-- Left Sidebar -->
       <div
-        class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
         :class="leftCollapsed ? 'col-span-2' : 'col-span-4'"
+        class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
       >
         <VCard class="h-full flex flex-col">
           <VCardTitle class="!flex !justify-between items-center transition-all duration-300 ease-in-out">
@@ -465,9 +453,9 @@ async function onSubmitPipeline(data) {
             >All Nodes</span>
 
             <VBtn
-              icon
-              class="transition-all duration-300 ease-in-out"
               :class="[{ 'mx-auto': leftCollapsed }]"
+              class="transition-all duration-300 ease-in-out"
+              icon
               @click="leftCollapsed = !leftCollapsed"
             >
               <VIcon>
@@ -481,8 +469,6 @@ async function onSubmitPipeline(data) {
             v-show="!leftCollapsed"
             class="flex-1 overflow-y-auto px-2"
           >
-
-
             <VExpansionPanels
               v-model="openedPanels"
               multiple
@@ -503,18 +489,17 @@ async function onSubmitPipeline(data) {
                     <VBtn
                       v-for="n in group"
                       :key="n.id"
-                      color="primary"
                       class="mx-0"
+                      color="primary"
                       @click="addNode(n.id, n.type, n.label, n.color, n.icon, n.component_name, n.default_config)"
                     >
                       <VIcon
-                        start
                         :icon="n.icon"
+                        start
                       />
                       {{ n.label }}
                     </VBtn>
                   </div>
-
                 </VExpansionPanelText>
               </VExpansionPanel>
             </VExpansionPanels>
@@ -524,7 +509,6 @@ async function onSubmitPipeline(data) {
 
       <!-- Center Flow -->
       <div
-        class="bg-gray-50 rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
         :class="[
           leftCollapsed && rightCollapsed
             ? 'col-span-20'
@@ -532,23 +516,24 @@ async function onSubmitPipeline(data) {
               ? 'col-span-18'
               : 'col-span-16',
         ]"
+        class="bg-gray-50 rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
       >
         <div class="h-full w-full">
           <VueFlow
             v-if="activePipeline && (activePipeline.id || activePipeline.name)"
-            :nodes="storedNodes"
             :edges="storedEdges"
             :node-types="{ custom: markRaw(SpecialNode) }"
+            :nodes="storedNodes"
             fit-view
             style="width: 100%; height: 100%;"
+            @connect="onConnect"
             @nodes-change="onNodesChange"
             @edges-change="onEdgesChange"
-            @connect="onConnect"
             @node-double-click="handleNodeDoubleClick"
           >
-            <Controls/>
-            <MiniMap/>
-            <Background/>
+            <Controls />
+            <MiniMap />
+            <Background />
           </VueFlow>
           <div
             v-else
@@ -561,15 +546,15 @@ async function onSubmitPipeline(data) {
 
       <!-- Right Sidebar -->
       <div
-        class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
         :class="rightCollapsed ? 'col-span-2' : 'col-span-4'"
+        class="h-full bg-white shadow rounded-lg overflow-hidden transition-all duration-300 ease-in-out"
       >
         <VCard class="h-full flex flex-col">
           <VCardTitle class="!flex !justify-between items-center">
             <span v-show="!rightCollapsed">All Nodes</span>
             <VBtn
-              icon
               :class="[{ 'mx-auto': rightCollapsed }]"
+              icon
               @click="rightCollapsed = !rightCollapsed"
             >
               <VIcon>
@@ -599,9 +584,9 @@ async function onSubmitPipeline(data) {
     :is="ModalContent"
     v-if="ModalContent"
     v-model:open="modalOpen"
+    :database-connections="availableDatabaseConnections"
     :node="selectedNode"
     :protocol-configurations="availableProtocolConfigurations"
-    :database-connections="availableDatabaseConnections"
     @config="onSubmitConfig"
   />
   <ManagePipelineDialog

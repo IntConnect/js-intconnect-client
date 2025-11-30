@@ -137,14 +137,15 @@ const selectedProtocol = ref('')
 // Fungsi memilih
 function selectProtocol(name) {
   selectedProtocol.value = name
-  console.log(selectedProtocol.value)
 }
 
 const currentStep = ref(0)
 const page = ref(1)
+
 const totalData = computed(() => {
   return protocolConfigurations.value.length
 })
+
 const itemsPerPage = ref(10)
 
 
@@ -205,7 +206,6 @@ const fetchProtocolConfigurations = async () => {
     const res = await $api('/protocol-configurations')
 
     protocolConfigurations.value = res.data ?? []
-    console.log(protocolConfigurations)
   } catch (err) {
     toast.error(err.message || 'Failed to fetch nodes')
   } finally {
@@ -230,7 +230,6 @@ const onSubmit = async () => {
       config = { name: mqttForm.value.name } // isi sesuai kebutuhan OPC UA
     }
 
-    console.log(config)
 
     // Payload sesuai DTO backend
     const payload = {
@@ -247,7 +246,6 @@ const onSubmit = async () => {
       body: payload,
     })
 
-    console.log('✅ Configuration saved successfully:', res)
   } catch (error) {
     console.error('❌ Failed to submit configuration:', error)
   }
@@ -261,8 +259,8 @@ onMounted(() => {
 <template>
   <AppCardActions
     action-collapsed
-    title="Setup & Manage Protocol"
     class="mb-5"
+    title="Setup & Manage Protocol"
   >
     <VCardText>
       <VRow>
@@ -274,10 +272,10 @@ onMounted(() => {
           <div class="pa-6">
             <AppStepper
               v-model:current-step="currentStep"
-              direction="vertical"
               :items="numberedSteps"
-              icon-size="24"
               class="stepper-icon-step-bg"
+              direction="vertical"
+              icon-size="24"
             />
           </div>
         </VCol>
@@ -313,8 +311,8 @@ onMounted(() => {
                           sm="6"
                         >
                           <VCard
-                            class="hover:shadow-lg transition-all duration-200 "
                             :class="selectedProtocol === protocol.name ? 'bg-primary-darken-1 opacity-100' : 'opacity-80'"
+                            class="hover:shadow-lg transition-all duration-200 "
                             @click="selectProtocol(protocol.name)"
                           >
                             <!-- Logo -->
@@ -337,15 +335,16 @@ onMounted(() => {
                                 </span>
                               </VBtn>
 
-                              <VSpacer/>
+                              <VSpacer />
 
                               <VBtn
                                 icon
                                 size="small"
                                 @click="toggleDetails(protocol.name)"
                               >
-                                <VIcon :icon="isVisible(protocol.name) ? 'tabler-chevron-up' : 'tabler-chevron-down'"
-                                       :class="selectedProtocol === protocol.name ? 'text-white': 'text-primary'"
+                                <VIcon
+                                  :class="selectedProtocol === protocol.name ? 'text-white': 'text-primary'"
+                                  :icon="isVisible(protocol.name) ? 'tabler-chevron-up' : 'tabler-chevron-down'"
                                 />
                               </VBtn>
                             </VCardActions>
@@ -353,7 +352,7 @@ onMounted(() => {
                             <!-- Expandable Details -->
                             <VExpandTransition>
                               <div v-show="isVisible(protocol.name)">
-                                <VDivider/>
+                                <VDivider />
                                 <VCardText class="text-body-2 text-gray-600">
                                   {{ protocol.description }}
                                 </VCardText>
@@ -381,11 +380,11 @@ onMounted(() => {
                         cols="12"
                       >
                         <VAlert
+                          border="start"
+                          class="mt-3"
+                          icon="tabler-alert-triangle"
                           type="warning"
                           variant="tonal"
-                          class="mt-3"
-                          border="start"
-                          icon="tabler-alert-triangle"
                         >
                           Please select a protocol first in the previous step.
                         </VAlert>
@@ -421,11 +420,11 @@ onMounted(() => {
                         cols="12"
                       >
                         <VAlert
+                          border="start"
+                          class="mt-3"
+                          icon="tabler-alert-triangle"
                           type="warning"
                           variant="tonal"
-                          class="mt-3"
-                          border="start"
-                          icon="tabler-alert-triangle"
                         >
                           Please select a protocol first in the previous step.
                         </VAlert>
@@ -460,8 +459,8 @@ onMounted(() => {
                         >
                           <AppSelect
                             v-model="mqttForm.protocol"
-                            label="MQTT Protocol Version"
                             :items="['v3.1', 'v3.1.1', 'v5.0']"
+                            label="MQTT Protocol Version"
                             placeholder="Select protocol version"
                           />
                         </VCol>
@@ -482,8 +481,8 @@ onMounted(() => {
                           <AppTextField
                             v-model="mqttForm.keepAlive"
                             label="Keep Alive (s)"
-                            type="number"
                             placeholder="60"
+                            type="number"
                           />
                         </VCol>
                         <VCol cols="12">
@@ -502,8 +501,8 @@ onMounted(() => {
                         >
                           <AppSelect
                             v-model="modbusForm.connectionType"
-                            label="Connection Type"
                             :items="['TCP', 'RTU']"
+                            label="Connection Type"
                             placeholder="Select Modbus Type"
                           />
                         </VCol>
@@ -537,8 +536,8 @@ onMounted(() => {
                         >
                           <AppSelect
                             v-model="modbusForm.serialPort"
-                            label="Serial Port"
                             :items="['/dev/ttyUSB0', '/dev/ttyS1', '/dev/ttyS2']"
+                            label="Serial Port"
                           />
                         </VCol>
                         <VCol
@@ -548,8 +547,8 @@ onMounted(() => {
                         >
                           <AppSelect
                             v-model="modbusForm.baudRate"
-                            label="Baud Rate"
                             :items="[9600, 19200, 38400, 57600, 115200]"
+                            label="Baud Rate"
                           />
                         </VCol>
                         <VCol
@@ -559,8 +558,8 @@ onMounted(() => {
                         >
                           <AppSelect
                             v-model="modbusForm.parity"
-                            label="Parity"
                             :items="['None', 'Even', 'Odd']"
+                            label="Parity"
                           />
                         </VCol>
                         <VCol
@@ -607,8 +606,8 @@ onMounted(() => {
                         <AppTextField
                           v-model="mqttSecurity.password"
                           label="Password"
-                          type="password"
                           placeholder="••••••••"
+                          type="password"
                         />
                       </VCol>
                     </VRow>
@@ -653,22 +652,22 @@ onMounted(() => {
                         />
                       </VCol>
                       <VCol
+                        class="flex flex-row gap-4"
                         cols="12"
                         md="8"
-                        class="flex flex-row gap-4"
                       >
                         <AppSelect
                           v-model="mqttMessages.birth.qos"
-                          label="QoS"
                           :items="[0,1,2]"
-                          placeholder="Select QoS"
                           class="flex-1"
+                          label="QoS"
+                          placeholder="Select QoS"
                         />
                         <div class="flex items-center">
                           <VCheckbox
                             v-model="mqttMessages.birth.retain"
-                            label="Retain"
                             class="mt-5"
+                            label="Retain"
                           />
                         </div>
                       </VCol>
@@ -700,22 +699,22 @@ onMounted(() => {
                         />
                       </VCol>
                       <VCol
+                        class="flex flex-row gap-4"
                         cols="12"
                         md="8"
-                        class="flex flex-row gap-4"
                       >
                         <AppSelect
                           v-model="mqttMessages.close.qos"
-                          label="QoS"
                           :items="[0,1,2]"
-                          placeholder="Select QoS"
                           class="flex-1"
+                          label="QoS"
+                          placeholder="Select QoS"
                         />
                         <div class="flex items-center">
                           <VCheckbox
                             v-model="mqttMessages.close.retain"
-                            label="Retain"
                             class="mt-5"
+                            label="Retain"
                           />
                         </div>
                       </VCol>
@@ -747,22 +746,22 @@ onMounted(() => {
                         />
                       </VCol>
                       <VCol
+                        class="flex flex-row gap-4"
                         cols="12"
                         md="8"
-                        class="flex flex-row gap-4"
                       >
                         <AppSelect
                           v-model="mqttMessages.will.qos"
-                          label="QoS"
                           :items="[0,1,2]"
-                          placeholder="Select QoS"
                           class="flex-1"
+                          label="QoS"
+                          placeholder="Select QoS"
                         />
                         <div class="flex items-center">
                           <VCheckbox
                             v-model="mqttMessages.will.retain"
-                            label="Retain"
                             class="mt-5"
+                            label="Retain"
                           />
                         </div>
                       </VCol>
@@ -771,15 +770,15 @@ onMounted(() => {
                 </VWindow>
                 <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
                   <VBtn
+                    :disabled="currentStep === 0"
                     color="secondary"
                     variant="tonal"
-                    :disabled="currentStep === 0"
                     @click="currentStep--"
                   >
                     <VIcon
+                      class="flip-in-rtl"
                       icon="tabler-arrow-left"
                       start
-                      class="flip-in-rtl"
                     />
                     Previous
                   </VBtn>
@@ -796,9 +795,9 @@ onMounted(() => {
                   >
                     Next
                     <VIcon
-                      icon="tabler-arrow-right"
-                      end
                       class="flip-in-rtl"
+                      end
+                      icon="tabler-arrow-right"
                     />
                   </VBtn>
                 </div>
@@ -820,14 +819,14 @@ onMounted(() => {
           Show
         </p>
         <AppSelect
-          :model-value="itemsPerPage"
           :items="[
-              { value: 10, title: '10' },
-              { value: 25, title: '25' },
-              { value: 50, title: '50' },
-              { value: 100, title: '100' },
-              { value: -1, title: 'All' },
-            ]"
+            { value: 10, title: '10' },
+            { value: 25, title: '25' },
+            { value: 50, title: '50' },
+            { value: 100, title: '100' },
+            { value: -1, title: 'All' },
+          ]"
+          :model-value="itemsPerPage"
           style="inline-size: 5.5rem;"
           @update:model-value="itemsPerPage = parseInt($event, 10)"
         />
@@ -837,8 +836,8 @@ onMounted(() => {
         :items="protocolConfigurations"
         :items-per-page="itemsPerPage"
         :loading="loadingProtocolConfigurations"
-        loading-text="Loading data, please wait..."
         expand-on-click
+        loading-text="Loading data, please wait..."
       >
         <template #item.no="{ index }">
           <div class="d-flex align-center gap-x-4">
@@ -849,33 +848,40 @@ onMounted(() => {
 
         <template #expanded-row="{ item }">
           <tr class="v-data-table__tr">
-            <td :colspan="headers.length" class="bg-gray-50">
+            <td
+              :colspan="headers.length"
+              class="bg-gray-50"
+            >
               <div class="p-4 space-y-2">
                 <table class="min-w-full border border-gray-200 rounded-lg mt-5">
                   <thead class="bg-gray-100">
-                  <tr>
-                    <th class="text-left px-3 py-2 w-1/3">Property</th>
-                    <th class="text-left px-3 py-2">Value</th>
-                  </tr>
+                    <tr>
+                      <th class="text-left px-3 py-2 w-1/3">
+                        Property
+                      </th>
+                      <th class="text-left px-3 py-2">
+                        Value
+                      </th>
+                    </tr>
                   </thead>
                   <tbody>
-                  <tr
-                    v-for="(value, key) in item.config"
-                    :key="key"
-                    class="border-t border-gray-200 hover:bg-gray-50"
-                  >
-                    <td class="px-3 py-2 font-medium text-gray-700">
-                      {{ formatKey(key) }}
-                    </td>
-                    <td class="px-3 py-2 text-gray-800">
-                      <template v-if="typeof value === 'object' && value !== null">
-                        <pre class="text-xs bg-gray-100 p-2 rounded-md">{{ JSON.stringify(value, null, 2) }}</pre>
-                      </template>
-                      <template v-else>
-                        {{ value }}
-                      </template>
-                    </td>
-                  </tr>
+                    <tr
+                      v-for="(value, key) in item.config"
+                      :key="key"
+                      class="border-t border-gray-200 hover:bg-gray-50"
+                    >
+                      <td class="px-3 py-2 font-medium text-gray-700">
+                        {{ formatKey(key) }}
+                      </td>
+                      <td class="px-3 py-2 text-gray-800">
+                        <template v-if="typeof value === 'object' && value !== null">
+                          <pre class="text-xs bg-gray-100 p-2 rounded-md">{{ JSON.stringify(value, null, 2) }}</pre>
+                        </template>
+                        <template v-else>
+                          {{ value }}
+                        </template>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

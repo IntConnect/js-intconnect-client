@@ -115,7 +115,6 @@ const onSubmit = async () => {
     .filter(p => p.checked) // ambil hanya yang dicentang
     .map(p => p.id)
 
-  console.log(selectedPermissionIds)
 
   const payload = {
     name: name.value,

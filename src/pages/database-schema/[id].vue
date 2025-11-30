@@ -27,9 +27,6 @@ function removeColumn(index) {
 }
 
 function submitSchema() {
-  console.log('Generated Schema:', tableSchema.value)
-  // bisa kirim ke backend untuk generate SQL:
-  // e.g., POST /schema-builder
 }
 </script>
 
@@ -44,57 +41,104 @@ function submitSchema() {
 
     <VTable class="border border-gray-200 rounded-lg mt-2">
       <thead>
-      <tr class="bg-gray-100">
-        <th class="px-3 py-2">Column Name</th>
-        <th class="px-3 py-2">Type</th>
-        <th class="px-3 py-2">Length</th>
-        <th class="px-3 py-2">Nullable</th>
-        <th class="px-3 py-2">Default</th>
-        <th class="px-3 py-2">Primary</th>
-        <th class="px-3 py-2">Auto Inc</th>
-        <th></th>
-      </tr>
+        <tr class="bg-gray-100">
+          <th class="px-3 py-2">
+            Column Name
+          </th>
+          <th class="px-3 py-2">
+            Type
+          </th>
+          <th class="px-3 py-2">
+            Length
+          </th>
+          <th class="px-3 py-2">
+            Nullable
+          </th>
+          <th class="px-3 py-2">
+            Default
+          </th>
+          <th class="px-3 py-2">
+            Primary
+          </th>
+          <th class="px-3 py-2">
+            Auto Inc
+          </th>
+          <th />
+        </tr>
       </thead>
       <tbody>
-      <tr v-for="(col, i) in tableSchema.columns" :key="i">
-        <td>
-          <VTextField v-model="col.name" placeholder="value"/>
-        </td>
-        <td>
-          <VSelect :items="dataTypes" v-model="col.type" placeholder="Select Type"/>
-        </td>
-        <td>
-          <VTextField v-model="col.length" type="number"/>
-        </td>
-        <td>
-          <VCheckbox v-model="col.nullable"/>
-        </td>
-        <td>
-          <VTextField v-model="col.default" placeholder="Default"/>
-        </td>
-        <td>
-          <VCheckbox v-model="col.primary"/>
-        </td>
-        <td>
-          <VCheckbox v-model="col.auto_increment"/>
-        </td>
-        <td>
-          <VBtn icon color="error" variant="text" @click="removeColumn(i)">
-            <VIcon icon="tabler-trash"/>
-          </VBtn>
-        </td>
-      </tr>
+        <tr
+          v-for="(col, i) in tableSchema.columns"
+          :key="i"
+        >
+          <td>
+            <VTextField
+              v-model="col.name"
+              placeholder="value"
+            />
+          </td>
+          <td>
+            <VSelect
+              v-model="col.type"
+              :items="dataTypes"
+              placeholder="Select Type"
+            />
+          </td>
+          <td>
+            <VTextField
+              v-model="col.length"
+              type="number"
+            />
+          </td>
+          <td>
+            <VCheckbox v-model="col.nullable" />
+          </td>
+          <td>
+            <VTextField
+              v-model="col.default"
+              placeholder="Default"
+            />
+          </td>
+          <td>
+            <VCheckbox v-model="col.primary" />
+          </td>
+          <td>
+            <VCheckbox v-model="col.auto_increment" />
+          </td>
+          <td>
+            <VBtn
+              color="error"
+              icon
+              variant="text"
+              @click="removeColumn(i)"
+            >
+              <VIcon icon="tabler-trash" />
+            </VBtn>
+          </td>
+        </tr>
       </tbody>
     </VTable>
 
     <div class="flex justify-between items-center mt-3 pb-4">
-      <VBtn color="secondary" @click="addColumn">
-        <VIcon start icon="tabler-plus"/>
+      <VBtn
+        color="secondary"
+        @click="addColumn"
+      >
+        <VIcon
+          icon="tabler-plus"
+          start
+        />
         Add Column
       </VBtn>
 
-      <VBtn color="primary" @click="submitSchema">
-        <VIcon start icon="tabler-database-export"/>
+      <VBtn
+        color="primary"
+        @click="submitSchema"
+      >
+        <VIcon
+          icon="tabler-database-export"
+          start
+        />
         Generate Schema
       </VBtn>
     </div>

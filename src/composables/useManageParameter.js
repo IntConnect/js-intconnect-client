@@ -65,7 +65,6 @@ export const useManageParameter = () => {
         .post(parameterData)
         .json()
 
-      console.log(error, response)
 
       if (apiError.value) {
         const errorData = apiError.value

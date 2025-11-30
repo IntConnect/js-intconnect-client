@@ -125,7 +125,6 @@ const handleSaveUser = async userData => {
     await loadUsers()
 
     // Optional: Show success notification
-    console.log('User saved successfully')
   } else {
     // Errors sudah di-set di formErrors oleh composable
     console.error('Failed to save user:', result.error || result.errors)
@@ -150,7 +149,6 @@ const handleDeleteUser = async formData => {
     await loadUsers()
 
     // Optional: Show success notification
-    console.log('User deleted successfully')
   } else {
     console.error('Failed to delete user:', result.error)
 

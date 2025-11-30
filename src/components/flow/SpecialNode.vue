@@ -7,16 +7,12 @@ const props = defineProps({
     required: true,
   },
 })
-
-watch(props.data, () => {
-  console.log(props.data)
-}, { immediate: true })
 </script>
 
 <template>
   <div
-    class="px-4 py-2 shadow-md rounded-lg cursor-pointer select-none"
     :style="{ backgroundColor: props.data.color || 'white' }"
+    class="px-4 py-2 shadow-md rounded-lg cursor-pointer select-none"
   >
     <div class="flex items-center">
       <div class="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100">
@@ -39,25 +35,22 @@ watch(props.data, () => {
     <!-- Handle kiri untuk input dari node lain -->
     <Handle
       v-if="props.data.nodeType === 'output' || props.data.nodeType === 'processor'"
-      type="target"
       :position="Position.Left"
+      type="target"
     />
     <!-- Handle kanan untuk output ke node lain -->
     <Handle
       v-if="props.data.nodeType === 'input' || props.data.nodeType === 'processor'"
-      type="source"
       :position="Position.Right"
       class="h-12 w-12 rounded-xs !bg-teal-500"
+      type="source"
     />
   </div>
 </template>
 
 <style scoped>
-
-
 .vue-flow__handle {
   width: 8px;
   height: 8px;
 }
-
 </style>
