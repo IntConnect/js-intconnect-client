@@ -56,6 +56,7 @@ declare global {
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
   const h: typeof import('vue')['h']
+  const handleApiError: typeof import('./src/utils/errorHandling.js')['handleApiError']
   const hexToRgb: typeof import('./src/@core/utils/colorConverter.js')['hexToRgb']
   const ignorableWatch: typeof import('@vueuse/core')['ignorableWatch']
   const inject: typeof import('vue')['inject']
@@ -246,6 +247,7 @@ declare global {
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
+  const useManageAuthentication: typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
   const useManageMachines: typeof import('./src/composables/useManageMachine.js')['useManageMachines']
   const useManageMqttTopic: typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']
@@ -425,6 +427,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
+    readonly handleApiError: UnwrapRef<typeof import('./src/utils/errorHandling.js')['handleApiError']>
     readonly hexToRgb: UnwrapRef<typeof import('./src/@core/utils/colorConverter.js')['hexToRgb']>
     readonly ignorableWatch: UnwrapRef<typeof import('@vueuse/core')['ignorableWatch']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
@@ -614,6 +617,7 @@ declare module 'vue' {
     readonly useLastChanged: UnwrapRef<typeof import('@vueuse/core')['useLastChanged']>
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
+    readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
     readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>
     readonly useManageParameter: UnwrapRef<typeof import('./src/composables/useManageParameter.js')['useManageParameter']>

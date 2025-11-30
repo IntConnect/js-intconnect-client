@@ -15,7 +15,7 @@ export const useApi = createFetch({
      * Before fetch - Add authorization token
      */
     beforeFetch({ url, options }) {
-      const accessToken = useCookie('accessToken').value
+      const accessToken = useCookie('access_token').value
 
       if (accessToken) {
         options.headers = {

@@ -375,6 +375,8 @@
     "useManageParameter": true,
     "colorVariables": true,
     "useManageMqttTopic": true,
-    "useManageMachines": true
+    "useManageMachines": true,
+    "useManageAuthentication": true,
+    "handleApiError": true
   }
 }
