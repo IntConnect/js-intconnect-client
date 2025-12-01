@@ -2,23 +2,35 @@ import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 export const useManageParameter = () => {
+  // --------------------
   // State
+  // --------------------
   const parameters = ref([])
+  const parameterDependency = ref({})
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
   const totalPages = ref(0)
-  const loading = ref(false)
-  const error = ref(null)
+
+  const errorMessage = ref(null)
   const formErrors = ref({})
   const actionLoading = ref(false)
 
-  /**
-   * Fetch parameters with pagination
-   */
+
+  const clearFormErrors = () => (formErrors.value = {})
+
+  const clearErrors = () => {
+    errorMessage.value = null
+    formErrors.value = {}
+  }
+
+  // --------------------
+  // Main API Methods
+  // --------------------
+
   const fetchParameters = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
-    loading.value = true
-    error.value = null
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
@@ -29,206 +41,166 @@ export const useManageParameter = () => {
         .get()
         .json()
 
-      if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to fetch parameters')
-      }
-
-      const res = response.value
-
-      if (res.success) {
-        parameters.value = res.data ?? []
-        totalItems.value = res.pagination.total_items
-        currentPage.value = res.pagination.current_page
-        pageSize.value = res.pagination.page_size
-        totalPages.value = res.pagination.total_pages
-      } else {
-        throw new Error(res.message || 'Failed to fetch parameters')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to fetch parameters:', err)
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      applyPaginationResponse(
+        {
+          entries: parameters,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
-      loading.value = false
+      actionLoading.value = false
     }
   }
 
-  /**
-   * Create new parameter
-   */
+  const fetchParameterDependency = async () => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl('/parameters/create', {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      parameterDependency.value = response.value
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
   const createParameter = async parameterData => {
     actionLoading.value = true
-    formErrors.value = {}
-    error.value = null
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi('/parameters')
         .post(parameterData)
         .json()
 
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
-      if (apiError.value) {
-        const errorData = apiError.value
 
-        // Handle validation errors (422)
-        if (errorData.status === 422) {
-          if (errorData.error?.details) {
-            // Backend format: { error: { details: { field: "message" } } }
-            formErrors.value = errorData.error.details
-          } else if (errorData.errors) {
-            // Alternative format: { errors: { field: ["message"] } }
-            formErrors.value = errorData.errors
-          }
+      applyPaginationResponse(
+        {
+          entries: parameters,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
 
-          return { success: false, errors: formErrors.value }
-        }
-
-        throw new Error(errorData.message || 'Failed to create parameter')
-      }
-
-      const res = response.value
-
-      if (res.success) {
-        return { success: true, data: res.data }
-      } else {
-        throw new Error(res.message || 'Failed to create parameter')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to create parameter:', err)
-
-      return { success: false, error: err.message }
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
       actionLoading.value = false
     }
   }
 
-  /**
-   * Update existing parameter
-   */
   const updateParameter = async (parameterId, parameterData) => {
     actionLoading.value = true
-    formErrors.value = {}
-    error.value = null
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(`/parameters/${parameterId}`)
         .put(parameterData)
         .json()
 
-      if (apiError.value) {
-        const errorData = apiError.value
 
-        // Handle validation errors (422)
-        if (errorData.status === 422) {
-          if (errorData.error?.details) {
-            formErrors.value = errorData.error.details
-          } else if (errorData.errors) {
-            formErrors.value = errorData.errors
-          }
+      const result = handleApiError(apiError, { formErrors, errorMessage })
 
-          return { success: false, errors: formErrors.value }
-        }
+      if (!result.success) return result
 
-        throw new Error(errorData.message || 'Failed to update parameter')
-      }
+      applyPaginationResponse(
+        {
+          entries: parameters,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
 
-      const res = response.value
-
-      if (res.success) {
-        return { success: true, data: res.data }
-      } else {
-        throw new Error(res.message || 'Failed to update parameter')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to update parameter:', err)
-
-      return { success: false, error: err.message }
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
       actionLoading.value = false
     }
   }
 
-  /**
-   * Delete parameter
-   */
   const deleteParameter = async (parameterId, reason = '') => {
     actionLoading.value = true
-    error.value = null
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(`/parameters/${parameterId}`)
-        .delete({ description: reason })
+        .delete({ reason })
         .json()
 
-      if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to delete parameter')
-      }
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
-      const res = response.value
+      applyPaginationResponse(
+        {
+          entries: parameters,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
 
-      if (res.success) {
-        return { success: true, message: res.message }
-      } else {
-        throw new Error(res.message || 'Failed to delete parameter')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to delete parameter:', err)
-
-      return { success: false, error: err.message }
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
       actionLoading.value = false
     }
   }
 
-  /**
-   * Save parameter (create or update)
-   */
   const saveParameter = async parameterData => {
-    const isUpdate = Boolean(parameterData.id)
+    console.log(parameterData)
+    if (parameterData.id) {
+      const { id, ...payload } = parameterData
 
-    if (isUpdate) {
-      const parameterId = parameterData.id
-
-      // Remove id from parameterData untuk update
-      const { id, ...updateData } = parameterData
-
-      return await updateParameter(parameterId, updateData)
-    } else {
-      return await createParameter(parameterData)
+      return updateParameter(id, payload)
     }
-  }
 
-  /**
-   * Clear form errors
-   */
-  const clearFormErrors = () => {
-    formErrors.value = {}
-  }
-
-  /**
-   * Clear all errors
-   */
-  const clearErrors = () => {
-    error.value = null
-    formErrors.value = {}
+    return createParameter(parameterData)
   }
 
   return {
-    // State
     parameters,
+    parameterDependency,
     totalItems,
     currentPage,
     pageSize,
     totalPages,
-    loading,
     actionLoading,
-    error,
+    errorMessage,
     formErrors,
 
-    // Methods
     fetchParameters,
+    fetchParameterDependency,
     createParameter,
     updateParameter,
     deleteParameter,
@@ -237,3 +209,4 @@ export const useManageParameter = () => {
     clearErrors,
   }
 }
+

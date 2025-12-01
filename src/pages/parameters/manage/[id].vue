@@ -6,15 +6,28 @@ import * as THREE from 'three'
 import { onMounted, ref, reactive, nextTick } from 'vue'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { useManageMachine } from '@/composables/useManageMachine'
+import AdjustParameterLocation from "@/components/dialogs/AdjustParameterLocation.vue"
+import AlertDialog from "@/components/dialogs/AlertDialog.vue"
+import { useManageParameter } from "@/composables/useManageParameter.js"
+
 
 // ==========================================
 // Composable
 // ==========================================
 const {
-  machines,
-  fetchMachines,
-} = useManageMachine()
+  parameters,
+  parameterDependency,
+  loading,
+  actionLoading,
+  fetchParameterDependency,
+  totalItems,
+  saveParameter,
+  totalPages,
+  error,
+  formErrors,
+  clearFormErrors,
+  clearErrors,
+} = useManageParameter()
 
 
 // ==========================================
@@ -22,6 +35,7 @@ const {
 // ==========================================
 const name = ref('')
 const machineId = ref('')
+const mqttTopicId = ref('')
 const code = ref('')
 const unit = ref('')
 const minValue = ref(0)
@@ -35,8 +49,11 @@ const rotationY = ref(0)
 const rotationZ = ref(0)
 const modelLoaded = ref(false)
 const processedMachines = ref([])
+const processedMqttTopic = ref([])
 const isAlertDialogVisible = ref(false)
 const isModelClickable = ref(false)
+const refForm = ref()
+
 const buttonModelColor = computed(() => {
   return isModelClickable.value ? "warning" : "info"
 })
@@ -55,20 +72,23 @@ let model = null
 // marker untuk parameter ini
 let parameterMarker = null
 const showAdjustPopup = ref(false)
+const titleAlert = ref('')
 
-const loadMachines = async () => {
-  await fetchMachines()
+
+onMounted(async () => {
+  await fetchParameterDependency()
   await nextTick()
-  processedMachines.value = machines.value.map(machine => ({
+  console.log(parameterDependency)
+  processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,
   }))
-
-}
-
-onMounted(() => {
-  loadMachines()
+  processedMqttTopic.value = parameterDependency.value.entry.mqtt_topics?.map(mqtt_topic => ({
+    title: mqtt_topic.name,
+    value: mqtt_topic.id,
+  }))
 })
+
 
 // ----------------------------------------
 // Helper: Hapus marker dari scene
@@ -133,7 +153,7 @@ const createMarker = (parameterName, parameterValue, position) => {
 // ----------------------------------------
 // Update marker position
 // ----------------------------------------
-const updateMarkerPosition = () => {
+const updateMarkerPosition = (value) => {
   if (parameterMarker) {
     parameterMarker.position.set(
       positionX.value,
@@ -162,6 +182,7 @@ const updateMarkerRotation = () => {
 const setPositionFromClick = () => {
   if (!name.value || !code.value) {
     isAlertDialogVisible.value = true
+    titleAlert.value = 'Fill Name and Parameter First!'
     return
   }
   isModelClickable.value = !isModelClickable.value
@@ -199,7 +220,8 @@ const setPositionFromClick = () => {
 
       // Cleanup listener
       renderer.domElement.removeEventListener("click", handleClick)
-      alert("Posisi berhasil diset! Anda bisa melakukan adjustment di popup jika diperlukan.")
+      isAlertDialogVisible.value = true
+      titleAlert.value = 'Position successfully set! you can adjusted in Adjust Manual button '
     }
   }
 
@@ -212,6 +234,7 @@ const setPositionFromClick = () => {
 const showAdjustment = () => {
   if (!name.value || !code.value) {
     isAlertDialogVisible.value = true
+    titleAlert.value = 'Fill Name and Parameter First!'
     return
   }
 
@@ -352,6 +375,42 @@ onMounted(async () => {
     renderer.setSize(w, h)
   })
 })
+
+
+const onSubmit = () => {
+  refForm.value.validate().then(async ({ valid }) => {
+    if (!valid) return
+
+    const parameterData = {
+      name: name.value,
+      code: code.value,
+      unit: unit.value,
+      min_value: minValue.value,
+      max_value: maxValue.value,
+      description: description.value,
+      machine_id: machineId.value,
+      mqtt_topic_id: mqttTopicId.value,
+      position_x: positionX.value,
+      position_y: positionY.value,
+      position_z: positionZ.value,
+      rotation_x: rotationX.value,
+      rotation_y: rotationY.value,
+      rotation_z: rotationZ.value,
+    }
+
+    const result = await saveParameter(parameterData)
+
+    if (result.success) {
+      await nextTick()
+
+      isAlertDialogVisible.value = true
+      titleAlert.value = 'Success manage Parameter'
+    } else {
+      console.error('Failed to save parameter:', result.error || result.errors)
+    }
+  })
+}
+
 </script>
 
 <template>
@@ -366,138 +425,31 @@ onMounted(async () => {
   <VRow>
     <!-- 3D MODEL - 7 cols -->
     <VCol cols="7">
-      <!--      <div-->
-      <!--        ref="wrapperRef"-->
-      <!--        class="three-wrapper rounded-lg grow"-->
-      <!--      >-->
-      <!--        <canvas-->
-      <!--          ref="canvasRef"-->
-      <!--          class="rounded-lg"-->
-      <!--        />-->
-      <!--      </div>-->
-
-      <!-- ADJUST POPUP -->
       <div
-        v-if="showAdjustPopup"
-        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-dark shadow-2xl rounded-lg p-6 z-50 w-96 max-h-[90vh] overflow-y-auto"
+        ref="wrapperRef"
+        class="three-wrapper rounded-lg grow"
       >
-        <h3 class="font-bold text-lg mb-4">
-          Fine-tune Position & Rotation
-        </h3>
-
-        <div class="mb-4 p-3 bg-gray-50 rounded">
-          <div class="font-semibold">
-            {{ name }}
-          </div>
-          <div class="text-sm text-gray-600">
-            Code: {{ code }}
-          </div>
-        </div>
-
-        <div class="space-y-3">
-          <div class="border-b pb-3">
-            <h4 class="font-semibold text-sm mb-2">
-              Position
-            </h4>
-            <div class="space-y-2">
-              <div>
-                <label class="block text-xs font-semibold mb-1">X Position</label>
-                <input
-                  v-model.number="positionX"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="0.1"
-                  type="number"
-                  @input="updateMarkerPosition"
-                >
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold mb-1">Y Position</label>
-                <input
-                  v-model.number="positionY"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="0.1"
-                  type="number"
-                  @input="updateMarkerPosition"
-                >
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold mb-1">Z Position</label>
-                <input
-                  v-model.number="positionZ"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="0.1"
-                  type="number"
-                  @input="updateMarkerPosition"
-                >
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h4 class="font-semibold text-sm mb-2">
-              Rotation (degrees)
-            </h4>
-            <div class="space-y-2">
-              <div>
-                <label class="block text-xs font-semibold mb-1">X Rotation</label>
-                <input
-                  v-model.number="rotationX"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="1"
-                  type="number"
-                  @input="updateMarkerRotation"
-                >
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold mb-1">Y Rotation</label>
-                <input
-                  v-model.number="rotationY"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="1"
-                  type="number"
-                  @input="updateMarkerRotation"
-                >
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold mb-1">Z Rotation</label>
-                <input
-                  v-model.number="rotationZ"
-                  class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  step="1"
-                  type="number"
-                  @input="updateMarkerRotation"
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex gap-3 mt-6">
-          <button
-            class="flex-1 bg-blue-500 text-white rounded py-2 font-semibold hover:bg-blue-600 transition"
-            @click="confirmAdjustment"
-          >
-            Done
-          </button>
-          <button
-            class="flex-1 bg-gray-300 text-gray-700 rounded py-2 font-semibold hover:bg-gray-400 transition"
-            @click="cancelAdjustment"
-          >
-            Cancel
-          </button>
-        </div>
+        <canvas
+          ref="canvasRef"
+          class="rounded-lg"
+        />
       </div>
 
-      <!-- OVERLAY BACKDROP -->
-      <div
-        v-if="showAdjustPopup"
-        class="fixed inset-0 bg-black bg-opacity-50 z-40"
-        @click="cancelAdjustment"
+
+      <AdjustParameterLocation
+        v-model:is-drawer-open="showAdjustPopup"
+        v-model:position-x="positionX"
+        v-model:position-y="positionY"
+        v-model:position-z="positionZ"
+        v-model:rotation-x="rotationX"
+        v-model:rotation-y="rotationY"
+        v-model:rotation-z="rotationZ"
+        @submit="($event) => { updateMarkerPosition($event); showAdjustPopup = false }"
+
+        @update:is-position-changed="updateMarkerPosition"
       />
+
+
     </VCol>
 
     <!-- FORM - 5 cols -->
@@ -505,16 +457,29 @@ onMounted(async () => {
       <VCard>
         <VCardText>
           <VForm
-            ref="form"
+            ref="refForm"
             lazy-validation
+            @submit.prevent="onSubmit"
           >
             <VCol>
               <VCol cols="12">
                 <AppSelect
                   v-model="machineId"
+                  :error="!!formErrors.machine_id"
+                  :error-messages="formErrors.machine_id"
                   :items="processedMachines"
                   label="Machine"
                   placeholder="Select a Machine"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppSelect
+                  v-model="mqttTopicId"
+                  :error="!!formErrors.mqtt_topic_id"
+                  :error-messages="formErrors.mqtt_topic_id"
+                  :items="processedMqttTopic"
+                  label="MQTT Topic"
+                  placeholder="Select a MQTT Topic"
                 />
               </VCol>
 
@@ -522,6 +487,8 @@ onMounted(async () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="name"
+                  :error="!!formErrors.name"
+                  :error-messages="formErrors.name"
                   label="Parameter Name"
                   placeholder="e.g., Temperature"
                   required
@@ -531,6 +498,8 @@ onMounted(async () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="code"
+                  :error="!!formErrors.code"
+                  :error-messages="formErrors.code"
                   label="Code"
                   placeholder="e.g., TEMP_01"
                   required
@@ -540,6 +509,8 @@ onMounted(async () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="unit"
+                  :error="!!formErrors.unit"
+                  :error-messages="formErrors.unit"
                   label="Unit"
                   placeholder="e.g., °C"
                   required
@@ -551,6 +522,8 @@ onMounted(async () => {
                   <VCol cols="6">
                     <AppTextField
                       v-model.number="minValue"
+                      :error="!!formErrors.min_value"
+                      :error-messages="formErrors.min_value"
                       label="Min Value"
                       placeholder="0"
                       type="number"
@@ -560,6 +533,8 @@ onMounted(async () => {
                   <VCol cols="6">
                     <AppTextField
                       v-model.number="maxValue"
+                      :error="!!formErrors.max_value"
+                      :error-messages="formErrors.max_value"
                       label="Max Value"
                       placeholder="100"
                       type="number"
@@ -570,6 +545,8 @@ onMounted(async () => {
               <VCol cols="12">
                 <AppTextField
                   v-model="description"
+                  :error="!!formErrors.description"
+                  :error-messages="formErrors.description"
                   label="Description"
                   placeholder="Describe this parameter"
                 />
@@ -599,6 +576,7 @@ onMounted(async () => {
                 <VBtn
                   class="flex-1"
                   color="success"
+                  type="submit"
                 >
                   Save Parameter
                 </VBtn>
@@ -610,7 +588,7 @@ onMounted(async () => {
     </VCol>
   </VRow>
   <AlertDialog :is-dialog-visible="isAlertDialogVisible"
-               title-alert="Fill Name and Parameter First!"
+               :title-alert="titleAlert"
                @update:isDialogVisible="isAlertDialogVisible = $event"
 
   />

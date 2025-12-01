@@ -19,6 +19,7 @@ declare module 'vue' {
     AddEditRoleDialog: typeof import('./src/components/role/AddEditRoleDialog.vue')['default']
     AddNewUserDrawer: typeof import('./src/components/user/AddNewUserDrawer.vue')['default']
     AddPaymentMethodDialog: typeof import('./src/components/dialogs-demo/AddPaymentMethodDialog.vue')['default']
+    AdjustParameterLocation: typeof import('./src/components/dialogs/AdjustParameterLocation.vue')['default']
     AlertDialog: typeof import('./src/components/dialogs/AlertDialog.vue')['default']
     AnalyticsAverageDailySales: typeof import('./src/components/dashboard/AnalyticsAverageDailySales.vue')['default']
     AnalyticsEarningReportsWeeklyOverview: typeof import('./src/components/dashboard/AnalyticsEarningReportsWeeklyOverview.vue')['default']

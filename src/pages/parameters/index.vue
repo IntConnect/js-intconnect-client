@@ -186,7 +186,7 @@ onMounted(() => {
         </div>
       </VCardText>
 
-      <VDivider />
+      <VDivider/>
 
       <!-- Error Alert -->
       <VAlert
@@ -214,15 +214,6 @@ onMounted(() => {
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
 
-        <!-- Role Column -->
-        <template #item.role="{ item }">
-          <VChip
-            color="primary"
-            size="small"
-          >
-            {{ item.role?.name || 'N/A' }}
-          </VChip>
-        </template>
 
         <!-- Actions Column -->
         <template #item.actions="{ item }">
