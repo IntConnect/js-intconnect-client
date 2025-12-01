@@ -252,6 +252,7 @@ declare global {
   const useManageAuthentication: typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
   const useManageMachines: typeof import('./src/composables/useManageMachine.js')['useManageMachines']
+  const useManageMqttBroker: typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']
   const useManageMqttTopic: typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']
   const useManageParameter: typeof import('./src/composables/useManageParameter.js')['useManageParameter']
   const useManageRole: typeof import('./src/composables/useManageRole.js')['useManageRole']
@@ -623,6 +624,7 @@ declare module 'vue' {
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
+    readonly useManageMqttBroker: UnwrapRef<typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']>
     readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>
     readonly useManageParameter: UnwrapRef<typeof import('./src/composables/useManageParameter.js')['useManageParameter']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>

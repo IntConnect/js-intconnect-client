@@ -379,6 +379,7 @@
     "useManageAuthentication": true,
     "handleApiError": true,
     "applyPaginationResponse": true,
-    "useFetchAuditLog": true
+    "useFetchAuditLog": true,
+    "useManageMqttBroker": true
   }
 }

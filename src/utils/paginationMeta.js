@@ -12,7 +12,7 @@ export const applyPaginationResponse = ({
   pageSize,
   totalPages,
 }, res) => {
-  entries.value = res.entries ?? []
+  entries.value.splice(0, entries.value.length, ...(res.entries ?? []))
   totalItems.value = res.pagination.total_items
   currentPage.value = res.pagination.current_page
   pageSize.value = res.pagination.page_size

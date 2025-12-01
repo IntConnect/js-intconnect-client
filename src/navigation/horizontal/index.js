@@ -59,6 +59,25 @@ export default [
     ],
   },
   {
+    title: 'Connection',
+    icon: { icon: 'tabler-network' },
+    children: [
+      {
+        title: 'MQTT Broker',
+        to: { name: 'mqtt-broker' },
+        icon: { icon: 'tabler-cooker' },
+      },
+      {
+        title: 'MQTT Topic',
+        to: { name: 'mqtt-topic' },
+        icon: { icon: 'tabler-topology-star-3' },
+      },
+
+
+    ],
+  },
+
+  {
     title: 'User Management',
     icon: { icon: 'tabler-user' },
     children: [
