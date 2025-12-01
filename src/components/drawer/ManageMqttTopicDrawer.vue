@@ -127,11 +127,6 @@ watch(
   () => props.mqttTopicDependency,
   val => {
     if (val && Object.keys(val).length) {
-      console.log(val)
-      console.log(val.entry.mqtt_brokers?.map(mqttBroker => ({
-        title: mqttBroker.host_name,
-        value: mqttBroker.id,
-      })))
       processedMachines.value = val.entry.machines?.map(machine => ({
         title: machine.name,
         value: machine.id,

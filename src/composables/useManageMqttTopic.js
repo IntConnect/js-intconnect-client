@@ -73,7 +73,6 @@ export const useManageMqttTopic = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      console.log(response)
       mqttTopicDependency.value = response.value
     } catch (_) {
       return { success: false, error: 'Unknown error' }

@@ -46,16 +46,6 @@ export default [
         to: { name: 'parameters' },
         icon: { icon: 'tabler-binary-tree-2' },
       },
-      {
-        title: 'User',
-        to: { name: 'users' },
-        icon: { icon: 'tabler-user' },
-      },
-      {
-        title: 'Permissions',
-        to: { name: 'permissions' },
-        icon: { icon: 'tabler-brand-auth0' },
-      },
     ],
   },
   {
