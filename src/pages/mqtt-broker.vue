@@ -174,10 +174,6 @@ watch(searchQuery, () => {
 
 watch([page, itemsPerPage], loadMqttBrokers)
 
-watch(mqttBrokers, newVal => {
-  console.log('mqttBrokers changed:', newVal.length, newVal)
-}, { deep: true })
-
 // ==========================================
 // Lifecycle
 // ==========================================

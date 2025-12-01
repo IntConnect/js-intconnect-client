@@ -15,7 +15,7 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  mqttBrokerData: {
+  mqttTopicData: {
     type: Object,
     default: () => ({}),
   },
@@ -23,11 +23,15 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  mqttTopicDependency: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
 const emit = defineEmits([
   'update:isDrawerOpen',
-  'mqttBrokerData',
+  'mqttTopicData',
   'close',
 ])
 
@@ -39,12 +43,12 @@ const refForm = ref()
 
 // Form fields
 const id = ref('')
-const hostName = ref('')
-const mqttPort = ref('')
-const wsPort = ref('')
-const username = ref('')
-const password = ref('')
-const isActive = ref(true)
+const machineId = ref('')
+const mqttBrokerId = ref('')
+const name = ref('')
+const qos = ref(0)
+const processedMachines = ref([])
+const processedMqttBrokers = ref([])
 
 // ==========================================
 // Computed
@@ -80,22 +84,20 @@ const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (!valid) return
 
-    // Prepare mqttBroker data
-    const mqttBrokerData = {
-      host_name: hostName.value,
-      mqtt_port: mqttPort.value,
-      ws_port: wsPort.value,
-      username: username.value,
-      password: password.value,
-      is_active: isActive.value,
+    // Prepare mqttTopic data
+    const mqttTopicData = {
+      machine_id: machineId.value,
+      mqtt_broker_id: mqttBrokerId.value,
+      name: name.value,
+      qos: qos.value,
     }
 
     // Include id for update
     if (id.value) {
-      mqttBrokerData.id = id.value
+      mqttTopicData.id = id.value
     }
 
-    emit('mqttBrokerData', mqttBrokerData)
+    emit('mqttTopicData', mqttTopicData)
   })
 }
 
@@ -105,18 +107,39 @@ const onSubmit = () => {
 // ==========================================
 
 /**
- * Watch for mqttBrokerData changes (for edit mode)
+ * Watch for mqttTopicData changes (for edit mode)
  */
 watch(
-  () => props.mqttBrokerData,
+  () => props.mqttTopicData,
   val => {
     if (val && Object.keys(val).length) {
       id.value = val.id || ''
-      hostName.value = val.host_name || ''
-      mqttPort.value = val.mqtt_port || ''
-      wsPort.value = val.ws_port || ''
-      username.value = val.username || ''
-      isActive.value = val.is_active || true
+      machineId.value = val.machine_id
+      mqttBrokerId.value = val.mqtt_broker_id
+      name.value = val.name
+      qos.value = val.qos
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+watch(
+  () => props.mqttTopicDependency,
+  val => {
+    if (val && Object.keys(val).length) {
+      console.log(val)
+      console.log(val.entry.mqtt_brokers?.map(mqttBroker => ({
+        title: mqttBroker.host_name,
+        value: mqttBroker.id,
+      })))
+      processedMachines.value = val.entry.machines?.map(machine => ({
+        title: machine.name,
+        value: machine.id,
+      }))
+      processedMqttBrokers.value = val.entry.mqtt_brokers?.map(mqttBroker => ({
+        title: mqttBroker.host_name,
+        value: mqttBroker.id,
+      }))
     }
   },
   { immediate: true, deep: true },
@@ -163,7 +186,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit MQTT Broker' : 'Create MQTT Broker'"
+      :title="isEditMode ? 'Edit MQTT Topic' : 'Create MQTT Topic'"
       @cancel="closeNavigationDrawer"
     />
 
@@ -180,75 +203,48 @@ const handleDrawerModelValueUpdate = val => {
           >
             <VRow>
               <VCol cols="12">
-                <AppTextField
-                  v-model="hostName"
-                  :error-messages="props.formErrors.host_name || []"
+                <AppSelect
+                  v-model="machineId"
+                  :error="!!props.formErrors.machine_id"
+                  :error-messages="props.formErrors.machine_id || []"
+                  :items="processedMachines"
                   :rules="[requiredValidator]"
-                  label="Host Name"
-                  placeholder="127.0.0.1"
+                  label="Machine"
+                  placeholder="Select machine"
                 />
               </VCol>
-
               <VCol cols="12">
-                <AppTextField
-                  v-model="mqttPort"
-                  :error-messages="props.formErrors.mqtt_port || []"
+                <AppSelect
+                  v-model="mqttBrokerId"
+                  :error="!!props.formErrors.mqtt_broker_id"
+                  :error-messages="props.formErrors.mqtt_broker_id || []"
+                  :items="processedMqttBrokers"
                   :rules="[requiredValidator]"
-                  label="MQTT Port"
-                  placeholder="1883"
+                  label="MQTT Broker"
+                  placeholder="Select MQTT Broker"
                 />
               </VCol>
-
               <VCol cols="12">
                 <AppTextField
-                  v-model="wsPort"
-                  :error="!!props.formErrors.ws_port"
-                  :error-messages="props.formErrors.ws_port || []"
+                  v-model="name"
+                  :error-messages="props.formErrors.name || []"
                   :rules="[requiredValidator]"
-                  label="WS Port"
-                  placeholder="9001"
+                  label="Name"
+                  placeholder="sensor/data"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppSelect
+                  v-model="qos"
+                  :error="!!props.formErrors.qos"
+                  :error-messages="props.formErrors.qos || []"
+                  :items="[{title: '0',value: 0},{title: '1',value: 1},{title: '2',value: 2}]"
+                  :rules="[requiredValidator]"
+                  label="QoS"
+                  placeholder="Select QoS"
                 />
               </VCol>
 
-              <VCol cols="12">
-                <AppTextField
-                  v-model="username"
-                  :error-messages="props.formErrors.username || []"
-                  label="Username"
-                  placeholder=""
-                />
-              </VCol>
-              <VCol cols="12">
-                <AppTextField
-                  v-model="password"
-                  :error="!!props.formErrors.password"
-                  :error-messages="props.formErrors.password || []"
-                  label="Password"
-                  placeholder=""
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VLabel class="mb-3">
-                  Is Active
-                </VLabel>
-                <VRadioGroup
-                  v-model="isActive"
-                  inline
-                >
-                  <div>
-                    <VRadio
-                      :value="true"
-                      class="me-3"
-                      label="Active"
-                    />
-                    <VRadio
-                      :value="false"
-                      label="Inactive"
-                    />
-                  </div>
-                </VRadioGroup>
-              </VCol>
 
               <!-- Actions -->
               <VCol cols="12">

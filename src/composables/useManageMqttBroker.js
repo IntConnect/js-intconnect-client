@@ -71,7 +71,6 @@ export const useManageMqttBroker = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      console.log(response, apiError)
 
       applyPaginationResponse(
         {
@@ -104,7 +103,6 @@ export const useManageMqttBroker = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
 
-      console.log(result, formErrors, apiError.value)
       if (!result.success) return result
 
       applyPaginationResponse(

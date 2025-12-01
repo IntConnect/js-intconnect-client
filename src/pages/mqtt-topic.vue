@@ -1,80 +1,113 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/dialogs/DeleteDialog.vue"
-import { useManageParameter } from "@/composables/useManageParameter.js"
+import { format } from "date-fns"
+import { useManageMqttTopic } from "@/composables/useManageMqttTopic"
+import ManageMqttTopicDrawer from "@/components/drawer/ManageMqttTopicDrawer.vue"
+import AlertDialog from "@/components/dialogs/AlertDialog.vue"
 
 // ==========================================
 // Composable
 // ==========================================
 const {
-  parameters,
+  mqttTopics,
+  mqttTopicDependency,
   loading,
   actionLoading,
-  fetchParameters,
-  saveParameter,
-  deleteParameter,
+  fetchMqttTopics,
+  fetchMqttTopicDependency,
+  saveMqttTopic,
+  deleteMqttTopic,
   totalItems,
   totalPages,
   error,
   formErrors,
   clearFormErrors,
   clearErrors,
-} = useManageParameter()
+  currentPage: page, pageSize: itemsPerPage,
+} = useManageMqttTopic()
 
 // ==========================================
 // Constants
 // ==========================================
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
+  { title: 'Machine', key: 'machine', sortable: true },
+  { title: 'Mqtt Broker', key: 'mqtt_broker', sortable: true },
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Code', key: 'code', sortable: true },
-  { title: 'Unit', key: 'unit', sortable: true },
-  { title: 'Min Value', key: 'min_value' },
-  { title: 'Max Value', key: 'max_value' },
-  { title: 'Description', key: 'label', sortable: true },
+  { title: 'QoS', key: 'qos', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100]
 
 // ==========================================
 // Reactive States
 // ==========================================
-const page = ref(1)
-const itemsPerPage = ref(10)
 const searchQuery = ref("")
 const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 // UI States
+const isManageMqttTopic = ref(false)
 const showDeleteDialog = ref(false)
-const selectedParameter = ref(null)
+const selectedMqttTopic = ref(null)
+const showAlertDialog = ref(false)
+const alertMessage = ref('')
+
 
 // ==========================================
 // Methods
 // ==========================================
 
 /**
- * Load parameters from API
+ * Load mqttTopics from API
  */
-const loadParameters = async () => {
-  await fetchParameters({
+const loadMqttTopic = async () => {
+  await fetchMqttTopics({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
     sort: sortBy.value,
     order: sortOrder.value,
   })
-  await nextTick()
+}
+
+/**
+ * Open drawer for adding new mqttTopic
+ */
+const openManageMqttTopic = () => {
+  selectedMqttTopic.value = null
+  clearFormErrors()
+  isManageMqttTopic.value = true
+}
+
+/**
+ * Close add/edit drawer
+ */
+const closeManageMqttTopic = () => {
+  isManageMqttTopic.value = false
+  selectedMqttTopic.value = null
+  clearFormErrors()
+}
+
+/**
+ * Open drawer for editing mqttTopic
+ */
+const handleEdit = mqttTopic => {
+  selectedMqttTopic.value = { ...mqttTopic }
+  clearFormErrors()
+  isManageMqttTopic.value = true
 }
 
 /**
  * Open delete confirmation dialog
  */
-const openDeleteDialog = parameter => {
-  selectedParameter.value = parameter
+const openDeleteDialog = mqttTopic => {
+  selectedMqttTopic.value = mqttTopic
   showDeleteDialog.value = true
 }
 
@@ -83,45 +116,47 @@ const openDeleteDialog = parameter => {
  */
 const closeDeleteDialog = () => {
   showDeleteDialog.value = false
-  selectedParameter.value = null
+  selectedMqttTopic.value = null
 }
 
 /**
- * Handle save parameter (create or update)
+ * Handle save mqttTopic (create or update)
  */
-const handleSaveParameter = async parameterData => {
-  const result = await saveParameter(parameterData)
+const handleSaveMqttTopic = async mqttTopicData => {
+
+  const result = await saveMqttTopic(mqttTopicData)
 
   if (result.success) {
-    await loadParameters()
+    closeManageMqttTopic()
+    await nextTick()
 
-    // Optional: Show success notification
+    showAlertDialog.value = true
+    alertMessage.value = 'Success manage MQTT Topic'
   } else {
-    // Errors sudah di-set di formErrors oleh composable
-    console.error('Failed to save parameter:', result.error || result.errors)
+    console.error('Failed to save mqttTopic:', result.error || result.errors)
   }
 }
 
 /**
- * Handle delete parameter
+ * Handle delete mqttTopic
  */
-const handleDeleteParameter = async formData => {
-  if (!selectedParameter.value?.id) {
-    console.warn('No parameter selected for deletion')
+const handleDeleteMqttTopic = async formData => {
+  if (!selectedMqttTopic.value?.id) {
+    console.warn('No MQTT Topic selected for deletion')
 
     return
   }
 
-  const reason = formData.reason || ''
-  const result = await deleteParameter(selectedParameter.value.id, reason)
+
+  const result = await deleteMqttTopic(selectedMqttTopic.value.id, formData)
 
   if (result.success) {
     closeDeleteDialog()
-    await loadParameters()
+    showAlertDialog.value = true
+    alertMessage.value = 'Success delete MQTT Topic'
 
-    // Optional: Show success notification
   } else {
-    console.error('Failed to delete parameter:', result.error)
+    console.error('Failed to delete user:', result.error)
 
     // Optional: Show error notification
   }
@@ -134,19 +169,18 @@ const handleDeleteParameter = async formData => {
 // Reset to page 1 when search query changes
 watch(searchQuery, () => {
   page.value = 1
-  loadParameters()
+  loadMqttTopic()
 })
 
-// Reload data when page or itemsPerPage changes
-watch([page, itemsPerPage], () => {
-  loadParameters()
-})
+
+watch([page, itemsPerPage], loadMqttTopic)
 
 // ==========================================
 // Lifecycle
 // ==========================================
 onMounted(() => {
-  loadParameters()
+  loadMqttTopic()
+  fetchMqttTopicDependency()
 })
 </script>
 
@@ -154,7 +188,7 @@ onMounted(() => {
   <section>
     <VCol cols="12">
       <h4 class="text-h4 mb-1">
-        All Parameters
+        All MQTT Topics
       </h4>
       <p class="text-body-1 mb-0">
         Find all of your company’s administrator accounts and their associate roles.
@@ -180,11 +214,13 @@ onMounted(() => {
             placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-          <RouterLink :to="{ name: 'parameters-manage-id', params: { id: 0 } }">
-            <VBtn color="primary">
-              New Parameter
-            </VBtn>
-          </RouterLink>
+          <VBtn
+            :loading="actionLoading"
+            color="primary"
+            @click="openManageMqttTopic"
+          >
+            New MQTT Topic
+          </VBtn>
         </div>
       </VCardText>
 
@@ -203,45 +239,48 @@ onMounted(() => {
 
       <!-- Data Table -->
       <VDataTable
+        :key="mqttTopics.length"
         :headers="TABLE_HEADERS"
-        :items="parameters"
+        :items="mqttTopics"
         :items-per-page="itemsPerPage"
         :loading="loading"
         class="text-no-wrap"
         hide-default-footer
-        no-data-text="No parameters found"
+        no-data-text="No MQTT Topics found"
       >
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
 
-        <!-- Role Column -->
-        <template #item.role="{ item }">
-          <VChip
-            color="primary"
-            size="small"
-          >
-            {{ item.role?.name || 'N/A' }}
-          </VChip>
+
+        <template #item.machine="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            {{ item.machine.name }}
+          </div>
+        </template>
+
+        <template #item.mqtt_broker="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            {{ item.mqtt_broker.host_name }}
+          </div>
         </template>
 
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <RouterLink :to="{ name: 'parameters-manage-id', params: { id: item.id } }">
-              <VBtn
-                color="info"
-                icon
-                size="small"
-                variant="text"
-              >
-                <VIcon
-                  icon="tabler-pencil"
-                  size="20"
-                />
-              </VBtn>
-            </RouterLink>
+            <VBtn
+              color="info"
+              icon
+              size="small"
+              variant="text"
+              @click="handleEdit(item)"
+            >
+              <VIcon
+                icon="tabler-pencil"
+                size="20"
+              />
+            </VBtn>
             <VBtn
               color="error"
               icon
@@ -279,8 +318,23 @@ onMounted(() => {
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
-      title="Delete Parameter"
-      @submit="handleDeleteParameter"
+      title="Delete MQTT Topic"
+      @submit="handleDeleteMqttTopic"
+    />
+
+    <!-- Add/Edit MqttTopic Drawer -->
+    <ManageMqttTopicDrawer
+      v-model:is-drawer-open="isManageMqttTopic"
+      :form-errors="formErrors"
+      :loading="actionLoading"
+      :mqtt-topic-data="selectedMqttTopic"
+      :mqtt-topic-dependency="mqttTopicDependency"
+      @close="closeManageMqttTopic"
+      @mqtt-topic-data="handleSaveMqttTopic"
     />
   </section>
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :title-alert="alertMessage"
+  />
 </template>
