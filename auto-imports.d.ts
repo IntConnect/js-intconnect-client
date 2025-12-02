@@ -73,6 +73,7 @@ declare global {
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
   const isToday: typeof import('./src/@core/utils/helpers.js')['isToday']
+  const jsonToFormData: typeof import('./src/@core/utils/helpers.js')['jsonToFormData']
   const kFormatter: typeof import('./src/@core/utils/formatters.js')['kFormatter']
   const lengthValidator: typeof import('./src/@core/utils/validators.js')['lengthValidator']
   const logicAnd: typeof import('@vueuse/math')['logicAnd']
@@ -250,6 +251,8 @@ declare global {
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
   const useManageAuthentication: typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']
+  const useManageFacilitie: typeof import('./src/composables/useManageFacility.js')['useManageFacilitie']
+  const useManageFacility: typeof import('./src/composables/useManageFacility.js')['useManageFacility']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
   const useManageMachines: typeof import('./src/composables/useManageMachine.js')['useManageMachines']
   const useManageMqttBroker: typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']
@@ -447,6 +450,7 @@ declare module 'vue' {
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
     readonly isToday: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['isToday']>
+    readonly jsonToFormData: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['jsonToFormData']>
     readonly kFormatter: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['kFormatter']>
     readonly lengthValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['lengthValidator']>
     readonly logicAnd: UnwrapRef<typeof import('@vueuse/math')['logicAnd']>
@@ -623,6 +627,7 @@ declare module 'vue' {
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
+    readonly useManageFacility: UnwrapRef<typeof import('./src/composables/useManageFacility.js')['useManageFacility']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
     readonly useManageMqttBroker: UnwrapRef<typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']>
     readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>

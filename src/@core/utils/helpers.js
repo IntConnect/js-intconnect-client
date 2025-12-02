@@ -28,3 +28,42 @@ export const isToday = date => {
     && date.getFullYear() === today.getFullYear())
 }
 
+/**
+ * Convert a plain object to FormData
+ * @param {Object} data - JSON object to convert
+ * @param {FormData} [form] - FormData instance (for recursion)
+ * @param {string} [namespace] - Key prefix for nested fields
+ * @returns {FormData}
+ */
+export function jsonToFormData(data, form = new FormData(), namespace = '') {
+  for (let property in data) {
+    if (!data.hasOwnProperty(property)) continue
+
+    const formKey = namespace ? `${namespace}[${property}]` : property
+    const value = data[property]
+
+    if (value instanceof File) {
+      // Single file
+      form.append(formKey, value)
+    } else if (Array.isArray(value)) {
+      // Array: could be files or values
+      value.forEach((item, index) => {
+        if (item instanceof File) {
+          form.append(`${formKey}[${index}]`, item)
+        } else if (typeof item === 'object' && item !== null) {
+          jsonToFormData(item, form, `${formKey}[${index}]`)
+        } else {
+          form.append(`${formKey}[${index}]`, item)
+        }
+      })
+    } else if (typeof value === 'object' && value !== null) {
+      // Nested object
+      jsonToFormData(value, form, formKey)
+    } else if (value !== undefined && value !== null) {
+      // Primitive value
+      form.append(formKey, value)
+    }
+  }
+  
+  return form
+}

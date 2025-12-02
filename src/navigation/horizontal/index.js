@@ -37,6 +37,11 @@ export default [
     icon: { icon: 'tabler-device-desktop-cog' },
     children: [
       {
+        title: 'Facilities',
+        to: { name: 'facilities' },
+        icon: { icon: 'tabler-building-factory-2' },
+      },
+      {
         title: 'Machines',
         to: { name: 'machines' },
         icon: { icon: 'tabler-brand-databricks' },

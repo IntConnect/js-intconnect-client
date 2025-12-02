@@ -380,6 +380,9 @@
     "handleApiError": true,
     "applyPaginationResponse": true,
     "useFetchAuditLog": true,
-    "useManageMqttBroker": true
+    "useManageMqttBroker": true,
+    "useManageFacilitie": true,
+    "useManageFacility": true,
+    "jsonToFormData": true
   }
 }
