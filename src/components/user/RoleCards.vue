@@ -1,7 +1,7 @@
 <script setup>
 import girlUsingMobile from '@images/pages/girl-using-mobile.png'
-import DeleteDialog from "@/components/dialogs/DeleteDialog.vue"
-import ManageRoleDialog from "@/components/role/ManageRoleDialog.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import ManageRoleDialog from "@/components/dialogs/ManageRoleDialog.vue"
 
 const {
   roles,
@@ -141,7 +141,7 @@ onMounted(() => {
             Total {{ item.roles?.length }} roles
           </div>
 
-          <VSpacer />
+          <VSpacer/>
         </VCardText>
 
         <VCardText>
@@ -160,7 +160,7 @@ onMounted(() => {
               </div>
             </div>
             <IconBtn @click="openDeleteDialog(item)">
-              <VIcon icon="tabler-trash" />
+              <VIcon icon="tabler-trash"/>
             </IconBtn>
           </div>
         </VCardText>

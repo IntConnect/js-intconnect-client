@@ -38,5 +38,6 @@ declare module 'vue-router/auto-routes' {
     'permissions': RouteRecordInfo<'permissions', '/permissions', Record<never, never>, Record<never, never>>,
     'protocol-configurations': RouteRecordInfo<'protocol-configurations', '/protocol-configurations', Record<never, never>, Record<never, never>>,
     'users': RouteRecordInfo<'users', '/users', Record<never, never>, Record<never, never>>,
+    'users-profile-id': RouteRecordInfo<'users-profile-id', '/users/profile/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
   }
 }

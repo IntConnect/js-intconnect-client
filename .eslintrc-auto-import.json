@@ -383,6 +383,7 @@
     "useManageMqttBroker": true,
     "useManageFacilitie": true,
     "useManageFacility": true,
-    "jsonToFormData": true
+    "jsonToFormData": true,
+    "parseJwt": true
   }
 }

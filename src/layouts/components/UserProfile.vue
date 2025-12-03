@@ -1,15 +1,26 @@
 <script setup>
 import avatar1 from '@images/avatars/avatar-1.png'
+import { parseJwt } from "@core/utils/helpers.js"
+
+const rawJwt = ref('')
+
+onMounted(() => {
+  rawJwt.value = useCookie('access_token').value
+})
+
+const parsedJwt = computed(() => {
+  return parseJwt(rawJwt.value)
+})
 </script>
 
 <template>
   <VBadge
+    bordered
+    color="success"
     dot
     location="bottom right"
     offset-x="3"
     offset-y="3"
-    bordered
-    color="success"
   >
     <VAvatar
       class="cursor-pointer"
@@ -21,9 +32,9 @@ import avatar1 from '@images/avatars/avatar-1.png'
       <!-- SECTION Menu -->
       <VMenu
         activator="parent"
-        width="230"
         location="bottom end"
         offset="14px"
+        width="230"
       >
         <VList>
           <!-- 👉 User Avatar & Name -->
@@ -31,11 +42,11 @@ import avatar1 from '@images/avatars/avatar-1.png'
             <template #prepend>
               <VListItemAction start>
                 <VBadge
+                  color="success"
                   dot
                   location="bottom right"
                   offset-x="3"
                   offset-y="3"
-                  color="success"
                 >
                   <VAvatar
                     color="primary"
@@ -48,9 +59,11 @@ import avatar1 from '@images/avatars/avatar-1.png'
             </template>
 
             <VListItemTitle class="font-weight-semibold">
-              John Doe
+              {{ parsedJwt.name }}
             </VListItemTitle>
-            <VListItemSubtitle>Admin</VListItemSubtitle>
+            <VListItemSubtitle>
+              {{ parsedJwt.role_name }}
+            </VListItemSubtitle>
           </VListItem>
 
           <VDivider class="my-2" />
@@ -79,32 +92,6 @@ import avatar1 from '@images/avatars/avatar-1.png'
             </template>
 
             <VListItemTitle>Settings</VListItemTitle>
-          </VListItem>
-
-          <!-- 👉 Pricing -->
-          <VListItem link>
-            <template #prepend>
-              <VIcon
-                class="me-2"
-                icon="tabler-currency-dollar"
-                size="22"
-              />
-            </template>
-
-            <VListItemTitle>Pricing</VListItemTitle>
-          </VListItem>
-
-          <!-- 👉 FAQ -->
-          <VListItem link>
-            <template #prepend>
-              <VIcon
-                class="me-2"
-                icon="tabler-help"
-                size="22"
-              />
-            </template>
-
-            <VListItemTitle>FAQ</VListItemTitle>
           </VListItem>
 
           <!-- Divider -->

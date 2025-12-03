@@ -4,7 +4,7 @@ import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
-import { useApi } from "@/composables/useApi"
+import { useApi } from "@/composables/useApi.js"
 
 const props = defineProps({
   isDrawerOpen: {
@@ -197,7 +197,7 @@ const handleDrawerModelValueUpdate = val => {
       @cancel="closeNavigationDrawer"
     />
 
-    <VDivider />
+    <VDivider/>
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>

@@ -6,8 +6,8 @@ import * as THREE from 'three'
 import { onMounted, ref, reactive, nextTick } from 'vue'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import AdjustParameterLocation from "@/components/dialogs/AdjustParameterLocation.vue"
-import AlertDialog from "@/components/dialogs/AlertDialog.vue"
+import AdjustParameterLocationDrawer from "@/components/drawer/AdjustParameterLocationDrawer.vue"
+import AlertDialog from "@/components/general/AlertDialog.vue"
 import { useManageParameter } from "@/composables/useManageParameter.js"
 
 
@@ -436,7 +436,7 @@ const onSubmit = () => {
       </div>
 
 
-      <AdjustParameterLocation
+      <AdjustParameterLocationDrawer
         v-model:is-drawer-open="showAdjustPopup"
         v-model:position-x="positionX"
         v-model:position-y="positionY"

@@ -64,6 +64,37 @@ export function jsonToFormData(data, form = new FormData(), namespace = '') {
       form.append(formKey, value)
     }
   }
-  
+
   return form
+}
+
+
+/**
+ * Parse JWT token and return payload as JSON object
+ * @param {string} token - JWT token
+ * @returns {object|null} Parsed payload or null if invalid
+ */
+export function parseJwt(token) {
+  try {
+    // Ambil bagian payload → token.split('.')[1]
+    const base64Url = token.split('.')[1]
+    if (!base64Url) return null
+
+    // Convert base64url → base64
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+
+    // Decode base64 → UTF-8
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join(''),
+    )
+
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error('Invalid JWT token:', e)
+    
+    return null
+  }
 }

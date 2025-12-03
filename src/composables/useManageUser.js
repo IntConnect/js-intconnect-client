@@ -5,6 +5,7 @@ export const useManageUser = () => {
   // --------------------
   // State
   // --------------------
+  const user = ref({})
   const users = ref([])
   const totalItems = ref(0)
   const currentPage = ref(1)
@@ -60,6 +61,32 @@ export const useManageUser = () => {
     }
   }
 
+  const fetchUser = async id => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/users/${id}`, {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+
+      user.value = response
+      
+      return {
+        success: true,
+      }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
   const createUser = async userData => {
     actionLoading.value = true
     clearFormErrors()
@@ -82,7 +109,7 @@ export const useManageUser = () => {
         },
         response.value,
       )
-      
+
       return { success: true }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
@@ -113,7 +140,7 @@ export const useManageUser = () => {
         },
         response.value,
       )
-      
+
       return { success: true }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
@@ -144,7 +171,7 @@ export const useManageUser = () => {
         },
         response.value,
       )
-      
+
       return { success: true }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
@@ -164,6 +191,7 @@ export const useManageUser = () => {
   }
 
   return {
+    user,
     users,
     totalItems,
     currentPage,
@@ -174,6 +202,7 @@ export const useManageUser = () => {
     formErrors,
 
     fetchUsers,
+    fetchUser,
     createUser,
     updateUser,
     deleteUser,

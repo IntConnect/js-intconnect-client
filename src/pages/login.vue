@@ -9,7 +9,7 @@ import { themeConfig } from '@themeConfig'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import { useManageAuthentication } from "@/composables/useManageAuthentication.js"
 import GeneralAlert from "@/components/general/GeneralAlert.vue"
-import AlertDialog from "@/components/dialogs/AlertDialog.vue"
+import AlertDialog from "@/components/general/AlertDialog.vue"
 
 definePage({
   meta: {
