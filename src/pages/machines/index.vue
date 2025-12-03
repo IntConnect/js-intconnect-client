@@ -11,9 +11,9 @@ import { format } from "date-fns"
 // ==========================================
 const {
   machines,
-  loading,
   actionLoading,
   fetchMachines,
+  fetchMachinesPagination,
   saveMachine,
   deleteMachine,
   totalItems,
@@ -22,6 +22,8 @@ const {
   formErrors,
   clearFormErrors,
   clearErrors,
+  currentPage: page, pageSize: itemsPerPage,
+
 } = useManageMachine()
 
 
@@ -30,39 +32,41 @@ const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
   { title: 'Code', key: 'code', sortable: true },
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Location', key: 'location', sortable: true },
-  { title: 'Status', key: 'status', sortable: true },
+  { title: 'Description', key: 'description', sortable: true },
+  { title: 'Facility Name', key: 'facility_name', sortable: true },
   { title: 'Created At', key: 'created_at', sortable: true },
   { title: 'Updated At', key: 'updated_at', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-// --- Reactive States
-const page = ref(1)
-const itemsPerPage = ref(10)
-const searchQuery = ref('')
-const sortBy = ref('id')
+
+// ==========================================
+// Reactive States
+// ==========================================
+const searchQuery = ref("")
+const sortBy = ref("id")
 const sortOrder = ref("asc")
+
 
 // --- UI States
 const showDeleteDialog = ref(false)
-const selectedUser = ref(null)
+const selectedMachine = ref(null)
 
 
 // --- Edit user
 function handleEdit(row) {
-  selectedUser.value = { ...row }
+  selectedMachine.value = { ...row }
 }
 
 // --- Delete dialog
 const openDeleteDialog = user => {
-  selectedUser.value = user
+  selectedMachine.value = user
   showDeleteDialog.value = true
 }
 
 
 const loadMachines = async () => {
-  await fetchMachines({
+  await fetchMachinesPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -83,12 +87,12 @@ onMounted(() => {
         Machines
       </h4>
       <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
+        Explore the complete list of machines and manage their information in one place.
       </p>
     </VCol>
 
     <VCol cols="12">
-      <!-- 👉 User List  -->
+      <!-- 👉 Machine List  -->
 
 
       <section>
@@ -129,13 +133,19 @@ onMounted(() => {
             :headers="TABLE_HEADERS"
             :items="machines"
             :items-per-page="itemsPerPage"
-            :loading="loading"
+            :loading="actionLoading"
             class="text-no-wrap"
             no-data-text="No machines found"
           >
             <!-- ID Column -->
             <template #item.id="{ index }">
               {{ (page - 1) * itemsPerPage + index + 1 }}
+            </template>
+
+            <template #item.facility_name="{ item }">
+              <div class="d-flex align-center gap-x-4 py-2">
+                {{ item.facility.name }}
+              </div>
             </template>
 
 
@@ -152,32 +162,6 @@ onMounted(() => {
             <!-- Actions Column -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-2">
-                <VBtn
-                  icon
-                  size="small"
-                  variant="tonal"
-                >
-                  <RouterLink :to="{ name: 'machines-mapping-id', params: { id: item.id } }">
-                    <VBtn
-                      color="success"
-                      icon
-                      size="small"
-                      variant="text"
-                      @click="openDeleteDialog(item)"
-                    >
-                      <VIcon
-                        icon="tabler-flag-3"
-                        size="20"
-                      />
-                    </VBtn>
-                  </RouterLink>
-                  <VTooltip
-                    activator="parent"
-                    location="end"
-                  >
-                    Mapping Parameter
-                  </VTooltip>
-                </VBtn>
                 <VBtn
                   color="info"
                   icon
@@ -208,20 +192,15 @@ onMounted(() => {
             <!-- Bottom Pagination -->
             <template #bottom>
               <VCardText class="pt-2">
-                <div class="d-flex flex-wrap justify-space-between gap-4 align-center">
+                <div class="d-flex flex-wrap justify-space-end  align-end justify-end">
                   <!-- Pagination Info -->
-                  <div class="text-body-2">
-                    Showing {{ ((page - 1) * itemsPerPage) + 1 }}
-                    to {{ Math.min(page * itemsPerPage, totalItems) }}
-                    of {{ totalItems }} entries
-                  </div>
+
 
                   <!-- Pagination Controls -->
-                  <VPagination
-                    v-model="page"
-                    :disabled="loading"
-                    :length="totalPages"
-                    :total-visible="5"
+                  <TablePagination
+                    v-model:page="page"
+                    :items-per-page="itemsPerPage"
+                    :total-items="totalItems"
                   />
                 </div>
               </VCardText>
@@ -239,7 +218,7 @@ onMounted(() => {
             type: 'text'
           }]"
           message="Please provide a reason for deletion"
-          title="Delete User"
+          title="Delete Machine"
           @submit="deleteMachine"
         />
       </section>

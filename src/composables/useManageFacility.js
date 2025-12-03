@@ -27,7 +27,7 @@ export const useManageFacility = () => {
   // Main API Methods
   // --------------------
 
-  const fetchFacilities = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
+  const fetchFacilitiesPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
     clearErrors()
     actionLoading.value = true
 
@@ -52,6 +52,27 @@ export const useManageFacility = () => {
         },
         response.value,
       )
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const fetchFacilities = async () => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl('/facilities', {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      facilities.value = response.value
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -180,6 +201,7 @@ export const useManageFacility = () => {
     errorMessage,
     formErrors,
 
+    fetchFacilitiesPagination,
     fetchFacilities,
     createFacility,
     updateFacility,

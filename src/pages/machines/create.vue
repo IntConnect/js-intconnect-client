@@ -1,276 +1,389 @@
 <script setup>
+import { ref, reactive, onMounted, computed, toRaw } from 'vue'
 import customWizardAccount from '@images/svg/wizard-account.svg'
-import customWizardAddress from '@images/svg/wizard-address.svg'
 import customWizardPersonal from '@images/svg/wizard-personal.svg'
-import customWizardSubmit from '@images/svg/wizard-submit.svg'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import "@jaxtheprime/vue3-dropzone/dist/style.css"
-import { ref } from "vue"
 import AppStepper from "@core/components/AppStepper.vue"
 
+import { useManageFacility } from "@/composables/useManageFacility"
+import { useManageMachine } from "@/composables/useManageMachine"
+
 const iconsSteps = [
-  {
-    title: 'Machine Identity',
-    icon: customWizardAccount,
-  },
-  {
-    title: 'Machine Documents',
-    icon: customWizardPersonal,
-  },
+  { title: 'Machine Identity', icon: customWizardAccount },
+  { title: 'Machine Documents', icon: customWizardPersonal },
 ]
 
 const currentStep = ref(0)
-const facilities = ref([])
+const { facilities, fetchFacilities } = useManageFacility()
+const processedFacilities = ref([])
 
-const files = ref([])
+// Use composable for machines
+const {
+  saveMachine,
+  formErrors,
+  actionLoading,
+  clearFormErrors,
+  fetchMachines,
 
-const formData = ref({
-  name: '',
-  code: '',
-  description: '',
-  model: '',
-  documents: [
-    {
-      title: '',
-      description: '',
-      files: [],
-    },
-  ],
+  // (optional) machines etc if needed
+} = useManageMachine()
+
+// localForm: reactive copy to avoid two-way bind issues during editing
+const localForm = reactive({
+  id: null,
+  name: 'chiller',
+  code: 'chiller',
+  description: 'chiller',
+  model: null, // File or null
+  thumbnail: null, // File or null
+  facility_id: 1,
+  documents: [],
 })
 
-const onSubmit = () => {
+// load facilities once
+onMounted(async () => {
+  await fetchFacilities()
+  processedFacilities.value = facilities.value?.entries?.map(f => ({
+    title: f.name,
+    value: f.id,
+  })) || []
+})
+
+// helpers: documents
+const addDocument = () => {
+  localForm.documents.push({ title: '', description: '', files: [] })
 }
 
-async function fetchFacilities() {
-  try {
-    const { data: response } = await useApi(`/facilities`).get().json()
+const removeDocument = idx => {
+  localForm.documents.splice(idx, 1)
+}
 
-    facilities.value = response.value.data.map(facility => ({
-      title: facility.name, // ditampilkan
-      value: facility.id,     // jadi value
-    }))
-  } catch (err) {
-    console.error('Failed to fetch roles:', err)
+// stepper helpers
+const prev = () => {
+  if (currentStep.value > 0) currentStep.value--
+}
+
+const next = () => {
+  if (currentStep.value < iconsSteps.length - 1) currentStep.value++
+}
+
+const isLastStep = computed(() => currentStep.value === iconsSteps.length - 1)
+const router = useRouter()
+
+const modelFile = computed(() => localForm.model[0]?.file || null)
+const thumbnailFile = computed(() => localForm.thumbnail[0]?.file || null)
+
+
+// prepare payload and submit
+const submit = async () => {
+  clearFormErrors()
+
+  // build payload in the shape expected by composable's jsonToFormData:
+  const payload = {
+    id: localForm.id,
+    name: localForm.name,
+    code: localForm.code,
+    description: localForm.description,
+    facility_id: localForm.facility_id,
+    model: modelFile.value, // File or null
+    thumbnail: thumbnailFile.value,
+    documents: localForm.documents.map(d => ({
+      title: d.title,
+      description: d.description,
+      files: d.files, // array of File
+    })),
+  }
+
+  console.log(payload)
+
+
+  const result = await saveMachine(payload)
+
+  if (result.success) {
+    router.push('/machines')
+
+  } else {
+    // errors are already populated into formErrors by composable
+    console.error('submit failed', result)
   }
 }
 
-onMounted(() => {
-  fetchFacilities()
-})
-
-const addDocument = () => {
-  formData.value.documents.push({
-    title: '',
-    description: '',
-    files: [],
-  })
-}
-
-const removeDocument = index => {
-  formData.value.documents.splice(index, 1)
+// optional reset function
+const reset = () => {
+  localForm.id = null
+  localForm.name = ''
+  localForm.code = ''
+  localForm.description = ''
+  localForm.model = null
+  localForm.facility_id = null
+  localForm.documents = [{ title: '', description: '', files: [] }]
 }
 </script>
 
 <template>
   <VCol cols="12">
     <h4 class="text-h4 mb-1 mt-1">
-      Create New Test
+      Create / Edit Machine
     </h4>
     <p class="text-body-1 mb-2">
       Find all of your company’s administrator accounts and their associate roles.
     </p>
-  </VCol>
-  <VCard>
-    <VCardText>
-      <!-- 👉 Stepper -->
-      <AppStepper
-        v-model:current-step="currentStep"
-        :items="iconsSteps"
-        align="center"
-      />
-    </VCardText>
 
-    <VDivider />
+    <VCard>
+      <VCardText>
+        <AppStepper
+          v-model:current-step="currentStep"
+          :items="iconsSteps"
+          align="center"
+        />
+      </VCardText>
 
-    <VCardText>
-      <!-- 👉 stepper content -->
-      <VForm>
-        <VWindow
-          v-model="currentStep"
-          class="disable-tab-transition"
+      <VDivider />
+
+      <VCardText>
+        <VForm
+          ref="vform"
+          lazy-validation
         >
-          <VWindowItem>
-            <VRow>
-              <VCol cols="12">
-                <h6 class="text-h6 font-weight-medium">
-                  Machine Identity
-                </h6>
-                <p class="mb-0">
-                  Enter your Account Details
-                </p>
-              </VCol>
+          <VWindow
+            v-model="currentStep"
+            class="disable-tab-transition"
+          >
+            <!-- STEP 1: Identity -->
+            <VWindowItem>
+              <VRow>
+                <VCol cols="12">
+                  <h6 class="text-h6 font-weight-medium">
+                    Machine Identity
+                  </h6>
+                  <p class="mb-0">
+                    Enter machine details
+                  </p>
+                </VCol>
 
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  v-model="formData.name"
-                  label="Name"
-                  placeholder="Chiller"
-                />
-              </VCol>
-
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  v-model="formData.code"
-                  label="Code"
-                  placeholder="chiller-hvac"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <p class="text-body-2">
-                  3D Model
-                </p>
-                <Vue3Dropzone
-                  v-model="formData.model"
-                  :max-file-size="1"
-                />
-              </VCol>
-            </VRow>
-          </VWindowItem>
-
-          <VWindowItem>
-            <VRow>
-              <!-- Loop Documents -->
-              <VCol cols="12">
-                <h6 class="text-h6 font-weight-medium">
-                  Machine Documents
-                </h6>
-                <p class="mb-2">
-                  Add machine-related documents.
-                </p>
-              </VCol>
-              <div
-                v-for="(doc, index) in formData.documents"
-                :key="index"
-                class="w-100"
-              >
-                <VCard class="mb-4 pa-4">
-                  <VRow>
-                    <VCol
-                      class="d-flex justify-space-between align-center"
-                      cols="12"
-                    >
-                      <h6 class="text-h6">
-                        Document {{ index + 1 }}
-                      </h6>
-
-                      <VBtn
-                        v-if="formData.documents.length > 1"
-                        color="error"
-                        size="small"
-                        variant="tonal"
-                        @click="removeDocument(index)"
-                      >
-                        Remove
-                      </VBtn>
-                    </VCol>
-
-                    <VCol
-                      cols="12"
-                      md="6"
-                    >
-                      <AppTextField
-                        v-model="doc.title"
-                        label="Document Name"
-                        placeholder="Operational Manual"
-                      />
-                    </VCol>
-
-                    <VCol
-                      cols="12"
-                      md="6"
-                    >
-                      <AppTextField
-                        v-model="doc.description"
-                        label="Description"
-                        placeholder="Manual book for machine operation"
-                      />
-                    </VCol>
-
-                    <VCol
-                      cols="12"
-                      md="6"
-                    >
-                      <Vue3Dropzone
-                        v-model="doc.files"
-                        :max-file-size="1"
-                      />
-                    </VCol>
-                  </VRow>
-                </VCard>
-              </div>
-              <VCol
-                class="flex justify-end"
-                cols="12"
-              >
-                <VBtn
-                  class="mb-4"
-                  color="primary"
-                  @click="addDocument"
+                <VCol
+                  cols="12"
+                  md="6"
                 >
-                  Add Document
-                </VBtn>
-              </VCol>
-            </VRow>
-          </VWindowItem>
-        </VWindow>
+                  <AppTextField
+                    v-model="localForm.name"
+                    :error-messages="formErrors.name || []"
+                    label="Name"
+                    placeholder="Chiller"
+                  />
+                </VCol>
 
-        <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
-          <VBtn
-            :disabled="currentStep === 0"
-            color="secondary"
-            variant="tonal"
-            @click="currentStep--"
-          >
-            <VIcon
-              class="flip-in-rtl"
-              icon="tabler-arrow-left"
-              start
-            />
-            Previous
-          </VBtn>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <AppTextField
+                    v-model="localForm.code"
+                    :error-messages="formErrors.code || []"
+                    label="Code"
+                    placeholder="chiller-hvac"
+                  />
+                </VCol>
 
-          <VBtn
-            v-if="iconsSteps.length - 1 === currentStep"
-            color="success"
-            @click="onSubmit"
-          >
-            submit
-          </VBtn>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <AppSelect
+                    v-model="localForm.facility_id"
+                    :error-messages="formErrors.facility_id || []"
+                    :items="processedFacilities"
+                    label="Facility"
+                    placeholder="Select facility"
+                  />
+                </VCol>
 
-          <VBtn
-            v-else
-            @click="currentStep++"
-          >
-            Next
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <p class="text-body-2">
+                    3D Model
+                  </p>
+                  <Vue3Dropzone
+                    v-model="localForm.model"
+                    :max-file-size="10"
+                    :multiple="false"
+                  />
+                  <small
+                    v-if="formErrors.model"
+                    class="text-error"
+                  >{{ formErrors.model.join(', ') }}</small>
+                </VCol>
 
-            <VIcon
-              class="flip-in-rtl"
-              end
-              icon="tabler-arrow-right"
-            />
-          </VBtn>
-        </div>
-      </VForm>
-    </VCardText>
-  </VCard>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <AppTextField
+                    v-model="localForm.description"
+                    :error-messages="formErrors.description || []"
+                    :rows="3"
+                    label="Description"
+                    placeholder="Describe the machine"
+                    textarea
+                  />
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <p class="text-body-2">
+                    Thumbnail
+                  </p>
+                  <Vue3Dropzone
+                    v-model="localForm.thumbnail"
+                    :max-file-size="10"
+                    :multiple="false"
+                  />
+                  <small
+                    v-if="formErrors.thumbnail"
+                    class="text-error"
+                  >{{ formErrors.thumbnail.join(', ') }}</small>
+                </VCol>
+              </VRow>
+            </VWindowItem>
+
+            <!-- STEP 2: Documents -->
+            <VWindowItem>
+              <VRow>
+                <VCol cols="12">
+                  <h6 class="text-h6 font-weight-medium">
+                    Machine Documents
+                  </h6>
+                  <p class="mb-2">
+                    Add machine-related documents.
+                  </p>
+                </VCol>
+
+                <div
+                  v-for="(doc, index) in localForm.documents"
+                  :key="index"
+                  class="w-100"
+                >
+                  <VCard class="mb-4 pa-4">
+                    <VRow>
+                      <VCol
+                        class="d-flex justify-space-between align-center"
+                        cols="12"
+                      >
+                        <h6 class="text-h6">
+                          Document {{ index + 1 }}
+                        </h6>
+
+                        <VBtn
+                          v-if="localForm.documents.length > 1"
+                          color="error"
+                          size="small"
+                          variant="tonal"
+                          @click="removeDocument(index)"
+                        >
+                          Remove
+                        </VBtn>
+                      </VCol>
+
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <AppTextField
+                          v-model="doc.title"
+                          label="Document Name"
+                          placeholder="Operational Manual"
+                        />
+                      </VCol>
+
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <AppTextField
+                          v-model="doc.description"
+                          label="Description"
+                          placeholder="Manual book for machine operation"
+                        />
+                      </VCol>
+
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <Vue3Dropzone
+                          v-model="doc.files"
+                          :max-file-size="10"
+                          :multiple="true"
+                        />
+                      </VCol>
+                    </VRow>
+                  </VCard>
+                </div>
+
+                <VCol
+                  class="flex justify-end"
+                  cols="12"
+                >
+                  <VBtn
+                    class="mb-4"
+                    color="primary"
+                    @click="addDocument"
+                  >
+                    Add Document
+                  </VBtn>
+                </VCol>
+              </VRow>
+            </VWindowItem>
+          </VWindow>
+
+
+          <!-- Buttons -->
+          <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
+            <VBtn
+              :disabled="currentStep === 0 || actionLoading"
+              color="secondary"
+              variant="tonal"
+              @click="prev"
+            >
+              <VIcon
+                class="flip-in-rtl"
+                icon="tabler-arrow-left"
+                start
+              />
+              Previous
+            </VBtn>
+
+            <VBtn
+              v-if="isLastStep"
+              :disabled="actionLoading"
+              :loading="actionLoading"
+              color="success"
+              @click="submit"
+            >
+              Submit
+            </VBtn>
+
+            <VBtn
+              v-else
+              @click="next"
+            >
+              Next
+              <VIcon
+                class="flip-in-rtl"
+                end
+                icon="tabler-arrow-right"
+              />
+            </VBtn>
+          </div>
+        </VForm>
+      </VCardText>
+    </VCard>
+  </VCol>
 </template>
+

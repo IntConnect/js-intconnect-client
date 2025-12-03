@@ -2,24 +2,34 @@ import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 export const useManageMachine = () => {
+  // --------------------
   // State
+  // --------------------
   const machines = ref([])
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
   const totalPages = ref(0)
-  const loading = ref(false)
-  const error = ref(null)
+
+  const errorMessage = ref(null)
   const formErrors = ref({})
   const actionLoading = ref(false)
 
 
-  /**
-   * Fetch machines with pagination
-   */
+  const clearFormErrors = () => (formErrors.value = {})
+
+  const clearErrors = () => {
+    errorMessage.value = null
+    formErrors.value = {}
+  }
+
+  // --------------------
+  // Main API Methods
+  // --------------------
+
   const fetchMachinesPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
-    loading.value = true
-    error.value = null
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
@@ -30,35 +40,29 @@ export const useManageMachine = () => {
         .get()
         .json()
 
-      if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to fetch machines')
-      }
-
-      const res = response.value
-
-      if (res.success) {
-        machines.value = res.data ?? []
-        totalItems.value = res.pagination.total_items
-        currentPage.value = res.pagination.current_page
-        pageSize.value = res.pagination.page_size
-        totalPages.value = res.pagination.total_pages
-      } else {
-        throw new Error(res.message || 'Failed to fetch machines')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to fetch machines:', err)
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      applyPaginationResponse(
+        {
+          entries: machines,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
+      console.log(response.value)
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
-      loading.value = false
+      actionLoading.value = false
     }
   }
 
-  /**
-   * Fetch machines with pagination
-   */
   const fetchMachines = async () => {
-    loading.value = true
-    error.value = null
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
@@ -67,202 +71,144 @@ export const useManageMachine = () => {
         .get()
         .json()
 
-      if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to fetch machines')
-      }
-
-      const res = response.value
-
-      if (res.status) {
-        machines.value = res.data ?? []
-      } else {
-        throw new Error(res.message || 'Failed to fetch machines')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to fetch machines:', err)
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      machines.value = response.value
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
-      loading.value = false
+      actionLoading.value = false
     }
   }
 
-
-  /**
-   * Create new machine
-   */
   const createMachine = async machineData => {
     actionLoading.value = true
-    formErrors.value = {}
-    error.value = null
-
+    clearFormErrors()
+    console.log(machineData)
     try {
-      const { data: response, error: apiError } = await useApi('/machines')
-        .post(machineData)
-        .json()
+      const formData = jsonToFormData(machineData)
 
-
-      if (apiError.value) {
-        const errorData = apiError.value
-
-        // Handle validation errors (422)
-        if (errorData.status === 422) {
-          if (errorData.error?.details) {
-            // Backend format: { error: { details: { field: "message" } } }
-            formErrors.value = errorData.error.details
-          } else if (errorData.errors) {
-            // Alternative format: { errors: { field: ["message"] } }
-            formErrors.value = errorData.errors
-          }
-
-          return { success: false, errors: formErrors.value }
-        }
-
-        throw new Error(errorData.message || 'Failed to create machine')
+      for (const [key, value] of Object.entries(formData)) {
+        console.log(key, value)
       }
 
-      const res = response.value
 
-      if (res.success) {
-        return { success: true, data: res.data }
-      } else {
-        throw new Error(res.message || 'Failed to create machine')
-      }
+      // Don't set Content-Type header - let the browser set it automatically with boundary
+      const { data: response, error: apiError } = await useApi('/machines', {
+        headers: {
+          // Remove any default Content-Type headers
+        },
+      }).post(formData).json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+
+      applyPaginationResponse(
+        {
+          entries: machines,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
+
+      return { success: true }
     } catch (err) {
-      error.value = err.message
-      console.error('Failed to create machine:', err)
+      console.log(err)
 
-      return { success: false, error: err.message }
+      return { success: false, error: 'Unknown error' }
     } finally {
       actionLoading.value = false
     }
   }
 
-  /**
-   * Update existing machine
-   */
   const updateMachine = async (machineId, machineData) => {
     actionLoading.value = true
-    formErrors.value = {}
-    error.value = null
-
+    clearFormErrors()
     try {
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`)
-        .put(machineData)
-        .json()
+      const formData = jsonToFormData(machineData)
 
-      if (apiError.value) {
-        const errorData = apiError.value
 
-        // Handle validation errors (422)
-        if (errorData.status === 422) {
-          if (errorData.error?.details) {
-            formErrors.value = errorData.error.details
-          } else if (errorData.errors) {
-            formErrors.value = errorData.errors
-          }
+      // Don't set Content-Type header - let the browser set it automatically with boundary
+      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`, {
+        headers: {
+          // Remove any default Content-Type headers
+        },
+      }).put(formData).json()
 
-          return { success: false, errors: formErrors.value }
-        }
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      applyPaginationResponse(
+        {
+          entries: machines,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
 
-        throw new Error(errorData.message || 'Failed to update machine')
-      }
-
-      const res = response.value
-
-      if (res.success) {
-        return { success: true, data: res.data }
-      } else {
-        throw new Error(res.message || 'Failed to update machine')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to update machine:', err)
-
-      return { success: false, error: err.message }
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
       actionLoading.value = false
     }
   }
 
-  /**
-   * Delete machine
-   */
   const deleteMachine = async (machineId, reason = '') => {
     actionLoading.value = true
-    error.value = null
-
+    clearFormErrors()
     try {
       const { data: response, error: apiError } = await useApi(`/machines/${machineId}`)
-        .delete({ description: reason })
+        .delete({ reason })
         .json()
 
-      if (apiError.value) {
-        throw new Error(apiError.value.message || 'Failed to delete machine')
-      }
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
-      const res = response.value
+      applyPaginationResponse(
+        {
+          entries: machines,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
 
-      if (res.success) {
-        return { success: true, message: res.message }
-      } else {
-        throw new Error(res.message || 'Failed to delete machine')
-      }
-    } catch (err) {
-      error.value = err.message
-      console.error('Failed to delete machine:', err)
-
-      return { success: false, error: err.message }
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
     } finally {
       actionLoading.value = false
     }
   }
 
-  /**
-   * Save machine (create or update)
-   */
   const saveMachine = async machineData => {
-    const isUpdate = Boolean(machineData.id)
+    if (machineData.id) {
+      const { id, ...payload } = machineData
 
-    if (isUpdate) {
-      const machineId = machineData.id
-
-      // Remove id from machineData untuk update
-      const { id, ...updateData } = machineData
-
-      return await updateMachine(machineId, updateData)
-    } else {
-      return await createMachine(machineData)
+      return updateMachine(id, payload)
     }
-  }
 
-  /**
-   * Clear form errors
-   */
-  const clearFormErrors = () => {
-    formErrors.value = {}
-  }
-
-  /**
-   * Clear all errors
-   */
-  const clearErrors = () => {
-    error.value = null
-    formErrors.value = {}
+    return createMachine(machineData)
   }
 
   return {
-    // State
     machines,
     totalItems,
     currentPage,
     pageSize,
     totalPages,
-    loading,
     actionLoading,
-    error,
+    errorMessage,
     formErrors,
 
-    // Methods
     fetchMachinesPagination,
     fetchMachines,
     createMachine,
@@ -273,3 +219,4 @@ export const useManageMachine = () => {
     clearErrors,
   }
 }
+
