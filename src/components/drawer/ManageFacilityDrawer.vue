@@ -71,6 +71,7 @@ const closeNavigationDrawer = () => {
 
     // 🔥 Reset ALL fields including id
     id.value = ''
+    existingThumbnail.value = []
   })
 }
 
@@ -117,7 +118,6 @@ watch(
       code.value = val.code || ''
       description.value = val.description || ''
       location.value = val.location || ''
-      thumbnail.value = val.thumbnail || true
     }
   },
   { immediate: true, deep: true },
@@ -135,6 +135,7 @@ watch(
         refForm.value?.resetValidation()
 
         id.value = ''
+        existingThumbnail.value = []
       })
     }
   },
@@ -142,6 +143,13 @@ watch(
 
 const thumbnailFile = computed(() => thumbnail.value[0]?.file || null)
 
+const existingThumbnail = ref([])    // array of URLs
+
+watch(() => props.facilityData, val => {
+  if (val?.thumbnail_path) {
+    existingThumbnail.value = [useStaticFile(val.thumbnail_path)]
+  }
+})
 
 const handleDrawerModelValueUpdate = val => {
   emit('update:isDrawerOpen', val)
@@ -224,9 +232,10 @@ const handleDrawerModelValueUpdate = val => {
                 </p>
                 <Vue3Dropzone
                   v-model="thumbnail"
+                  v-model:previews="existingThumbnail"
                   :max-file-size="1"
-                  :state="props.formErrors.thumbnail ? 'error' : 'success'"
                   accept="image/png, image/jpeg"
+                  mode="edit"
                 />
                 <p
                   v-if="props.formErrors.thumbnail"

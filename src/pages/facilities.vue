@@ -37,10 +37,10 @@ const TABLE_HEADERS = [
   { title: 'Description', key: 'description', sortable: true },
   { title: 'Location', key: 'location', sortable: true },
   { title: 'Status', key: 'status', sortable: false },
+  { title: 'Thumbnail', key: 'thumbnail', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100]
 
 // ==========================================
 // Reactive States
@@ -187,7 +187,7 @@ onMounted(() => {
         All Facility
       </h4>
       <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
+        View a complete list of company facilities along with their key information and status.
       </p>
     </VCol>
     <VCard>
@@ -249,15 +249,34 @@ onMounted(() => {
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
 
-        <!-- Role Column -->
-        <template #item.role="{ item }">
-          <VChip
-            color="primary"
-            size="small"
-          >
-            {{ item.role?.name || 'N/A' }}
-          </VChip>
+
+        <template #item.thumbnail="{ item }">
+          <template v-if="item.thumbnail_path !== ''">
+            <a
+              :href="useStaticFile(item.thumbnail_path)"
+              target="_blank"
+            >
+              <VBtn
+                color="success"
+                icon="tabler-photo-scan"
+                rounded
+                variant="tonal"
+              />
+            </a>
+          </template>
+          <template v-else>
+            <div class="pa-2 me-3">
+              <VAlert
+                color="error"
+                icon="tabler-alert-triangle"
+                variant="tonal"
+              >
+                There is no thumbnail
+              </VAlert>
+            </div>
+          </template>
         </template>
+
 
         <!-- Actions Column -->
         <template #item.actions="{ item }">

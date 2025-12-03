@@ -38,8 +38,6 @@ const TABLE_HEADERS = [
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
-const ITEMS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100]
-
 // ==========================================
 // Reactive States
 // ==========================================

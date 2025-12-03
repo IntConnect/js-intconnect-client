@@ -52,6 +52,7 @@ export const useManageFacility = () => {
         },
         response.value,
       )
+      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -101,17 +102,23 @@ export const useManageFacility = () => {
   const updateFacility = async (facilityId, facilityData) => {
     actionLoading.value = true
     clearFormErrors()
-
     try {
-      const { data: response, error: apiError } = await useApi(`/facilities/${facilityId}`)
-        .put(facilityData)
-        .json()
+      const formData = jsonToFormData(facilityData)
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value)
+      }
 
+
+      // Don't set Content-Type header - let the browser set it automatically with boundary
+      const { data: response, error: apiError } = await useApi(`/facilities/${facilityId}`, {
+        headers: {
+          // Remove any default Content-Type headers
+        },
+      }).put(formData).json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
-
       if (!result.success) return result
-
+      console.log(response)
       applyPaginationResponse(
         {
           entries: facilities,
@@ -134,7 +141,6 @@ export const useManageFacility = () => {
   const deleteFacility = async (facilityId, reason = '') => {
     actionLoading.value = true
     clearFormErrors()
-
     try {
       const { data: response, error: apiError } = await useApi(`/facilities/${facilityId}`)
         .delete({ reason })

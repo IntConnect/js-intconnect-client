@@ -385,6 +385,7 @@
     "useManageFacility": true,
     "jsonToFormData": true,
     "parseJwt": true,
-    "useManageReportDocumentTemplate": true
+    "useManageReportDocumentTemplate": true,
+    "useStaticFile": true
   }
 }
