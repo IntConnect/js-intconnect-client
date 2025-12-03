@@ -225,8 +225,15 @@ const handleDrawerModelValueUpdate = val => {
                 <Vue3Dropzone
                   v-model="thumbnail"
                   :max-file-size="1"
+                  :state="props.formErrors.thumbnail ? 'error' : 'success'"
                   accept="image/png, image/jpeg"
                 />
+                <p
+                  v-if="props.formErrors.thumbnail"
+                  class="text-body-2 mt-2 text-red"
+                >
+                  {{ props.formErrors.thumbnail }}
+                </p>
               </VCol>
 
 

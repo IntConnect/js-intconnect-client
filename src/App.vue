@@ -1,5 +1,4 @@
 <script setup>
-import '@styles/tailwind.css'
 import { useTheme } from 'vuetify'
 import ScrollToTop from '@core/components/ScrollToTop.vue'
 import initCore from '@core/initCore'
@@ -17,16 +16,15 @@ initCore()
 initConfigStore()
 
 const configStore = useConfigStore()
-
 </script>
 
 <template>
   <VLocaleProvider :rtl="configStore.isAppRTL">
     <!-- ℹ️ This is required to set the background color of active nav link based on currently active global theme's primary -->
     <VApp :style="`--v-global-theme-primary: ${hexToRgb(global.current.value.colors.primary)}`">
-      <RouterView/>
+      <RouterView />
 
-      <ScrollToTop/>
+      <ScrollToTop />
     </VApp>
   </VLocaleProvider>
 </template>
