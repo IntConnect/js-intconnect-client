@@ -78,7 +78,6 @@ const titleAlert = ref('')
 onMounted(async () => {
   await fetchParameterDependency()
   await nextTick()
-  console.log(parameterDependency)
   processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,

@@ -52,7 +52,6 @@ export const useManageFacility = () => {
         },
         response.value,
       )
-      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -65,9 +64,6 @@ export const useManageFacility = () => {
     clearFormErrors()
     try {
       const formData = jsonToFormData(facilityData)
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value)
-      }
 
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
@@ -104,9 +100,6 @@ export const useManageFacility = () => {
     clearFormErrors()
     try {
       const formData = jsonToFormData(facilityData)
-      for (let [key, value] of formData.entries()) {
-        console.log(key, value)
-      }
 
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
@@ -118,7 +111,6 @@ export const useManageFacility = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      console.log(response)
       applyPaginationResponse(
         {
           entries: facilities,

@@ -199,7 +199,6 @@ export const useManageParameter = () => {
   }
 
   const saveParameter = async parameterData => {
-    console.log(parameterData)
     if (parameterData.id) {
       const { id, ...payload } = parameterData
 
