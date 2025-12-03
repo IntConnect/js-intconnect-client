@@ -259,6 +259,7 @@ declare global {
   const useManageMqttBroker: typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']
   const useManageMqttTopic: typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']
   const useManageParameter: typeof import('./src/composables/useManageParameter.js')['useManageParameter']
+  const useManageReportDocumentTemplate: typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']
   const useManageRole: typeof import('./src/composables/useManageRole.js')['useManageRole']
   const useManageUser: typeof import('./src/composables/useManageUser.js')['useManageUser']
   const useManualRefHistory: typeof import('@vueuse/core')['useManualRefHistory']
@@ -634,6 +635,7 @@ declare module 'vue' {
     readonly useManageMqttBroker: UnwrapRef<typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']>
     readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>
     readonly useManageParameter: UnwrapRef<typeof import('./src/composables/useManageParameter.js')['useManageParameter']>
+    readonly useManageReportDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>
     readonly useManageUser: UnwrapRef<typeof import('./src/composables/useManageUser.js')['useManageUser']>
     readonly useManualRefHistory: UnwrapRef<typeof import('@vueuse/core')['useManualRefHistory']>

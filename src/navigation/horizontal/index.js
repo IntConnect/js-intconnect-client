@@ -4,35 +4,36 @@ export default [
     to: { name: 'root' },
     icon: { icon: 'tabler-smart-home' },
   },
-  {
-    title: 'Pipeline',
-    icon: { icon: 'tabler-code' },
-    children: [
-      {
-        title: 'Dynamic Dashboard',
-        to: { name: 'dynamic-dashboard' },
-        icon: { icon: 'tabler-brand-tabler' },
-      },
-      {
-        title: 'Drawings',
-        to: { name: 'drawings' },
-        icon: { icon: 'tabler-circuit-changeover' },
-      },
-      {
-        title: 'Protocol Configurations',
-        to: { name: 'protocol-configurations' },
-        icon: { icon: 'tabler-server-cog' },
-      },
-      {
-        title: 'Database Connections',
-        to: { name: 'database-connections' },
-        icon: { icon: 'tabler-database-star' },
-      },
 
-    ],
-  },
+  // {
+  //   title: 'Pipeline',
+  //   icon: { icon: 'tabler-code' },
+  //   children: [
+  //     {
+  //       title: 'Dynamic Dashboard',
+  //       to: { name: 'dynamic-dashboard' },
+  //       icon: { icon: 'tabler-brand-tabler' },
+  //     },
+  //     {
+  //       title: 'Drawings',
+  //       to: { name: 'drawings' },
+  //       icon: { icon: 'tabler-circuit-changeover' },
+  //     },
+  //     {
+  //       title: 'Protocol Configurations',
+  //       to: { name: 'protocol-configurations' },
+  //       icon: { icon: 'tabler-server-cog' },
+  //     },
+  //     {
+  //       title: 'Database Connections',
+  //       to: { name: 'database-connections' },
+  //       icon: { icon: 'tabler-database-star' },
+  //     },
+  //
+  //   ],
+  // },
   {
-    title: 'Manage',
+    title: 'Configuration',
     to: { name: 'root' },
     icon: { icon: 'tabler-device-desktop-cog' },
     children: [
@@ -90,6 +91,27 @@ export default [
         title: 'Audit Log',
         to: { name: 'audit-logs' },
         icon: { icon: 'tabler-adjustments-cog' },
+      },
+    ],
+  },
+  {
+    title: 'Report',
+    icon: { icon: 'tabler-clipboard-data' },
+    children: [
+      {
+        title: 'Report Document Template',
+        to: { name: 'report-document-templates' },
+        icon: { icon: 'tabler-clipboard-text' },
+      },
+      {
+        title: 'Generate Report',
+        to: { name: 'permissions' },
+        icon: { icon: 'tabler-file-type-doc' },
+      },
+      {
+        title: 'Checksheet',
+        to: { name: 'audit-logs' },
+        icon: { icon: 'tabler-checkup-list' },
       },
     ],
   },

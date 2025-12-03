@@ -1,12 +1,11 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-export const useManageParameter = () => {
+export const useManageReportDocumentTemplate = () => {
   // --------------------
   // State
   // --------------------
-  const parameters = ref([])
-  const parameterDependency = ref({})
+  const reportDocumentTemplates = ref([])
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -28,13 +27,13 @@ export const useManageParameter = () => {
   // Main API Methods
   // --------------------
 
-  const fetchParametersPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
+  const fetchReportDocumentTemplates = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
     clearErrors()
     actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/parameters/pagination', {
+        createUrl('/report-document-templates/pagination', {
           query: { page, size, query, sort, order },
         }),
       )
@@ -45,7 +44,7 @@ export const useManageParameter = () => {
       if (!result.success) return result
       applyPaginationResponse(
         {
-          entries: parameters,
+          entries: reportDocumentTemplates,
           totalItems,
           currentPage,
           pageSize,
@@ -60,55 +59,13 @@ export const useManageParameter = () => {
     }
   }
 
-  const fetchParameters = async () => {
-    clearErrors()
-    actionLoading.value = true
-
-    try {
-      const { data: response, error: apiError } = await useApi(
-        createUrl('/parameters', {}),
-      )
-        .get()
-        .json()
-
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-      parameters.value = response.value
-    } catch (_) {
-      return { success: false, error: 'Unknown error' }
-    } finally {
-      actionLoading.value = false
-    }
-  }
-
-  const fetchParameterDependency = async () => {
-    clearErrors()
-    actionLoading.value = true
-
-    try {
-      const { data: response, error: apiError } = await useApi(
-        createUrl('/parameters/create', {}),
-      )
-        .get()
-        .json()
-
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-      parameterDependency.value = response.value
-    } catch (_) {
-      return { success: false, error: 'Unknown error' }
-    } finally {
-      actionLoading.value = false
-    }
-  }
-
-  const createParameter = async parameterData => {
+  const createReportDocumentTemplate = async reportDocumentTemplateData => {
     actionLoading.value = true
     clearFormErrors()
 
     try {
-      const { data: response, error: apiError } = await useApi('/parameters')
-        .post(parameterData)
+      const { data: response, error: apiError } = await useApi('/report-document-templates')
+        .post(reportDocumentTemplateData)
         .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
@@ -117,7 +74,7 @@ export const useManageParameter = () => {
 
       applyPaginationResponse(
         {
-          entries: parameters,
+          entries: reportDocumentTemplates,
           totalItems,
           currentPage,
           pageSize,
@@ -134,13 +91,13 @@ export const useManageParameter = () => {
     }
   }
 
-  const updateParameter = async (parameterId, parameterData) => {
+  const updateReportDocumentTemplate = async (reportDocumentTemplateId, reportDocumentTemplateData) => {
     actionLoading.value = true
     clearFormErrors()
 
     try {
-      const { data: response, error: apiError } = await useApi(`/parameters/${parameterId}`)
-        .put(parameterData)
+      const { data: response, error: apiError } = await useApi(`/report-document-templates/${reportDocumentTemplateId}`)
+        .put(reportDocumentTemplateData)
         .json()
 
 
@@ -150,7 +107,7 @@ export const useManageParameter = () => {
 
       applyPaginationResponse(
         {
-          entries: parameters,
+          entries: reportDocumentTemplates,
           totalItems,
           currentPage,
           pageSize,
@@ -167,12 +124,12 @@ export const useManageParameter = () => {
     }
   }
 
-  const deleteParameter = async (parameterId, reason = '') => {
+  const deleteReportDocumentTemplate = async (reportDocumentTemplateId, reason = '') => {
     actionLoading.value = true
     clearFormErrors()
 
     try {
-      const { data: response, error: apiError } = await useApi(`/parameters/${parameterId}`)
+      const { data: response, error: apiError } = await useApi(`/report-document-templates/${reportDocumentTemplateId}`)
         .delete({ reason })
         .json()
 
@@ -181,7 +138,7 @@ export const useManageParameter = () => {
 
       applyPaginationResponse(
         {
-          entries: parameters,
+          entries: reportDocumentTemplates,
           totalItems,
           currentPage,
           pageSize,
@@ -198,20 +155,18 @@ export const useManageParameter = () => {
     }
   }
 
-  const saveParameter = async parameterData => {
-    console.log(parameterData)
-    if (parameterData.id) {
-      const { id, ...payload } = parameterData
+  const saveReportDocumentTemplate = async reportDocumentTemplateData => {
+    if (reportDocumentTemplateData.id) {
+      const { id, ...payload } = reportDocumentTemplateData
 
-      return updateParameter(id, payload)
+      return updateReportDocumentTemplate(id, payload)
     }
 
-    return createParameter(parameterData)
+    return createReportDocumentTemplate(reportDocumentTemplateData)
   }
 
   return {
-    parameters,
-    parameterDependency,
+    reportDocumentTemplates,
     totalItems,
     currentPage,
     pageSize,
@@ -220,13 +175,11 @@ export const useManageParameter = () => {
     errorMessage,
     formErrors,
 
-    fetchParameters,
-    fetchParametersPagination,
-    fetchParameterDependency,
-    createParameter,
-    updateParameter,
-    deleteParameter,
-    saveParameter,
+    fetchReportDocumentTemplates,
+    createReportDocumentTemplate,
+    updateReportDocumentTemplate,
+    deleteReportDocumentTemplate,
+    saveReportDocumentTemplate,
     clearFormErrors,
     clearErrors,
   }

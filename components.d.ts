@@ -72,6 +72,7 @@ declare module 'vue' {
     ManageMqttTopicDrawer: typeof import('./src/components/drawer/ManageMqttTopicDrawer.vue')['default']
     ManageParameterDrawer: typeof import('./src/components/drawer/ManageParameterDrawer.vue')['default']
     ManagePipelineDialog: typeof import('./src/components/dialogs/ManagePipelineDialog.vue')['default']
+    ManageReportDocumentTemplateDrawer: typeof import('./src/components/drawer/ManageReportDocumentTemplateDrawer.vue')['default']
     ManageRoleDialog: typeof import('./src/components/dialogs/ManageRoleDialog.vue')['default']
     ManageUserDrawer: typeof import('./src/components/drawer/ManageUserDrawer.vue')['default']
     MoreBtn: typeof import('./src/@core/components/MoreBtn.vue')['default']
