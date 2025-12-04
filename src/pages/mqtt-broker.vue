@@ -38,6 +38,7 @@ const TABLE_HEADERS = [
   { title: 'WS Port', key: 'ws_port', sortable: true },
   { title: 'Username', key: 'username', sortable: false },
   { title: 'Password', key: 'password', sortable: false },
+  { title: 'Status', key: 'is_active', sortable: false },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
@@ -188,7 +189,7 @@ onMounted(() => {
         All MQTT Brokers
       </h4>
       <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
+        View and manage all MQTT brokers connected to your company’s system.
       </p>
     </VCol>
     <VCard>
@@ -221,7 +222,7 @@ onMounted(() => {
         </div>
       </VCardText>
 
-      <VDivider />
+      <VDivider/>
 
       <!-- Error Alert -->
       <VAlert
@@ -258,6 +259,20 @@ onMounted(() => {
           >
             {{ item.role?.name || 'N/A' }}
           </VChip>
+        </template>
+
+        <template #item.is_active="{ item }">
+          <div v-if="item.is_active" class="d-flex align-center gap-x-4">
+            <VChip color="primary">
+              Active
+            </VChip>
+          </div>
+          <div v-if="!item.is_active" class="d-flex align-center gap-x-4">
+            <VChip color="error">
+              Inactive
+            </VChip>
+          </div>
+
         </template>
 
         <!-- Actions Column -->

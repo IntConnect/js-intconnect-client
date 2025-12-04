@@ -68,7 +68,16 @@ export default [
         to: { name: 'mqtt-topic' },
         icon: { icon: 'tabler-topology-star-3' },
       },
-
+      {
+        title: 'SMTP Server',
+        to: { name: 'mqtt-topic' },
+        icon: { icon: 'tabler-mail' },
+      },
+      {
+        title: 'Modbus Master',
+        to: { name: 'mqtt-topic' },
+        icon: { icon: 'tabler-server-spark' },
+      },
 
     ],
   },

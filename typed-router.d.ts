@@ -29,7 +29,6 @@ declare module 'vue-router/auto-routes' {
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'machines': RouteRecordInfo<'machines', '/machines', Record<never, never>, Record<never, never>>,
     'machines-create': RouteRecordInfo<'machines-create', '/machines/create', Record<never, never>, Record<never, never>>,
-    'machines-mapping-id': RouteRecordInfo<'machines-mapping-id', '/machines/mapping/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'mqtt-broker': RouteRecordInfo<'mqtt-broker', '/mqtt-broker', Record<never, never>, Record<never, never>>,
     'mqtt-topic': RouteRecordInfo<'mqtt-topic', '/mqtt-topic', Record<never, never>, Record<never, never>>,
     'operation': RouteRecordInfo<'operation', '/operation', Record<never, never>, Record<never, never>>,

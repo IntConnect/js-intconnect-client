@@ -113,6 +113,7 @@ watch(
   () => props.mqttTopicData,
   val => {
     if (val && Object.keys(val).length) {
+      console.log(val)
       id.value = val.id || ''
       machineId.value = val.machine_id
       mqttBrokerId.value = val.mqtt_broker_id

@@ -192,17 +192,12 @@ onMounted(() => {
             <!-- Bottom Pagination -->
             <template #bottom>
               <VCardText class="pt-2">
-                <div class="d-flex flex-wrap justify-space-end  align-end justify-end">
-                  <!-- Pagination Info -->
-
-
-                  <!-- Pagination Controls -->
-                  <TablePagination
-                    v-model:page="page"
-                    :items-per-page="itemsPerPage"
-                    :total-items="totalItems"
-                  />
-                </div>
+                <!-- Pagination Controls -->
+                <TablePagination
+                  v-model:page="page"
+                  :items-per-page="itemsPerPage"
+                  :total-items="totalItems"
+                />
               </VCardText>
             </template>
           </VDataTable>
