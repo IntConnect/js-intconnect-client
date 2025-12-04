@@ -37,6 +37,7 @@ declare module 'vue-router/auto-routes' {
     'permissions': RouteRecordInfo<'permissions', '/permissions', Record<never, never>, Record<never, never>>,
     'protocol-configurations': RouteRecordInfo<'protocol-configurations', '/protocol-configurations', Record<never, never>, Record<never, never>>,
     'report-document-templates': RouteRecordInfo<'report-document-templates', '/report-document-templates', Record<never, never>, Record<never, never>>,
+    'smtp-server': RouteRecordInfo<'smtp-server', '/smtp-server', Record<never, never>, Record<never, never>>,
     'users': RouteRecordInfo<'users', '/users', Record<never, never>, Record<never, never>>,
     'users-profile-id': RouteRecordInfo<'users-profile-id', '/users/profile/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
   }

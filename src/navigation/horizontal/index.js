@@ -70,7 +70,7 @@ export default [
       },
       {
         title: 'SMTP Server',
-        to: { name: 'mqtt-topic' },
+        to: { name: 'smtp-server' },
         icon: { icon: 'tabler-mail' },
       },
       {

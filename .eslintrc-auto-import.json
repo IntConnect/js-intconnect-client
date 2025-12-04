@@ -386,6 +386,7 @@
     "jsonToFormData": true,
     "parseJwt": true,
     "useManageReportDocumentTemplate": true,
-    "useStaticFile": true
+    "useStaticFile": true,
+    "useManageSmtpServer": true
   }
 }

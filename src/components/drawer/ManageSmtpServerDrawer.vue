@@ -2,7 +2,9 @@
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
+import { useApi } from "@/composables/useApi"
 
 const props = defineProps({
   isDrawerOpen: {
@@ -13,7 +15,7 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  mqttBrokerData: {
+  smtpServerData: {
     type: Object,
     default: () => ({}),
   },
@@ -25,7 +27,7 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update:isDrawerOpen',
-  'mqttBrokerData',
+  'smtpServerData',
   'close',
 ])
 
@@ -37,12 +39,13 @@ const refForm = ref()
 
 // Form fields
 const id = ref('')
-const hostName = ref('')
-const mqttPort = ref('')
-const wsPort = ref('')
+const host = ref('')
+const port = ref('')
 const username = ref('')
 const password = ref('')
-const isActive = ref(true)
+const mailAddress = ref('')
+const mailName = ref('')
+const isActive = ref(false)
 
 // ==========================================
 // Computed
@@ -78,22 +81,23 @@ const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (!valid) return
 
-    // Prepare mqttBroker data
-    const mqttBrokerData = {
-      host_name: hostName.value,
-      mqtt_port: mqttPort.value,
-      ws_port: wsPort.value,
+    // Prepare smtpServer data
+    const smtpServerData = {
+      host: host.value,
+      port: port.value,
       username: username.value,
       password: password.value,
+      mail_address: mailAddress.value,
+      mail_name: mailName.value,
       is_active: isActive.value,
     }
 
     // Include id for update
     if (id.value) {
-      mqttBrokerData.id = id.value
+      smtpServerData.id = id.value
     }
 
-    emit('mqttBrokerData', mqttBrokerData)
+    emit('smtpServerData', smtpServerData)
   })
 }
 
@@ -103,17 +107,19 @@ const onSubmit = () => {
 // ==========================================
 
 /**
- * Watch for mqttBrokerData changes (for edit mode)
+ * Watch for smtpServerData changes (for edit mode)
  */
 watch(
-  () => props.mqttBrokerData,
+  () => props.smtpServerData,
   val => {
     if (val && Object.keys(val).length) {
       id.value = val.id || ''
-      hostName.value = val.host_name || ''
-      mqttPort.value = val.mqtt_port || ''
-      wsPort.value = val.ws_port || ''
+      host.value = val.host || ''
+      port.value = val.port || ''
       username.value = val.username || ''
+      password.value = val.password || ''
+      mailAddress.value = val.mail_address || ''
+      mailName.value = val.mail_name || ''
       isActive.value = val.is_active || true
     }
   },
@@ -161,7 +167,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit MQTT Broker' : 'Create MQTT Broker'"
+      :title="isEditMode ? 'Edit SMTP Server' : 'Create SMTP Server'"
       @cancel="closeNavigationDrawer"
     />
 
@@ -179,49 +185,56 @@ const handleDrawerModelValueUpdate = val => {
             <VRow>
               <VCol cols="12">
                 <AppTextField
-                  v-model="hostName"
-                  :error-messages="props.formErrors.host_name || []"
+                  v-model="host"
+                  :error-messages="props.formErrors.host || []"
                   :rules="[requiredValidator]"
-                  label="Host Name"
+                  label="Host"
                   placeholder="127.0.0.1"
                 />
               </VCol>
 
               <VCol cols="12">
                 <AppTextField
-                  v-model="mqttPort"
-                  :error-messages="props.formErrors.mqtt_port || []"
+                  v-model="port"
+                  :error-messages="props.formErrors.port || []"
                   :rules="[requiredValidator]"
-                  label="MQTT Port"
-                  placeholder="1883"
+                  label="Port"
+                  placeholder="127.0.0.1"
                 />
               </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="wsPort"
-                  :error="!!props.formErrors.ws_port"
-                  :error-messages="props.formErrors.ws_port || []"
-                  :rules="[requiredValidator]"
-                  label="WS Port"
-                  placeholder="9001"
-                />
-              </VCol>
-
               <VCol cols="12">
                 <AppTextField
                   v-model="username"
                   :error-messages="props.formErrors.username || []"
+                  :rules="[requiredValidator]"
                   label="Username"
-                  placeholder=""
+                  placeholder="127.0.0.1"
                 />
               </VCol>
               <VCol cols="12">
                 <AppTextField
                   v-model="password"
-                  :error="!!props.formErrors.password"
                   :error-messages="props.formErrors.password || []"
+                  :rules="[requiredValidator]"
                   label="Password"
+                  placeholder="*******"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model="mailAddress"
+                  :error-messages="props.formErrors.mail_address || []"
+                  :rules="[requiredValidator]"
+                  label="Mail Address"
+                  placeholder=""
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model="mailName"
+                  :error-messages="props.formErrors.mail_name || []"
+                  :rules="[requiredValidator]"
+                  label="Mail Name"
                   placeholder=""
                 />
               </VCol>
@@ -247,6 +260,7 @@ const handleDrawerModelValueUpdate = val => {
                   </div>
                 </VRadioGroup>
               </VCol>
+
 
               <!-- Actions -->
               <VCol cols="12">
