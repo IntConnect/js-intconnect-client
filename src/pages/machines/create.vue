@@ -97,8 +97,6 @@ const submit = async () => {
     })),
   }
 
-  console.log(payload)
-
 
   const result = await saveMachine(payload)
 

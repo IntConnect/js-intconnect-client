@@ -24,15 +24,18 @@ const emit = defineEmits([
   'submit',
 ])
 
-const role = ref('')
+
+const id = ref('')
 const name = ref('')
 const description = ref('')
 const refPermissionForm = ref()
 
 
-const checkedCount = computed(() =>
-  permissions?.value.filter(p => p.checked).length,
-)
+const checkedCount = computed(() => {
+  console.log(permissions)
+
+  return ungroupedPermissions?.value.filter(p => p.checked).length
+})
 
 const totalPermissionCount = computed(() => permissions.value.length)
 
@@ -48,10 +51,11 @@ const isIndeterminate = computed(() =>
 const isSelectAll = computed({
   get: () => checkedCount.value === totalPermissionCount.value && totalPermissionCount.value > 0,
   set: val => {
-    permissions.value = permissions.value.map(p => ({ ...p, checked: val }))
+    ungroupedPermissions.value = ungroupedPermissions.value.map(p => ({ ...p, checked: val }))
   },
 })
 
+const ungroupedPermissions = ref([])
 
 // if all permissions are checked, then set isSelectAll to true
 
@@ -60,10 +64,13 @@ const isSelectAll = computed({
 watch(
   () => props.rolePermissions,
   newVal => {
-    if (newVal && newVal.permissions?.length) {
-      role.value = newVal.name
-      permissions.value = permissions.value.map(permission => {
-        const rolePermission = newVal.permissions.find(item => item.name === permission.name)
+    console.log(newVal)
+    if (newVal) {
+      id.value = newVal.id
+      name.value = newVal.name
+      description.value = newVal.description
+      ungroupedPermissions.value = permissions.value.entries.map(permission => {
+        const rolePermission = newVal.permissions.find(item => item.code === permission.code)
 
         return rolePermission ? { ...permission, ...rolePermission, checked: true } : { ...permission, checked: false }
       })
@@ -77,7 +84,7 @@ watch(
 const groupedPermissions = computed(() => {
   const groups = {}
 
-  permissions.value.forEach(p => {
+  ungroupedPermissions.value.forEach(p => {
     if (!groups[p.category]) {
       groups[p.category] = { category: p.category, name: p.name, permissions: [] }
     }
@@ -94,15 +101,7 @@ const {
 
 const loadPermissions = async () => {
   await fetchPermissions()
-  await nextTick()
-  if (props.rolePermissions && props.rolePermissions.permissions?.length) {
-    role.value = props.rolePermissions.name
-    permissions.value = permissions.value.map(permission => {
-      const rolePermission = props.rolePermissions.permissions.find(item => item.name === permission.name)
 
-      return rolePermission ? { ...permission, ...rolePermission, checked: true } : permission
-    })
-  }
 }
 
 
@@ -111,12 +110,13 @@ onMounted(() => {
 })
 
 const onSubmit = async () => {
-  const selectedPermissionIds = permissions.value
+  const selectedPermissionIds = ungroupedPermissions.value
     .filter(p => p.checked) // ambil hanya yang dicentang
     .map(p => p.id)
 
 
   const payload = {
+    id: id.value,
     name: name.value,
     description: description.value,
     permission_ids: selectedPermissionIds,
@@ -184,7 +184,7 @@ const onReset = () => {
             <tr>
               <td>
                 <h6 class="text-h6">
-                  Administrator Access
+                  Permission Access
                 </h6>
               </td>
               <td colspan="4">

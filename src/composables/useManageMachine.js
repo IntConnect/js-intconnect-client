@@ -52,7 +52,6 @@ export const useManageMachine = () => {
         },
         response.value,
       )
-      console.log(response.value)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -84,13 +83,8 @@ export const useManageMachine = () => {
   const createMachine = async machineData => {
     actionLoading.value = true
     clearFormErrors()
-    console.log(machineData)
     try {
       const formData = jsonToFormData(machineData)
-
-      for (const [key, value] of Object.entries(formData)) {
-        console.log(key, value)
-      }
 
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
@@ -116,7 +110,7 @@ export const useManageMachine = () => {
 
       return { success: true }
     } catch (err) {
-      console.log(err)
+      console.error(err)
 
       return { success: false, error: 'Unknown error' }
     } finally {

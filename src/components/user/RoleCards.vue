@@ -22,6 +22,7 @@ const showDeleteDialog = ref(false)
 
 const loadRoles = async () => {
   await fetchRoles()
+  await nextTick()
 }
 
 
@@ -85,7 +86,7 @@ const handleSaveRole = async roleData => {
   const result = await saveRole(roleData)
 
   if (result.success) {
-    closeAddRoleDrawer()
+    closeAddRoleDialog()
     await loadRoles()
 
     // Optional: Show success notification
@@ -128,89 +129,102 @@ onMounted(() => {
 
 <template>
   <VRow>
-    <VCol
-      v-for="item in roles"
-      :key="item.id"
-      cols="12"
-      lg="4"
-      sm="6"
-    >
-      <VCard>
-        <VCardText class="d-flex align-center pb-4">
-          <div class="text-body-1">
-            Total {{ item.roles?.length }} roles
-          </div>
-
-          <VSpacer/>
-        </VCardText>
-
-        <VCardText>
-          <div class="d-flex justify-space-between align-center">
-            <div>
-              <h5 class="text-h4">
-                {{ item.name }}
-              </h5>
-              <div class="d-flex align-center">
-                <a
-                  href="javascript:void(0)"
-                  @click="editPermission(item)"
-                >
-                  Edit Role
-                </a>
-              </div>
-            </div>
-            <IconBtn @click="openDeleteDialog(item)">
-              <VIcon icon="tabler-trash"/>
-            </IconBtn>
-          </div>
-        </VCardText>
-      </VCard>
-    </VCol>
-    <!-- 👉 Add New Role -->
-    <VCol
-      cols="12"
-      lg="4"
-      sm="6"
-    >
-      <VCard
-        :ripple="false"
-        class="h-100"
+    <template v-if="loading">
+      <VCol
+        v-for="n in 6"
+        :key="n"
+        cols="12"
+        lg="4"
+        sm="6"
       >
-        <VRow
-          class="h-100"
-          no-gutters
-        >
-          <VCol
-            class="d-flex flex-column justify-end align-center mt-5"
-            cols="5"
-          >
-            <img
-              :src="girlUsingMobile"
-              width="85"
-            >
-          </VCol>
+        <VSkeletonLoader type="card" />
+      </VCol>
+    </template>
+    <template v-else>
+      <VCol
+        v-for="item in roles.entries"
+        :key="item.id"
+        cols="12"
+        lg="4"
+        sm="6"
+      >
+        <VCard>
+          <VCardText class="d-flex align-center pb-4">
+            <div class="text-body-1">
+              Total {{ item.roles?.length }} roles
+            </div>
 
-          <VCol cols="7">
-            <VCardText class="d-flex flex-column align-end justify-end gap-4">
-              <VBtn
-                size="small"
-                @click="openAddRoleDialog"
-              >
-                Add New Role
-              </VBtn>
-              <div class="text-end">
-                Add new role,<br> if it doesn't exist.
+            <VSpacer />
+          </VCardText>
+
+          <VCardText>
+            <div class="d-flex justify-space-between align-center">
+              <div>
+                <h5 class="text-h4">
+                  {{ item.name }}
+                </h5>
+                <div class="d-flex align-center">
+                  <a
+                    href="javascript:void(0)"
+                    @click="handleEdit(item)"
+                  >
+                    Edit Role
+                  </a>
+                </div>
               </div>
-            </VCardText>
-          </VCol>
-        </VRow>
-      </VCard>
-    </VCol>
+              <IconBtn @click="openDeleteDialog(item)">
+                <VIcon icon="tabler-trash" />
+              </IconBtn>
+            </div>
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol
+        cols="12"
+        lg="4"
+        sm="6"
+      >
+        <VCard
+          :ripple="false"
+          class="h-100"
+        >
+          <VRow
+            class="h-100"
+            no-gutters
+          >
+            <VCol
+              class="d-flex flex-column justify-end align-center mt-5"
+              cols="5"
+            >
+              <img
+                :src="girlUsingMobile"
+                width="85"
+              >
+            </VCol>
+
+            <VCol cols="7">
+              <VCardText class="d-flex flex-column align-end justify-end gap-4">
+                <VBtn
+                  size="small"
+                  @click="openAddRoleDialog"
+                >
+                  Add New Role
+                </VBtn>
+                <div class="text-end">
+                  Add new role,<br> if it doesn't exist.
+                </div>
+              </VCardText>
+            </VCol>
+          </VRow>
+        </VCard>
+      </VCol>
+    </template>
   </VRow>
 
   <ManageRoleDialog
     v-model:is-dialog-visible="isManageRoleDrawerVisible"
     v-model:role-permissions="selectedRole"
+
     @submit="saveRole"
   />
   <DeleteDialog

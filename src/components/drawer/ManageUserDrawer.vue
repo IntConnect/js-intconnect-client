@@ -123,7 +123,7 @@ const {
 onMounted(async () => {
   await fetchRoles()
   await nextTick()
-  processedRoles.value = roles.value.map(role => ({
+  processedRoles.value = roles.value.entries.map(role => ({
     title: role.name,
     value: role.id,
   }))
@@ -197,7 +197,7 @@ const handleDrawerModelValueUpdate = val => {
       @cancel="closeNavigationDrawer"
     />
 
-    <VDivider/>
+    <VDivider />
 
     <PerfectScrollbar :options="{ wheelPropagation: false }">
       <VCard flat>

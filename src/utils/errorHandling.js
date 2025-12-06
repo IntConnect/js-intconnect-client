@@ -14,7 +14,6 @@ export function handleApiError(apiError, targets = {}) {
   const formErrors = targets.formErrors || null
   const generalError = targets.errorMessage || null
 
-  console.log(apiError.value)
 
   // 🔴 Validation Error
   if (statusCode === '2' && details) {
