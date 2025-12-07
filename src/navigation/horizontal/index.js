@@ -117,10 +117,21 @@ export default [
         to: { name: 'permissions' },
         icon: { icon: 'tabler-file-type-doc' },
       },
+    ],
+  },
+  {
+    title: 'Checksheet',
+    icon: { icon: 'tabler-clipboard-data' },
+    children: [
       {
-        title: 'Checksheet',
+        title: 'Checksheet Document Template',
         to: { name: 'audit-logs' },
         icon: { icon: 'tabler-checkup-list' },
+      },
+      {
+        title: 'Create Checksheet',
+        to: { name: 'permissions' },
+        icon: { icon: 'tabler-file-type-doc' },
       },
     ],
   },
