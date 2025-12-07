@@ -68,6 +68,7 @@ declare module 'vue' {
     I18n: typeof import('./src/@core/components/I18n.vue')['default']
     ItemsPerPage: typeof import('./src/components/table/ItemsPerPage.vue')['default']
     ManageFacilityDrawer: typeof import('./src/components/drawer/ManageFacilityDrawer.vue')['default']
+    ManageModbusServerDrawer: typeof import('./src/components/drawer/ManageModbusServerDrawer.vue')['default']
     ManageMqttBrokerDrawer: typeof import('./src/components/drawer/ManageMqttBrokerDrawer.vue')['default']
     ManageMqttTopicDrawer: typeof import('./src/components/drawer/ManageMqttTopicDrawer.vue')['default']
     ManageParameterDrawer: typeof import('./src/components/drawer/ManageParameterDrawer.vue')['default']

@@ -256,6 +256,7 @@ declare global {
   const useManageFacility: typeof import('./src/composables/useManageFacility.js')['useManageFacility']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
   const useManageMachines: typeof import('./src/composables/useManageMachine.js')['useManageMachines']
+  const useManageModbusServer: typeof import('./src/composables/useManageModbusServer.js')['useManageModbusServer']
   const useManageMqttBroker: typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']
   const useManageMqttTopic: typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']
   const useManageParameter: typeof import('./src/composables/useManageParameter.js')['useManageParameter']
@@ -634,6 +635,7 @@ declare module 'vue' {
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
     readonly useManageFacility: UnwrapRef<typeof import('./src/composables/useManageFacility.js')['useManageFacility']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
+    readonly useManageModbusServer: UnwrapRef<typeof import('./src/composables/useManageModbusServer.js')['useManageModbusServer']>
     readonly useManageMqttBroker: UnwrapRef<typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']>
     readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>
     readonly useManageParameter: UnwrapRef<typeof import('./src/composables/useManageParameter.js')['useManageParameter']>

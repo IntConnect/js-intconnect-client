@@ -387,6 +387,7 @@
     "parseJwt": true,
     "useManageReportDocumentTemplate": true,
     "useStaticFile": true,
-    "useManageSmtpServer": true
+    "useManageSmtpServer": true,
+    "useManageModbusServer": true
   }
 }

@@ -74,8 +74,8 @@ export default [
         icon: { icon: 'tabler-mail' },
       },
       {
-        title: 'Modbus Master',
-        to: { name: 'mqtt-topic' },
+        title: 'Modbus Server',
+        to: { name: 'modbus-server' },
         icon: { icon: 'tabler-server-spark' },
       },
 
