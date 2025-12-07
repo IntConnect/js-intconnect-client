@@ -17,10 +17,9 @@ const {
 
   fetchAuditLogs,
   clearErrors,
+  currentPage: page, pageSize: itemsPerPage,
 } = useFetchAuditLog()
 
-const page = ref(1)
-const itemsPerPage = ref(10)
 const searchQuery = ref("")
 const sortBy = ref("id")
 const sortOrder = ref("asc")
@@ -52,11 +51,14 @@ watch([page, itemsPerPage], () => {
 
 // Header table
 const headers = [
+  { title: '', key: 'data-table-expand' },
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Name', key: 'name', sortable: true },
-  { title: 'Code', key: 'code', sortable: true },
-  { title: 'Category', key: 'category', sortable: true },
+  { title: 'Feature', key: 'feature', sortable: true },
+  { title: 'Action', key: 'action', sortable: true },
   { title: 'Description', key: 'description', sortable: false },
+  { title: 'IP Address', key: 'ip_address', sortable: false },
+  { title: 'User Agent', key: 'user_agent', sortable: false },
+  { title: 'Username', key: 'username', sortable: false },
   { title: 'Created At', key: 'created_at', sortable: true },
   { title: 'Updated At', key: 'updated_at', sortable: true },
 ]
@@ -114,19 +116,41 @@ const formatDate = dateString => {
         :items="auditLogs"
         :items-per-page="itemsPerPage"
         :loading="actionLoading"
+        expand-on-click
         hide-default-footer
       >
+        <template #item.username="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            {{ item.user?.username }}
+          </div>
+        </template>
+
+        <template #expanded-row="slotProps">
+          <tr class="v-data-table__tr">
+            <td :colspan="headers.length">
+              <p class="my-1">
+                City: {{ slotProps.item.city }}
+              </p>
+              <p class="my-1">
+                Experience: {{ slotProps.item.experience }}
+              </p>
+              <p>Post: {{ slotProps.item.post }}</p>
+            </td>
+          </tr>
+        </template>
+
+
         <!-- Created At Column -->
         <template #item.created_at="{ item }">
           <div class="d-flex align-center gap-x-4">
-            {{ formatDate(item.auditable_response?.created_at) }}
+            {{ formatDate(item.auditable?.created_at) }}
           </div>
         </template>
 
         <!-- Updated At Column -->
         <template #item.updated_at="{ item }">
           <div class="d-flex align-center gap-x-4">
-            {{ formatDate(item.auditable_response?.updated_at) }}
+            {{ formatDate(item.auditable?.updated_at) }}
           </div>
         </template>
 
@@ -154,7 +178,7 @@ const formatDate = dateString => {
               <!-- Pagination Controls -->
               <VPagination
                 v-model="page"
-                :disabled="loading"
+                :disabled="actionLoading"
                 :length="totalPages"
                 :total-visible="5"
               />
