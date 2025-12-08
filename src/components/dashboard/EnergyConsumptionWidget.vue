@@ -65,19 +65,16 @@ const chartOptions = {
 <template>
   <VCard>
     <VCardText>
-      <h5 class="text-h5 mb-3">
-        Average Daily Sales
+      <h5 class="text-h5 ">
+        Energy Consumption
       </h5>
-      <p class="mb-0">
-        Total Sales This Month
-      </p>
       <h4 class="text-h4">
         $28,450
       </h4>
     </VCardText>
 
     <VueApexCharts
-      :height="80"
+      :height="30"
       :options="chartOptions"
       :series="series"
     />

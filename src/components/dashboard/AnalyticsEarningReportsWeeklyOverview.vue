@@ -86,6 +86,7 @@ const chartOptions = computed(() => {
 })
 
 const earningsReports = [
+
   {
     color: 'primary',
     icon: 'tabler-currency-dollar',
@@ -150,16 +151,9 @@ const moreList = [
                 {{ report.title }}
               </h6>
             </div>
-            <h6 class="text-h4 my-2">
+            <h6 class="text-h4 mt-2">
               {{ report.amount }}
             </h6>
-            <VProgressLinear
-              :color="report.color"
-              :model-value="report.progress"
-              height="4"
-              rounded
-              rounded-bar
-            />
           </VCol>
         </VRow>
       </div>

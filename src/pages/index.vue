@@ -1,13 +1,10 @@
 <script setup>
 import ThreeViewer from "@/components/ThreeViewer.vue"
 import SystemEfficiencyChart from "@/components/dashboard/SystemEfficiencyChart.vue"
-import AnalyticsAverageDailySales from "@/components/dashboard/AnalyticsAverageDailySales.vue"
-import EcommerceExpensesRadialBarCharts from "@/components/dashboard/EcommerceExpensesRadialBarCharts.vue"
+import LoadChillerWidget from "@/components/dashboard/LoadChillerWidget.vue"
+import CoefficientOfPerformance from "@/components/dashboard/CoefficientOfPerformance.vue"
 import PowerChart from "@/components/dashboard/PowerChart.vue"
 import ProductionChart from "@/components/dashboard/ProductionChart.vue"
-import DailyEnergyConsumptionTrendDiagramChart from "@/components/dashboard/DailyEnergyConsumptionTrendDiagramChart.vue"
-import HourlyEnergyConsumptionTrendDiagramChart
-  from "@/components/dashboard/HourlyEnergyConsumptionTrendDiagramChart.vue"
 </script>
 
 <template>
@@ -15,26 +12,24 @@ import HourlyEnergyConsumptionTrendDiagramChart
     <VRow class="match-height">
       <VCol
         cols="12"
-        lg="12"
-        md="12"
+        md="3"
+        sm="3"
+      >
+        <LoadChillerWidget />
+      </VCol>
+      <VCol
+        cols="12"
+        md="3"
+        sm="3"
+      >
+        <EnergyConsumptionWidget />
+      </VCol>
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
       >
         <AnalyticsEarningReportsWeeklyOverview />
-      </VCol>
-    </VRow>
-    <VRow class="match-height">
-      <VCol
-        cols="12"
-        md="6"
-        sm="6"
-      >
-        <AnalyticsAverageDailySales />
-      </VCol>
-      <VCol
-        cols="12"
-        md="6"
-        sm="6"
-      >
-        <AnalyticsAverageDailySales />
       </VCol>
     </VRow>
     <VRow class="match-height">
@@ -143,12 +138,12 @@ import HourlyEnergyConsumptionTrendDiagramChart
               </VCol>
 
               <VCol
-                class="d-flex align-center justify-center h-100"
+                class="d-flex align-center justify-center h-100 mt-15"
                 cols="12"
                 lg="4"
                 md="4"
               >
-                <EcommerceExpensesRadialBarCharts />
+                <CoefficientOfPerformance />
               </VCol>
             </VRow>
           </VCardText>
