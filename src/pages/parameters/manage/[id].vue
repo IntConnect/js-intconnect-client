@@ -6,7 +6,6 @@ import * as THREE from 'three'
 import { onMounted, ref, reactive, nextTick } from 'vue'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import AdjustParameterLocationDrawer from "@/components/drawer/AdjustParameterLocationDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
 import { useManageParameter } from "@/composables/useManageParameter.js"
 
@@ -29,10 +28,16 @@ const {
   clearErrors,
 } = useManageParameter()
 
+const {
+  machine,
+  fetchMachine,
+} = useManageMachine()
+
 
 // ==========================================
 // State
 // ==========================================
+const currentStep = ref(0)
 const name = ref('')
 const machineId = ref('')
 const mqttTopicId = ref('')
@@ -53,6 +58,18 @@ const processedMqttTopic = ref([])
 const isAlertDialogVisible = ref(false)
 const isModelClickable = ref(false)
 const refForm = ref()
+const modelPath = ref('')
+
+const numberedSteps = [
+  {
+    title: 'Parameter Details',
+    subtitle: 'Setup Account Details',
+  },
+  {
+    title: 'Parameter Positions',
+    subtitle: 'Add personal info',
+  },
+]
 
 const buttonModelColor = computed(() => {
   return isModelClickable.value ? "warning" : "info"
@@ -159,6 +176,12 @@ const updateMarkerPosition = (value) => {
       positionY.value,
       positionZ.value,
     )
+
+    parameterMarker.rotation.set(
+      rotationX.value,
+      rotationY.value,
+      rotationZ.value,
+    )
   }
 }
 
@@ -213,6 +236,19 @@ const setPositionFromClick = () => {
       positionX.value = point.x
       positionY.value = point.y
       positionZ.value = point.z
+      const hit = intersects[0]
+
+      const normal = hit.face.normal.clone()
+      normal.transformDirection(hit.object.matrixWorld)  // convert ke world normal
+
+      // Convert normal ke rotasi (Euler)
+      const rotation = new THREE.Euler()
+      rotation.setFromVector3(normal)
+
+      // Set ke form (dalam radian)
+      rotationX.value = rotation.x
+      rotationY.value = rotation.y
+      rotationZ.value = rotation.z
 
       // Buat marker
       parameterMarker = createMarker(name.value, unit.value, point)
@@ -263,12 +299,8 @@ const cancelAdjustment = () => {
   showAdjustPopup.value = false
 }
 
-// ----------------------------------------
-// INIT 3D
-// ----------------------------------------
-onMounted(async () => {
-  await nextTick()
-  await new Promise(resolve => setTimeout(resolve, 100))
+
+const initialModel = async () => {
 
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xffffff)
@@ -302,33 +334,9 @@ onMounted(async () => {
   // ----------------------------------------
   const loader = new GLTFLoader()
 
-  loader.load("/models/schema-5.glb", gltf => {
-    model = gltf.scene
-    modelLoaded.value = true
-
-    model.updateMatrixWorld(true)
-
-    model.traverse(child => {
-      if (child.isMesh) {
-        child.castShadow = false
-        child.receiveShadow = false
-        if (child.material) {
-          child.material.needsUpdate = false
-        }
-      }
-    })
-
-    const box = new THREE.Box3().setFromObject(model)
-    const center = box.getCenter(new THREE.Vector3())
-
-    model.position.x -= center.x
-    model.position.y -= center.y
-    model.position.z -= center.z
-    model.position.x -= 0.3
-
-    scene.add(model)
-  })
-
+  if (modelPath.value) {
+    loadDynamicModel()
+  }
   // ----------------------------------------
   // ANIMATE
   // ----------------------------------------
@@ -360,6 +368,7 @@ onMounted(async () => {
     renderer.render(scene, camera)
   }
 
+
   animate()
 
   // ----------------------------------------
@@ -373,8 +382,11 @@ onMounted(async () => {
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
   })
-})
 
+  console.log(scene)
+}
+
+const router = useRouter()
 
 const onSubmit = () => {
   refForm.value.validate().then(async ({ valid }) => {
@@ -404,11 +416,77 @@ const onSubmit = () => {
 
       isAlertDialogVisible.value = true
       titleAlert.value = 'Success manage Parameter'
+      setTimeout(() => {
+        router.push('/parameters')
+      }, 2000)
     } else {
       console.error('Failed to save parameter:', result.error || result.errors)
     }
   })
 }
+
+watch(currentStep, async value => {
+  if (value === 1) {
+    await nextTick()
+
+    if (!wrapperRef.value) return
+
+    initialModel()
+  }
+})
+
+watch(machineId, async value => {
+  if (!value) return
+
+  await fetchMachine(value)
+  await nextTick()
+  console.log(machine.value.entry.model_path)
+  modelPath.value = machine.value.entry.model_path
+
+  // Reload 3D model
+  loadDynamicModel()
+})
+
+const loadDynamicModel = () => {
+  if (!scene) {
+    console.warn("Scene belum siap untuk load model")
+    return
+  }
+
+  if (!modelPath.value) return
+
+  const loader = new GLTFLoader()
+
+  // Hapus model lama
+  if (model) {
+    scene.remove(model)
+    model.traverse(obj => {
+      if (obj.geometry) obj.geometry.dispose()
+      if (obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose())
+        else obj.material.dispose()
+      }
+    })
+    model = null
+  }
+
+  loader.load(useStaticFile(modelPath.value), gltf => {
+    model = gltf.scene
+    model.updateMatrixWorld(true)
+
+    const box = new THREE.Box3().setFromObject(model)
+    const center = box.getCenter(new THREE.Vector3())
+    model.position.sub(center)
+
+    scene.add(model)
+  })
+}
+
+watch([modelPath, () => scene], async () => {
+  if (scene && modelPath.value) {
+    loadDynamicModel()
+  }
+})
 
 </script>
 
@@ -421,174 +499,251 @@ const onSubmit = () => {
       Setup parameter location and rotation on your 3D model.
     </p>
   </VCol>
+  <div class="mb-6 d-flex justify-center">
+    <AppStepper
+      v-model:current-step="currentStep"
+      :items="numberedSteps"
+      align="start"
+    />
+  </div>
+
   <VRow>
     <!-- 3D MODEL - 7 cols -->
-    <VCol cols="7">
-      <div
-        ref="wrapperRef"
-        class="three-wrapper rounded-lg grow"
-      >
-        <canvas
-          ref="canvasRef"
-          class="rounded-lg"
-        />
-      </div>
-
-
-      <AdjustParameterLocationDrawer
-        v-model:is-drawer-open="showAdjustPopup"
-        v-model:position-x="positionX"
-        v-model:position-y="positionY"
-        v-model:position-z="positionZ"
-        v-model:rotation-x="rotationX"
-        v-model:rotation-y="rotationY"
-        v-model:rotation-z="rotationZ"
-        @submit="($event) => { updateMarkerPosition($event); showAdjustPopup = false }"
-
-        @update:is-position-changed="updateMarkerPosition"
-      />
-
-
-    </VCol>
 
     <!-- FORM - 5 cols -->
-    <VCol cols="5">
+    <VCol cols="12">
       <VCard>
         <VCardText>
-          <VForm
-            ref="refForm"
-            lazy-validation
-            @submit.prevent="onSubmit"
+          <VForm ref="refForm"
+                 lazy-validation
+                 @submit.prevent="onSubmit"
           >
-            <VCol>
-              <VCol cols="12">
-                <AppSelect
-                  v-model="machineId"
-                  :error="!!formErrors.machine_id"
-                  :error-messages="formErrors.machine_id"
-                  :items="processedMachines"
-                  label="Machine"
-                  placeholder="Select a Machine"
-                />
-              </VCol>
-              <VCol cols="12">
-                <AppSelect
-                  v-model="mqttTopicId"
-                  :error="!!formErrors.mqtt_topic_id"
-                  :error-messages="formErrors.mqtt_topic_id"
-                  :items="processedMqttTopic"
-                  label="MQTT Topic"
-                  placeholder="Select a MQTT Topic"
-                />
-              </VCol>
-
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="name"
-                  :error="!!formErrors.name"
-                  :error-messages="formErrors.name"
-                  label="Parameter Name"
-                  placeholder="e.g., Temperature"
-                  required
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="code"
-                  :error="!!formErrors.code"
-                  :error-messages="formErrors.code"
-                  label="Code"
-                  placeholder="e.g., TEMP_01"
-                  required
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <AppTextField
-                  v-model="unit"
-                  :error="!!formErrors.unit"
-                  :error-messages="formErrors.unit"
-                  label="Unit"
-                  placeholder="e.g., °C"
-                  required
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VRow>
-                  <VCol cols="6">
-                    <AppTextField
-                      v-model.number="minValue"
-                      :error="!!formErrors.min_value"
-                      :error-messages="formErrors.min_value"
-                      label="Min Value"
-                      placeholder="0"
-                      type="number"
+            <VWindow
+              v-model="currentStep"
+              class="disable-tab-transition"
+            >
+              <VWindowItem>
+                <VCol>
+                  <VCol cols="12">
+                    <AppSelect
+                      v-model="machineId"
+                      :error="!!formErrors.machine_id"
+                      :error-messages="formErrors.machine_id"
+                      :items="processedMachines"
+                      label="Machine"
+                      placeholder="Select a Machine"
+                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <AppSelect
+                      v-model="mqttTopicId"
+                      :error="!!formErrors.mqtt_topic_id"
+                      :error-messages="formErrors.mqtt_topic_id"
+                      :items="processedMqttTopic"
+                      label="MQTT Topic"
+                      placeholder="Select a MQTT Topic"
                     />
                   </VCol>
 
-                  <VCol cols="6">
+
+                  <VCol cols="12">
                     <AppTextField
-                      v-model.number="maxValue"
-                      :error="!!formErrors.max_value"
-                      :error-messages="formErrors.max_value"
-                      label="Max Value"
-                      placeholder="100"
-                      type="number"
+                      v-model="name"
+                      :error="!!formErrors.name"
+                      :error-messages="formErrors.name"
+                      label="Parameter Name"
+                      placeholder="e.g., Temperature"
+                      required
                     />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="code"
+                      :error="!!formErrors.code"
+                      :error-messages="formErrors.code"
+                      label="Code"
+                      placeholder="e.g., TEMP_01"
+                      required
+                    />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="unit"
+                      :error="!!formErrors.unit"
+                      :error-messages="formErrors.unit"
+                      label="Unit"
+                      placeholder="e.g., °C"
+                      required
+                    />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <VRow>
+                      <VCol cols="6">
+                        <AppTextField
+                          v-model.number="minValue"
+                          :error="!!formErrors.min_value"
+                          :error-messages="formErrors.min_value"
+                          label="Min Value"
+                          placeholder="0"
+                          type="number"
+                        />
+                      </VCol>
+
+                      <VCol cols="6">
+                        <AppTextField
+                          v-model.number="maxValue"
+                          :error="!!formErrors.max_value"
+                          :error-messages="formErrors.max_value"
+                          label="Max Value"
+                          placeholder="100"
+                          type="number"
+                        />
+                      </VCol>
+                    </VRow>
+                  </VCol>
+                  <VCol cols="12">
+                    <AppTextField
+                      v-model="description"
+                      :error="!!formErrors.description"
+                      :error-messages="formErrors.description"
+                      label="Description"
+                      placeholder="Describe this parameter"
+                    />
+                  </VCol>
+
+
+                </VCol>
+
+              </VWindowItem>
+              <VWindowItem>
+                <VRow>
+                  <VCol class="h-100" cols="8">
+                    <div
+                      ref="wrapperRef"
+                      class="three-wrapper rounded-lg grow"
+                    >
+                      <canvas
+                        ref="canvasRef"
+                        class="rounded-lg"
+                      />
+                    </div>
+
+                  </VCol>
+                  <VCol cols="4">
+                    <!-- Position -->
+                    <VCol cols="12">
+                      <VBtn
+                        :color="buttonModelColor"
+                        class="w-full"
+                        @click="setPositionFromClick"
+                      >
+                        {{ buttonModelText }}
+                      </VBtn>
+                    </VCol>
+                    <VCol cols="12">
+                      <h4 class="mt-1 mb-1">Position</h4>
+                    </VCol>
+
+
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model.number="positionX"
+                        label="Position X"
+                        type="number"
+                        @update:model-value="val => updateMarkerPosition(Number(val))"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model.number="positionY"
+                        label="Position Y"
+                        type="number"
+                        @update:model-value="val => updateMarkerPosition(Number(val))"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model.number="positionZ"
+                        label="Position Z"
+                        type="number"
+                        @update:model-value="val => updateMarkerPosition(Number(val))"
+                      />
+                    </VCol>
+                    <VDivider class="my-2"/>
+                    <!-- Rotation -->
+                    <VCol cols="12">
+                      <h4 class="mt-1 mb-1">Rotation</h4>
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model.number="rotationX"
+                        label="Rotation X"
+                        type="number"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model.number="rotationY"
+                        label="Rotation Y"
+                        type="number"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model.number="rotationZ"
+                        label="Rotation Z"
+                        type="number"
+                      />
+                    </VCol>
                   </VCol>
                 </VRow>
-              </VCol>
-              <VCol cols="12">
-                <AppTextField
-                  v-model="description"
-                  :error="!!formErrors.description"
-                  :error-messages="formErrors.description"
-                  label="Description"
-                  placeholder="Describe this parameter"
-                />
-              </VCol>
-
-              <VCol cols="12">
-                <VBtn
-                  :color="buttonModelColor"
-                  class="w-full"
-                  @click="setPositionFromClick"
-                >
-                  {{ buttonModelText }}
-                </VBtn>
-              </VCol>
-              <VCol
-                class="d-flex flex-wrap gap-3"
-                cols="12"
+              </VWindowItem>
+            </VWindow>
+            <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
+              <VBtn
+                :disabled="currentStep === 0"
+                color="secondary"
+                variant="tonal"
+                @click="currentStep--"
               >
-                <VBtn
-                  class="flex-1"
-                  color="primary"
-                  @click="showAdjustment"
-                >
-                  Adjust Manual
-                </VBtn>
-
-                <VBtn
-                  class="flex-1"
-                  color="success"
-                  type="submit"
-                >
-                  Save Parameter
-                </VBtn>
-              </VCol>
-            </VCol>
+                <VIcon
+                  class="flip-in-rtl"
+                  icon="tabler-arrow-left"
+                  start
+                />
+                Previous
+              </VBtn>
+              <VBtn
+                v-if="numberedSteps.length - 1 === currentStep"
+                color="success"
+                @click="onSubmit"
+              >
+                Submit
+              </VBtn>
+              <VBtn
+                v-else
+                @click="currentStep++"
+              >
+                Next
+                <VIcon
+                  class="flip-in-rtl"
+                  end
+                  icon="tabler-arrow-right"
+                />
+              </VBtn>
+            </div>
           </VForm>
         </VCardText>
       </VCard>
     </VCol>
   </VRow>
-  <AlertDialog :is-dialog-visible="isAlertDialogVisible"
-               :title-alert="titleAlert"
-               @update:isDialogVisible="isAlertDialogVisible = $event"
+  <AlertDialog
+    :is-dialog-visible="isAlertDialogVisible"
+    :title-alert="titleAlert"
+    @update:isDialogVisible="isAlertDialogVisible = $event"
 
   />
 </template>

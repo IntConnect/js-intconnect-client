@@ -6,6 +6,7 @@ export const useManageMachine = () => {
   // State
   // --------------------
   const machines = ref([])
+  const machine = ref({})
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -80,6 +81,29 @@ export const useManageMachine = () => {
     }
   }
 
+  const fetchMachine = async machineId => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/machines/${machineId}`, {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+
+      console.log(response.value)
+      machine.value = response.value
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
   const createMachine = async machineData => {
     actionLoading.value = true
     clearFormErrors()
@@ -96,17 +120,6 @@ export const useManageMachine = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-
-      applyPaginationResponse(
-        {
-          entries: machines,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
 
       return { success: true }
     } catch (err) {
@@ -195,6 +208,7 @@ export const useManageMachine = () => {
 
   return {
     machines,
+    machine,
     totalItems,
     currentPage,
     pageSize,
@@ -205,6 +219,7 @@ export const useManageMachine = () => {
 
     fetchMachinesPagination,
     fetchMachines,
+    fetchMachine,
     createMachine,
     updateMachine,
     deleteMachine,

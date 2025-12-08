@@ -102,7 +102,6 @@ const submit = async () => {
 
   if (result.success) {
     router.push('/machines')
-
   } else {
     // errors are already populated into formErrors by composable
     console.error('submit failed', result)
@@ -208,7 +207,7 @@ const reset = () => {
                   </p>
                   <Vue3Dropzone
                     v-model="localForm.model"
-                    :max-file-size="10"
+                    :max-file-size="500"
                     :multiple="false"
                   />
                   <small

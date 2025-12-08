@@ -4,7 +4,7 @@ import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { useManageParameter } from "@/composables/useManageParameter.js"
+import { useManageParameter } from "@/composables/useManageParameter"
 
 // ==========================================
 // Composable
@@ -13,7 +13,7 @@ const {
   parameters,
   loading,
   actionLoading,
-  fetchParameters,
+  fetchParametersPagination,
   saveParameter,
   deleteParameter,
   totalItems,
@@ -60,7 +60,7 @@ const selectedParameter = ref(null)
  * Load parameters from API
  */
 const loadParameters = async () => {
-  await fetchParameters({
+  await fetchParametersPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -155,7 +155,7 @@ onMounted(() => {
         All Parameters
       </h4>
       <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
+        Manage all parameters configured for your 3D model.
       </p>
     </VCol>
     <VCard>

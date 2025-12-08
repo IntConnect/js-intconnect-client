@@ -10,6 +10,10 @@ const props = defineProps({
     type: String,
     default: "Title Alert",
   },
+  bodyAlert: {
+    type: String,
+    default: "",
+  },
 })
 
 const emit = defineEmits([
@@ -28,11 +32,13 @@ const closeDialog = () => {
     @update:model-value="emit('update:isDialogVisible', false)"
   >
     <!-- Dialog close btn -->
-    <DialogCloseBtn @click="closeDialog" />
+    <DialogCloseBtn @click="closeDialog"/>
 
     <!-- Dialog Content -->
     <VCard :title="props.titleAlert">
-      <VCardText />
+      <VCardText v-if="bodyAlert !== ''">
+        {{ bodyAlert }}
+      </VCardText>
 
       <VCardText class="d-flex justify-end">
         <VBtn @click="closeDialog">
