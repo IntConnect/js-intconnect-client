@@ -15,7 +15,7 @@ const {
   facilities,
   loading,
   actionLoading,
-  fetchFacilities,
+  fetchFacilitiesPagination,
   saveFacility,
   deleteFacility,
   totalItems,
@@ -65,7 +65,7 @@ const alertMessage = ref('')
  * Load facilities from API
  */
 const loadFacilities = async () => {
-  await fetchFacilities({
+  await fetchFacilitiesPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,

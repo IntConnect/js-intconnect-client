@@ -53,6 +53,7 @@ export const useManageParameter = () => {
         },
         response.value,
       )
+      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {

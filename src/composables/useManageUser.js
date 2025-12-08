@@ -74,9 +74,9 @@ export const useManageUser = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
+      console.log(response.value)
+      user.value = response.value
 
-      user.value = response
-      
       return {
         success: true,
       }
@@ -149,6 +149,30 @@ export const useManageUser = () => {
     }
   }
 
+  const updateProfile = async userData => {
+    actionLoading.value = true
+    clearFormErrors()
+
+    try {
+      const { data: response, error: apiError } = await useApi(`/users/profile`)
+        .put(userData)
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      const token = response.value?.entry?.token
+      if (token) {
+        useCookie("access_token").value = token
+      }
+      
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
   const deleteUser = async (userId, reason = '') => {
     actionLoading.value = true
     clearFormErrors()
@@ -205,6 +229,7 @@ export const useManageUser = () => {
     fetchUser,
     createUser,
     updateUser,
+    updateProfile,
     deleteUser,
     saveUser,
     clearFormErrors,

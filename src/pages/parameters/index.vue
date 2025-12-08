@@ -34,7 +34,7 @@ const TABLE_HEADERS = [
   { title: 'Unit', key: 'unit', sortable: true },
   { title: 'Min Value', key: 'min_value' },
   { title: 'Max Value', key: 'max_value' },
-  { title: 'Description', key: 'label', sortable: true },
+  { title: 'Description', key: 'description' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 

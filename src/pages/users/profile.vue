@@ -2,8 +2,6 @@
 import { useRoute } from 'vue-router'
 import avatar1 from '@images/avatars/avatar-1.png'
 
-const route = useRoute()
-const id = route.params.id
 
 // Composable
 const {
@@ -31,6 +29,8 @@ const formData = ref({
   avatar: null,
 })
 
+const parsedJwtToken = ref({})
+
 const avatarPreview = ref(avatar1)
 
 const isCurrentPasswordVisible = ref(false)
@@ -41,13 +41,17 @@ const isConfirmPasswordVisible = ref(false)
 // LIFECYCLE
 // ======================================================
 onMounted(async () => {
-  await fetchUser(id)
+  const accessToken = useCookie('access_token').value
+
+  parsedJwtToken.value = parseJwt(accessToken)
+  await nextTick()
+  await fetchUser(parsedJwtToken.value.id)
 
   if (user.value) {
-    formData.value.name = user.value.name
-    formData.value.username = user.value.username
-    formData.value.email = user.value.email
-    avatarPreview.value = user.value.avatar ?? avatar1
+    formData.value.name = user.value.entry.name
+    formData.value.username = user.value.entry.username
+    formData.value.email = user.value.entry.email
+    avatarPreview.value = user.value.entry.avatar_path === '' ? avatar1 : user.value.entry.avatar_path == ''
   }
 })
 
@@ -90,19 +94,18 @@ const onSubmit = async () => {
   payload.append('username', formData.value.username)
   payload.append('email', formData.value.email)
 
-  if (formData.value.currentPassword)
-    payload.append('currentPassword', formData.value.currentPassword)
-
+  payload.append('current_password', formData.value.currentPassword)
   if (formData.value.newPassword)
-    payload.append('newPassword', formData.value.newPassword)
+    payload.append('new_password', formData.value.newPassword)
 
   if (formData.value.confirmPassword)
-    payload.append('confirmPassword', formData.value.confirmPassword)
+    payload.append('confirm_password', formData.value.confirmPassword)
 
   if (formData.value.avatar)
     payload.append('avatar', formData.value.avatar)
 
-  await updateProfile(id, payload)
+  await updateProfile(payload)
+  console.log(formErrors)
 }
 
 const resetForm = () => {
@@ -224,6 +227,7 @@ const resetForm = () => {
               >
                 <AppTextField
                   v-model="formData.name"
+                  :error="!!formErrors.name"
                   :error-messages="formErrors.name"
                   label="Name"
                   placeholder="John Doe"
@@ -237,6 +241,7 @@ const resetForm = () => {
               >
                 <AppTextField
                   v-model="formData.username"
+                  :error="!!formErrors.username"
                   :error-messages="formErrors.username"
                   label="Username"
                   placeholder="johndoe"
@@ -250,6 +255,7 @@ const resetForm = () => {
               >
                 <AppTextField
                   v-model="formData.email"
+                  :error="!!formErrors.email"
                   :error-messages="formErrors.email"
                   label="Email"
                   placeholder="johndoe@gmail.com"
@@ -264,9 +270,11 @@ const resetForm = () => {
                 <AppTextField
                   v-model="formData.currentPassword"
                   :append-inner-icon="isCurrentPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :error="!!formErrors.current_password"
+                  :error-messages="formErrors.current_password"
                   :type="isCurrentPasswordVisible ? 'text' : 'password'"
                   autocomplete="on"
-                  label="Current Password (Optional)"
+                  label="Current Password"
                   placeholder="············"
                   @click:append-inner="isCurrentPasswordVisible = !isCurrentPasswordVisible"
                 />
@@ -280,6 +288,8 @@ const resetForm = () => {
                 <AppTextField
                   v-model="formData.newPassword"
                   :append-inner-icon="isNewPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :error="!!formErrors.newPassword"
+                  :error-messages="formErrors.newPassword"
                   :type="isNewPasswordVisible ? 'text' : 'password'"
                   autocomplete="on"
                   label="New Password (Optional)"
@@ -296,6 +306,8 @@ const resetForm = () => {
                 <AppTextField
                   v-model="formData.confirmPassword"
                   :append-inner-icon="isConfirmPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  :error="!!formErrors.confirmPassword"
+                  :error-messages="formErrors.confirmPassword"
                   :type="isConfirmPasswordVisible ? 'text' : 'password'"
                   autocomplete="on"
                   label="Confirm New Password (Optional)"

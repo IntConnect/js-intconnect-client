@@ -40,6 +40,6 @@ declare module 'vue-router/auto-routes' {
     'report-document-templates': RouteRecordInfo<'report-document-templates', '/report-document-templates', Record<never, never>, Record<never, never>>,
     'smtp-server': RouteRecordInfo<'smtp-server', '/smtp-server', Record<never, never>, Record<never, never>>,
     'users': RouteRecordInfo<'users', '/users', Record<never, never>, Record<never, never>>,
-    'users-profile-id': RouteRecordInfo<'users-profile-id', '/users/profile/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    'users-profile': RouteRecordInfo<'users-profile', '/users/profile', Record<never, never>, Record<never, never>>,
   }
 }
