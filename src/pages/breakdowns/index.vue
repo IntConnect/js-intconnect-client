@@ -232,18 +232,6 @@ onMounted(() => {
               </VBtn>
             </RouterLink>
             <VBtn
-              color="warning"
-              icon
-              size="small"
-              variant="text"
-              @click="openDeleteDialog(item)"
-            >
-              <VIcon
-                icon="tabler-math"
-                size="20"
-              />
-            </VBtn>
-            <VBtn
               color="error"
               icon
               size="small"

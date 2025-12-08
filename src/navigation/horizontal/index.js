@@ -4,6 +4,11 @@ export default [
     to: { name: 'root' },
     icon: { icon: 'tabler-smart-home' },
   },
+  {
+    title: 'Breakdown',
+    to: { name: 'breakdowns' },
+    icon: { icon: 'tabler-exclamation-circle' },
+  },
 
   // {
   //   title: 'Pipeline',
@@ -121,7 +126,7 @@ export default [
   },
   {
     title: 'Checksheet',
-    icon: { icon: 'tabler-clipboard-data' },
+    icon: { icon: 'tabler-checklist' },
     children: [
       {
         title: 'Checksheet Document Template',

@@ -54,7 +54,7 @@ const isManageFacilityVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedFacility = ref(null)
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
+const alertBody = ref('')
 
 
 // ==========================================
@@ -129,7 +129,8 @@ const handleSaveFacility = async facilityData => {
     await nextTick()
 
     showAlertDialog.value = true
-    alertMessage.value = 'Success manage Facility'
+    alertBody.value = "Data has been managed successfully."
+
   } else {
     console.error('Failed to save facilities:', result.error || result.errors)
   }
@@ -150,8 +151,7 @@ const handleDeleteFacility = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete Facility'
-
+    alertBody.value = "Data has been deleted successfully."
   } else {
     console.error('Failed to delete user:', result.error)
 
@@ -220,7 +220,7 @@ onMounted(() => {
         </div>
       </VCardText>
 
-      <VDivider />
+      <VDivider/>
 
       <!-- Error Alert -->
       <VAlert
@@ -346,6 +346,6 @@ onMounted(() => {
   </section>
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"
-    :title-alert="alertMessage"
+    :body-alert="alertBody"
   />
 </template>

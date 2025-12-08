@@ -34,7 +34,7 @@ const {
 } = useManageAuthentication()
 
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
+const alertBody = ref('')
 
 const route = useRoute()
 const router = useRouter()
@@ -43,10 +43,10 @@ const router = useRouter()
 onMounted(() => {
   if (route.query.alert === 'session_expired') {
     showAlertDialog.value = true
-    alertMessage.value = 'Your session has expired, please login again.'
+    alertBody.value = 'Your session has expired, please login again.'
   } else if (route.query.alert === 'not_login') {
     showAlertDialog.value = true
-    alertMessage.value = 'You are not login yet.'
+    alertBody.value = 'You are not login yet.'
   }
   router.replace({ query: {} })
 
@@ -166,7 +166,8 @@ onMounted(() => {
   </VRow>
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"
-    :title-alert="alertMessage"
+    :body-alert="alertBody"
+    title-alert="Unauthorized"
   />
 </template>
 

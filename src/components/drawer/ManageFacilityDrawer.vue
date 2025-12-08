@@ -1,10 +1,8 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
-import { useApi } from "@/composables/useApi"
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import "@jaxtheprime/vue3-dropzone/dist/style.css"
 
@@ -174,7 +172,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit MQTT Broker' : 'Create MQTT Broker'"
+      :title="isEditMode ? 'Edit Facility' : 'Create Facility'"
       @cancel="closeNavigationDrawer"
     />
 
