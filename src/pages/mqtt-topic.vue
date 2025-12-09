@@ -154,7 +154,7 @@ const handleDeleteMqttTopic = async formData => {
     alertMessage.value = 'Success delete MQTT Topic'
 
   } else {
-    console.error('Failed to delete user:', result.error)
+    console.error('Failed to delete MQTT Topic:', result.error)
 
     // Optional: Show error notification
   }

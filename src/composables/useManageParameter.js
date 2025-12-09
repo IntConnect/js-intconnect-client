@@ -6,6 +6,7 @@ export const useManageParameter = () => {
   // State
   // --------------------
   const parameters = ref([])
+  const parameter = ref({})
   const parameterDependency = ref({})
   const totalItems = ref(0)
   const currentPage = ref(1)
@@ -75,6 +76,29 @@ export const useManageParameter = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
       parameters.value = response.value
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const fetchParameter = async id => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/parameters/${id}`, {}),
+      )
+        .get()
+        .json()
+
+      console.log(response)
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      parameter.value = response.value
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -210,6 +234,7 @@ export const useManageParameter = () => {
   }
 
   return {
+    parameter,
     parameters,
     parameterDependency,
     totalItems,
@@ -221,6 +246,7 @@ export const useManageParameter = () => {
     formErrors,
 
     fetchParameters,
+    fetchParameter,
     fetchParametersPagination,
     fetchParameterDependency,
     createParameter,

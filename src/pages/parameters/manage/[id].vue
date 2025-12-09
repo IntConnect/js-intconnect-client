@@ -14,11 +14,12 @@ import { useManageParameter } from "@/composables/useManageParameter.js"
 // Composable
 // ==========================================
 const {
-  parameters,
+  parameter,
   parameterDependency,
   loading,
   actionLoading,
   fetchParameterDependency,
+  fetchParameter,
   totalItems,
   saveParameter,
   totalPages,
@@ -79,7 +80,6 @@ const buttonModelText = computed(() => {
 })
 
 
-const form = ref()
 const wrapperRef = ref(null)
 const canvasRef = ref(null)
 
@@ -91,10 +91,26 @@ let parameterMarker = null
 const showAdjustPopup = ref(false)
 const titleAlert = ref('')
 
-
 onMounted(async () => {
   await fetchParameterDependency()
+  await fetchParameter(id)
   await nextTick()
+  console.log(parameter)
+  let processedParameter = parameter.value.entry
+  name.value = processedParameter.name
+  machineId.value = processedParameter.machine_id
+  mqttTopicId.value = processedParameter.mqtt_topic_id
+  code.value = processedParameter.code
+  unit.value = processedParameter.unit
+  minValue.value = processedParameter.min_value
+  maxValue.value = processedParameter.max_value
+  description.value = processedParameter.description
+  positionX.value = processedParameter.position_x
+  positionY.value = processedParameter.position_y
+  positionZ.value = processedParameter.position_z
+  rotationX.value = processedParameter.rotation_x
+  rotationY.value = processedParameter.rotation_y
+  rotationZ.value = processedParameter.rotation_z
   processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,
@@ -386,7 +402,8 @@ const initialModel = async () => {
   console.log(scene)
 }
 
-const router = useRouter()
+const route = useRoute()
+const id = route.params.id
 
 const onSubmit = () => {
   refForm.value.validate().then(async ({ valid }) => {

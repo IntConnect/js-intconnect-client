@@ -5,6 +5,7 @@ import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { format } from "date-fns"
+import AlertDialog from "@/components/general/AlertDialog.vue"
 
 // ==========================================
 // Composable
@@ -51,7 +52,8 @@ const sortOrder = ref("asc")
 // --- UI States
 const showDeleteDialog = ref(false)
 const selectedMachine = ref(null)
-
+const showAlertDialog = ref(false)
+const alertMessage = ref('')
 
 // --- Edit user
 function handleEdit(row) {
@@ -78,6 +80,33 @@ const loadMachines = async () => {
 onMounted(() => {
   loadMachines()
 })
+
+const handleDeleteMachine = async formData => {
+  if (!selectedMachine.value?.id) {
+    console.warn('No machine selected for deletion')
+
+    return
+  }
+
+
+  const result = await deleteMachine(selectedMachine.value.id, formData)
+
+  if (result.success) {
+    closeDeleteDialog()
+    showAlertDialog.value = true
+    alertMessage.value = 'Success delete machine'
+
+  } else {
+    console.error('Failed to delete machine:', result.error)
+
+    // Optional: Show error notification
+  }
+}
+
+const closeDeleteDialog = () => {
+  showDeleteDialog.value = false
+  selectedMqttTopic.value = null
+}
 </script>
 
 <template>
@@ -214,9 +243,13 @@ onMounted(() => {
           }]"
           message="Please provide a reason for deletion"
           title="Delete Machine"
-          @submit="deleteMachine"
+          @submit="handleDeleteMachine"
         />
       </section>
     </VCol>
   </VRow>
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :title-alert="alertMessage"
+  />
 </template>
