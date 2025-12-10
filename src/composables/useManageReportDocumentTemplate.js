@@ -27,7 +27,13 @@ export const useManageReportDocumentTemplate = () => {
   // Main API Methods
   // --------------------
 
-  const fetchReportDocumentTemplates = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
+  const fetchReportDocumentTemplatesPagination = async ({
+    page = 1,
+    size = 10,
+    query = '',
+    sort = 'id',
+    order = 'asc',
+  }) => {
     clearErrors()
     actionLoading.value = true
 
@@ -52,6 +58,7 @@ export const useManageReportDocumentTemplate = () => {
         },
         response.value,
       )
+      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -175,7 +182,7 @@ export const useManageReportDocumentTemplate = () => {
     errorMessage,
     formErrors,
 
-    fetchReportDocumentTemplates,
+    fetchReportDocumentTemplatesPagination,
     createReportDocumentTemplate,
     updateReportDocumentTemplate,
     deleteReportDocumentTemplate,

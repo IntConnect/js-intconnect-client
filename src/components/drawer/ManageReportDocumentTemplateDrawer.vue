@@ -41,6 +41,7 @@ const processedParameters = ref([])
 onMounted(async () => {
   await fetchParameters()
   await nextTick()
+  console.log(parameters)
   processedParameters.value = parameters.value.entries.map(parameter => ({
     title: parameter.code,
     value: parameter.id,
@@ -97,6 +98,7 @@ const onSubmit = () => {
 
     // Prepare reportDocumentTemplate data
     const reportDocumentTemplateData = {
+      id: id.value,
       name: name.value,
       code: code.value,
       parameter_ids: parameterIds.value,
@@ -126,6 +128,9 @@ watch(
       id.value = val.id || ''
       name.value = val.name || ''
       code.value = val.code || ''
+      parameterIds.value = val.parameters.map(parameter => {
+        return parameter.id
+      })
     }
   },
   { immediate: true, deep: true },

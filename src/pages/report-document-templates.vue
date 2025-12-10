@@ -16,7 +16,7 @@ const {
   reportDocumentTemplates,
   loading,
   actionLoading,
-  fetchReportDocumentTemplates,
+  fetchReportDocumentTemplatesPagination,
   saveReportDocumentTemplate,
   deleteReportDocumentTemplate,
   totalItems,
@@ -63,7 +63,7 @@ const alertMessage = ref('')
  * Load reportDocumentTemplates from API
  */
 const loadReportDocumentTemplates = async () => {
-  await fetchReportDocumentTemplates({
+  await fetchReportDocumentTemplatesPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -122,6 +122,7 @@ const handleSaveReportDocumentTemplate = async reportDocumentTemplateData => {
 
   const result = await saveReportDocumentTemplate(reportDocumentTemplateData)
 
+  console.log(reportDocumentTemplateData)
   if (result.success) {
     closeManageReportDocumentTemplateDrawer()
     await nextTick()
@@ -183,7 +184,7 @@ onMounted(() => {
   <section>
     <VCol cols="12">
       <h4 class="text-h4 mb-1">
-        All Report Document Templatess
+        All Report Document Templates
       </h4>
       <p class="text-body-1 mb-0">
         Find all of your company’s administrator accounts and their associate roles.
@@ -241,7 +242,7 @@ onMounted(() => {
         :loading="loading"
         class="text-no-wrap"
         hide-default-footer
-        no-data-text="No Report Document Templatess found"
+        no-data-text="No Report Document Templates found"
       >
         <!-- ID Column -->
         <template #item.id="{ index }">
@@ -326,6 +327,6 @@ onMounted(() => {
   </section>
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"
-    :title-alert="alertMessage"
+    :body-alert="alertMessage"
   />
 </template>
