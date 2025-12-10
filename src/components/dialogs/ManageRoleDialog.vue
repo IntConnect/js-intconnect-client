@@ -32,7 +32,6 @@ const refPermissionForm = ref()
 
 
 const checkedCount = computed(() => {
-  console.log(permissions)
 
   return ungroupedPermissions?.value.filter(p => p.checked).length
 })
@@ -64,7 +63,6 @@ const ungroupedPermissions = ref([])
 watch(
   () => props.rolePermissions,
   newVal => {
-    console.log(newVal)
     if (newVal) {
       id.value = newVal.id
       name.value = newVal.name

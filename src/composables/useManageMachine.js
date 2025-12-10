@@ -95,8 +95,11 @@ export const useManageMachine = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      console.log(response.value)
       machine.value = response.value
+      
+      return {
+        success: true,
+      }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {

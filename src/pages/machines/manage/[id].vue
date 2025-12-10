@@ -1,19 +1,28 @@
 <script setup>
 import { ref, reactive, onMounted, computed, toRaw } from 'vue'
-import customWizardAccount from '@images/svg/wizard-account.svg'
-import customWizardPersonal from '@images/svg/wizard-personal.svg'
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import "@jaxtheprime/vue3-dropzone/dist/style.css"
 import AppStepper from "@core/components/AppStepper.vue"
 
-import { useManageFacility } from "@/composables/useManageFacility"
-import { useManageMachine } from "@/composables/useManageMachine"
+import { useManageFacility } from "@/composables/useManageFacility.js"
+import { useManageMachine } from "@/composables/useManageMachine.js"
 
-const iconsSteps = [
-  { title: 'Machine Identity', icon: customWizardAccount },
-  { title: 'Machine Documents', icon: customWizardPersonal },
+
+const numberedSteps = [
+  {
+    title: 'Machines Details',
+    subtitle: 'Enter machine details',
+  },
+  {
+    title: 'Machines Documents',
+    subtitle: 'Add supporting documents',
+  },
+  {
+    title: 'Summary',
+    subtitle: 'Check your information',
+  },
 ]
 
 const currentStep = ref(0)
@@ -31,25 +40,63 @@ const {
   // (optional) machines etc if needed
 } = useManageMachine()
 
+const {
+  machine,
+  fetchMachine,
+
+  // (optional) machines etc if needed
+} = useManageMachine()
+
 // localForm: reactive copy to avoid two-way bind issues during editing
 const localForm = reactive({
   id: null,
-  name: 'chiller',
-  code: 'chiller',
-  description: 'chiller',
+  name: '',
+  code: '',
+  description: '',
   model: null, // File or null
   thumbnail: null, // File or null
-  facility_id: 1,
+  facility_id: null,
   documents: [],
 })
 
 // load facilities once
 onMounted(async () => {
   await fetchFacilities()
-  processedFacilities.value = facilities.value?.entries?.map(f => ({
-    title: f.name,
-    value: f.id,
+
+  const result = await fetchMachine(id)
+
+  await nextTick()
+  processedFacilities.value = facilities.value?.entries?.map(facility => ({
+    title: facility.name,
+    value: facility.id,
   })) || []
+  if (processedFacilities.value.length > 0) {
+    localForm.facility_id = processedFacilities.value[0].id
+  }
+  processedFacilities.value = facilities.value?.entries?.map(facility => ({
+    title: facility.name,
+    value: facility.id,
+  })) || []
+  if (processedFacilities.value.length > 0) {
+    localForm.facility_id = processedFacilities.value[0].id
+  }
+  console.log(result)
+  if (result.success) {
+
+    const processedMachine = machine.value.entry
+
+    console.log(processedMachine.name)
+
+    Object.assign(localForm, {
+      id: processedMachine.id,
+      name: processedMachine.name,
+      code: processedMachine.code,
+      description: processedMachine.description,
+      facility_id: processedMachine.facility_id,
+    })
+  }
+
+
 })
 
 // helpers: documents
@@ -61,17 +108,10 @@ const removeDocument = idx => {
   localForm.documents.splice(idx, 1)
 }
 
-// stepper helpers
-const prev = () => {
-  if (currentStep.value > 0) currentStep.value--
-}
 
-const next = () => {
-  if (currentStep.value < iconsSteps.length - 1) currentStep.value++
-}
+const route = useRoute()
+const id = route.params.id
 
-const isLastStep = computed(() => currentStep.value === iconsSteps.length - 1)
-const router = useRouter()
 
 const modelFile = computed(() => localForm.model[0]?.file || null)
 const thumbnailFile = computed(() => localForm.thumbnail[0]?.file || null)
@@ -90,10 +130,10 @@ const submit = async () => {
     facility_id: localForm.facility_id,
     model: modelFile.value, // File or null
     thumbnail: thumbnailFile.value,
-    documents: localForm.documents.map(d => ({
-      title: d.title,
-      description: d.description,
-      files: d.files, // array of File
+    documents: localForm.documents.map(document => ({
+      title: document.title,
+      description: document.description,
+      files: document.files, // array of File
     })),
   }
 
@@ -106,17 +146,6 @@ const submit = async () => {
     // errors are already populated into formErrors by composable
     console.error('submit failed', result)
   }
-}
-
-// optional reset function
-const reset = () => {
-  localForm.id = null
-  localForm.name = ''
-  localForm.code = ''
-  localForm.description = ''
-  localForm.model = null
-  localForm.facility_id = null
-  localForm.documents = [{ title: '', description: '', files: [] }]
 }
 </script>
 
@@ -131,14 +160,16 @@ const reset = () => {
 
     <VCard>
       <VCardText>
-        <AppStepper
-          v-model:current-step="currentStep"
-          :items="iconsSteps"
-          align="center"
-        />
+        <div class="mb-6 mt-5 d-flex justify-center">
+          <AppStepper
+            v-model:current-step="currentStep"
+            :items="numberedSteps"
+            align="start"
+          />
+        </div>
       </VCardText>
 
-      <VDivider />
+      <VDivider/>
 
       <VCardText>
         <VForm
@@ -340,13 +371,12 @@ const reset = () => {
           </VWindow>
 
 
-          <!-- Buttons -->
           <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
             <VBtn
-              :disabled="currentStep === 0 || actionLoading"
+              :disabled="currentStep === 0"
               color="secondary"
               variant="tonal"
-              @click="prev"
+              @click="currentStep--"
             >
               <VIcon
                 class="flip-in-rtl"
@@ -355,20 +385,16 @@ const reset = () => {
               />
               Previous
             </VBtn>
-
             <VBtn
-              v-if="isLastStep"
-              :disabled="actionLoading"
-              :loading="actionLoading"
+              v-if="numberedSteps.length - 1 === currentStep"
               color="success"
-              @click="submit"
+              @click="onSubmit"
             >
               Submit
             </VBtn>
-
             <VBtn
               v-else
-              @click="next"
+              @click="currentStep++"
             >
               Next
               <VIcon

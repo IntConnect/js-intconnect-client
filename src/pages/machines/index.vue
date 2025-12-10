@@ -47,6 +47,7 @@ const TABLE_HEADERS = [
 const searchQuery = ref("")
 const sortBy = ref("id")
 const sortOrder = ref("asc")
+const currentStep = ref(0)
 
 
 // --- UI States
@@ -146,7 +147,7 @@ const closeDeleteDialog = () => {
                 placeholder="Search something..."
                 style="inline-size: 15.625rem;"
               />
-              <RouterLink :to="{ name: 'machines-create' }">
+              <RouterLink :to="{ name: 'machines-manage-id', params: { id: 'new' } }">
                 <VBtn color="primary">
                   New Machine
                 </VBtn>
@@ -191,18 +192,20 @@ const closeDeleteDialog = () => {
             <!-- Actions Column -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-2">
-                <VBtn
-                  color="info"
-                  icon
-                  size="small"
-                  variant="text"
-                  @click="handleEdit(item)"
-                >
-                  <VIcon
-                    icon="tabler-pencil"
-                    size="20"
-                  />
-                </VBtn>
+                <RouterLink :to="{ name: 'machines-manage-id', params: { id: item.id } }">
+                  <VBtn
+                    color="info"
+                    icon
+                    size="small"
+                    variant="text"
+                    @click="handleEdit(item)"
+                  >
+                    <VIcon
+                      icon="tabler-pencil"
+                      size="20"
+                    />
+                  </VBtn>
+                </RouterLink>
                 <VBtn
                   color="error"
                   icon
