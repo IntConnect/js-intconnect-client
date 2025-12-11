@@ -1,7 +1,6 @@
 // 👉 IsEmpty
 export const isEmpty = value => {
-  if (value === null || value === undefined || value === '')
-    return true
+  if (value === null || value === undefined || value === '') return true
 
   return !!(Array.isArray(value) && value.length === 0)
 }
@@ -23,9 +22,7 @@ export const isObject = obj => obj !== null && !!obj && typeof obj === 'object' 
 export const isToday = date => {
   const today = new Date()
 
-  return (date.getDate() === today.getDate()
-    && date.getMonth() === today.getMonth()
-    && date.getFullYear() === today.getFullYear())
+  return (date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear())
 }
 
 /**
@@ -84,17 +81,22 @@ export function parseJwt(token) {
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
 
     // Decode base64 → UTF-8
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join(''),
-    )
+    const jsonPayload = decodeURIComponent(atob(base64)
+      .split('')
+      .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join(''))
 
     return JSON.parse(jsonPayload)
   } catch (e) {
     console.error('Invalid JWT token:', e)
-    
+
     return null
   }
+}
+
+
+export function extractFilename(path) {
+  if (!path) return ''
+
+  return path.split('/').pop()
 }

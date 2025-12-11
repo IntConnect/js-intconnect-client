@@ -106,7 +106,7 @@ const handleDeleteMachine = async formData => {
 
 const closeDeleteDialog = () => {
   showDeleteDialog.value = false
-  selectedMqttTopic.value = null
+  selectedMachine.value = null
 }
 </script>
 

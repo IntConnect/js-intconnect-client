@@ -389,6 +389,7 @@
     "useStaticFile": true,
     "useManageSmtpServer": true,
     "useManageModbusServer": true,
-    "useManageBreakdown": true
+    "useManageBreakdown": true,
+    "extractFilename": true
   }
 }

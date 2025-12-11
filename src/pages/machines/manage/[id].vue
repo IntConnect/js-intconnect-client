@@ -5,10 +5,13 @@ import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import "@jaxtheprime/vue3-dropzone/dist/style.css"
 import AppStepper from "@core/components/AppStepper.vue"
+import * as THREE from 'three'
 
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { useManageFacility } from "@/composables/useManageFacility.js"
 import { useManageMachine } from "@/composables/useManageMachine.js"
-
+import { extractFilename } from "@core/utils/helpers.js"
 
 const numberedSteps = [
   {
@@ -26,6 +29,7 @@ const numberedSteps = [
 ]
 
 const currentStep = ref(0)
+const isEditMode = ref(false)
 const { facilities, fetchFacilities } = useManageFacility()
 const processedFacilities = ref([])
 
@@ -36,6 +40,7 @@ const {
   actionLoading,
   clearFormErrors,
   fetchMachines,
+  errorMessage,
 
   // (optional) machines etc if needed
 } = useManageMachine()
@@ -55,6 +60,8 @@ const localForm = reactive({
   description: '',
   model: null, // File or null
   thumbnail: null, // File or null
+  thumbnailUrl: null, // File or null
+  modelUrl: null, // File or null
   facility_id: null,
   documents: [],
 })
@@ -82,11 +89,15 @@ onMounted(async () => {
   }
   console.log(result)
   if (result.success) {
+    isEditMode.value = true
 
     const processedMachine = machine.value.entry
 
-    console.log(processedMachine.name)
+    console.log(processedMachine)
 
+
+    existingThumbnail.value = [useStaticFile(processedMachine.thumbnail_path)]
+    console.log(processedMachine.machine_documents)
     Object.assign(localForm, {
       id: processedMachine.id,
       name: processedMachine.name,
@@ -94,6 +105,18 @@ onMounted(async () => {
       description: processedMachine.description,
       facility_id: processedMachine.facility_id,
     })
+
+
+    // ADD THIS
+    localForm.documents = processedMachine.machine_documents.map(doc => ({
+      id: doc.id,
+      title: doc.name,
+      description: doc.description,
+      original_filename: extractFilename(doc.file_path),
+      preview_url: useStaticFile(doc.file_path), // full URL
+      files: [], // keep empty, user may upload new files
+      isExisting: true,
+    }))
   }
 
 
@@ -110,15 +133,18 @@ const removeDocument = idx => {
 
 
 const route = useRoute()
+const router = useRouter()
 const id = route.params.id
+const existingThumbnail = ref([])    // array of URLs
+const deletedDocumentIds = ref([])
 
 
-const modelFile = computed(() => localForm.model[0]?.file || null)
-const thumbnailFile = computed(() => localForm.thumbnail[0]?.file || null)
+const modelFile = computed(() => localForm.model?.[0]?.file || null)
+const thumbnailFile = computed(() => localForm.thumbnail?.[0]?.file || null)
 
 
 // prepare payload and submit
-const submit = async () => {
+const onSubmit = async () => {
   clearFormErrors()
 
   // build payload in the shape expected by composable's jsonToFormData:
@@ -128,7 +154,7 @@ const submit = async () => {
     code: localForm.code,
     description: localForm.description,
     facility_id: localForm.facility_id,
-    model: modelFile.value, // File or null
+    model: modelFile.value || null, // File or null
     thumbnail: thumbnailFile.value,
     documents: localForm.documents.map(document => ({
       title: document.title,
@@ -136,6 +162,8 @@ const submit = async () => {
       files: document.files, // array of File
     })),
   }
+
+  console.log(payload, deletedDocumentIds)
 
 
   const result = await saveMachine(payload)
@@ -147,15 +175,130 @@ const submit = async () => {
     console.error('submit failed', result)
   }
 }
+
+watch(
+  () => localForm.thumbnail,
+  val => {
+    if (val && val[0]?.file) {
+      localForm.thumbnailUrl = URL.createObjectURL(val[0].file)
+    }
+  },
+  { deep: true },
+)
+
+watch(
+  () => localForm.model,
+  val => {
+    if (val && val[0]?.file) {
+      localForm.modelUrl = URL.createObjectURL(val[0].file)
+    }
+  },
+  { deep: true },
+)
+
+const threeContainer = ref(null)
+
+// Three.js instances
+let renderer = null
+let scene = null
+let camera = null
+let controls = null
+let model = null
+
+// Watch step: initialize preview when going to summary (step index 2)
+watch(
+  () => currentStep.value,
+  async step => {
+    console.log(step)
+    if (step === 2) {
+      await nextTick()
+      initThreePreview()
+    } else {
+      destroyPreview()
+    }
+  },
+)
+
+// Destroy the preview (important)
+function destroyPreview() {
+  if (renderer) {
+    renderer.dispose()
+    renderer = null
+  }
+  if (threeContainer.value) {
+    threeContainer.value.innerHTML = ''
+  }
+}
+
+// Initialize Three.js preview
+function initThreePreview() {
+  if (!threeContainer.value || !localForm.modelUrl) return
+
+  destroyPreview()
+
+  const width = threeContainer.value.clientWidth
+  const height = threeContainer.value.clientHeight
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer.setSize(width, height)
+  renderer.setPixelRatio(window.devicePixelRatio)
+  threeContainer.value.appendChild(renderer.domElement)
+
+  // Scene
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0xffffff)
+
+  // Camera
+  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+  camera.position.set(2, 1.5, 3)
+
+  // Controls
+  controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableDamping = true
+
+  // Light
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1)
+
+  scene.add(hemiLight)
+
+  // Load 3D model
+  const loader = new GLTFLoader()
+
+  loader.load(localForm.modelUrl, gltf => {
+    model = gltf.scene
+    model.scale.set(1, 1, 1)
+    scene.add(model)
+  })
+  console.log("animate")
+  animate()
+}
+
+// Animation loop
+function animate() {
+  if (!renderer) return
+  requestAnimationFrame(animate)
+  controls.update()
+  renderer.render(scene, camera)
+}
+
+function removeExistingDocument(docId, index) {
+  if (!docId) return
+
+  deletedDocumentIds.value.push(docId)
+
+  // Remove from visual list
+  localForm.documents.splice(index, 1)
+}
 </script>
 
 <template>
   <VCol cols="12">
     <h4 class="text-h4 mb-1 mt-1">
-      Create / Edit Machine
+      {{ isEditMode ? 'Edit' : 'Create' }} Machine
     </h4>
     <p class="text-body-1 mb-2">
-      Find all of your company’s administrator accounts and their associate roles.
+      Configure machine settings and maintain essential machine information
     </p>
 
     <VCard>
@@ -169,7 +312,7 @@ const submit = async () => {
         </div>
       </VCardText>
 
-      <VDivider/>
+      <VDivider />
 
       <VCardText>
         <VForm
@@ -190,6 +333,14 @@ const submit = async () => {
                   <p class="mb-0">
                     Enter machine details
                   </p>
+                </VCol>
+                <VCol cols="12">
+                  <GeneralAlert
+                    v-if="errorMessage"
+                    :description="errorMessage"
+                    color="error"
+                    icon="tabler-bug"
+                  />
                 </VCol>
 
                 <VCol
@@ -234,7 +385,7 @@ const submit = async () => {
                   md="6"
                 >
                   <p class="text-body-2">
-                    3D Model
+                    3D Model {{ isEditMode ? '(Optional)' : '' }}
                   </p>
                   <Vue3Dropzone
                     v-model="localForm.model"
@@ -269,16 +420,22 @@ const submit = async () => {
                   </p>
                   <Vue3Dropzone
                     v-model="localForm.thumbnail"
-                    :max-file-size="10"
+                    v-model:previews="existingThumbnail"
+                    :max-file-size="1"
                     :multiple="false"
+                    accept="image/png, image/jpeg"
+                    mode="edit"
                   />
-                  <small
+                  <p
                     v-if="formErrors.thumbnail"
-                    class="text-error"
-                  >{{ formErrors.thumbnail.join(', ') }}</small>
+                    class="text-body-2 mt-2 text-red"
+                  >
+                    {{ props.formErrors.thumbnail }}
+                  </p>
                 </VCol>
               </VRow>
             </VWindowItem>
+
 
             <!-- STEP 2: Documents -->
             <VWindowItem>
@@ -292,23 +449,35 @@ const submit = async () => {
                   </p>
                 </VCol>
 
-                <div
+                <!-- LOOP DOCUMENTS -->
+                <VCol
                   v-for="(doc, index) in localForm.documents"
                   :key="index"
-                  class="w-100"
+                  cols="12"
                 >
                   <VCard class="mb-4 pa-4">
                     <VRow>
                       <VCol
-                        class="d-flex justify-space-between align-center"
+                        class="d-flex justify-space-between align-center mb-2"
                         cols="12"
                       >
                         <h6 class="text-h6">
                           Document {{ index + 1 }}
                         </h6>
 
+                        <!-- REMOVE BUTTON -->
                         <VBtn
-                          v-if="localForm.documents.length > 1"
+                          v-if="doc.isExisting"
+                          color="error"
+                          size="small"
+                          variant="tonal"
+                          @click="removeExistingDocument(doc.id, index)"
+                        >
+                          Remove
+                        </VBtn>
+
+                        <VBtn
+                          v-else
                           color="error"
                           size="small"
                           variant="tonal"
@@ -318,54 +487,245 @@ const submit = async () => {
                         </VBtn>
                       </VCol>
 
-                      <VCol
-                        cols="12"
-                        md="6"
-                      >
-                        <AppTextField
-                          v-model="doc.title"
-                          label="Document Name"
-                          placeholder="Operational Manual"
-                        />
-                      </VCol>
+                      <!-- EXISTING DOCUMENT: name + description (disabled) -->
+                      <template v-if="doc.isExisting">
+                        <VCol
+                          cols="12"
+                          md="4"
+                        >
+                          <AppTextField
+                            :model-value="doc.title"
+                            disabled
+                            label="Document Name"
+                          />
+                        </VCol>
 
-                      <VCol
-                        cols="12"
-                        md="6"
-                      >
-                        <AppTextField
-                          v-model="doc.description"
-                          label="Description"
-                          placeholder="Manual book for machine operation"
-                        />
-                      </VCol>
+                        <VCol
+                          cols="12"
+                          md="4"
+                        >
+                          <AppTextField
+                            :model-value="doc.description"
+                            disabled
+                            label="Description"
+                          />
+                        </VCol>
 
-                      <VCol
-                        cols="12"
-                        md="6"
-                      >
-                        <Vue3Dropzone
-                          v-model="doc.files"
-                          :max-file-size="10"
-                          :multiple="true"
-                        />
-                      </VCol>
+                        <VCol
+                          cols="12"
+                          md="4"
+                        >
+                          <AppTextField
+                            :model-value="doc.original_filename"
+                            disabled
+                            label="Filename"
+                          />
+                        </VCol>
+
+                        <VCol
+                          class="mt-2"
+                          cols="12"
+                        >
+                          <div class="text-body-2 mb-1">
+                            Preview
+                          </div>
+                          <img
+                            :src="doc.preview_url"
+                            style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;"
+                          >
+                        </VCol>
+                      </template>
+
+                      <!-- NEW DOCUMENT -->
+                      <template v-else>
+                        <VCol
+                          cols="12"
+                          md="4"
+                        >
+                          <AppTextField
+                            v-model="doc.title"
+                            :error-messages="formErrors[`documents.${index}.title`] || []"
+                            label="Document Name"
+                          />
+                        </VCol>
+
+                        <VCol
+                          cols="12"
+                          md="4"
+                        >
+                          <AppTextField
+                            v-model="doc.description"
+                            :error-messages="formErrors[`documents.${index}.description`] || []"
+                            label="Description"
+                          />
+                        </VCol>
+
+                        <VCol
+                          cols="12"
+                          md="4"
+                        >
+                          <div class="text-body-2 mb-1">
+                            Upload File
+                          </div>
+                          <Vue3Dropzone
+                            v-model="doc.files"
+                            :max-file-size="5"
+                            :multiple="false"
+                          />
+                        </VCol>
+                      </template>
                     </VRow>
                   </VCard>
-                </div>
+                </VCol>
 
+                <!-- ADD DOCUMENT BUTTON OUTSIDE LOOP -->
                 <VCol
-                  class="flex justify-end"
+                  class="d-flex justify-end"
                   cols="12"
                 >
                   <VBtn
-                    class="mb-4"
                     color="primary"
                     @click="addDocument"
                   >
                     Add Document
                   </VBtn>
                 </VCol>
+              </VRow>
+            </VWindowItem>
+
+            <VWindowItem>
+              <VRow>
+                <!-- Machine Name -->
+                <VCol
+                  cols="12"
+                  sm="6"
+                >
+                  <AppTextField
+                    v-model="localForm.name"
+                    disabled
+                    label="Name"
+                  />
+                </VCol>
+
+                <!-- Machine Code -->
+                <VCol
+                  cols="12"
+                  sm="6"
+                >
+                  <AppTextField
+                    v-model="localForm.code"
+                    disabled
+                    label="Code"
+                  />
+                </VCol>
+
+                <!-- Machine Type -->
+                <VCol
+                  cols="12"
+                  sm="6"
+                >
+                  <AppTextField
+                    v-model="localForm.description"
+                    disabled
+                    label="Description"
+                  />
+                </VCol>
+
+                <!-- Thumbnail Preview -->
+                <VCol
+                  cols="12"
+                  sm="6"
+                >
+                  <div class="text-body-2 mb-1">
+                    Thumbnail Preview
+                  </div>
+
+                  <div
+                    v-if="localForm.thumbnailUrl || existingThumbnail[0]"
+                    style="width: 200px; height: 200px; border-radius: 8px; overflow: hidden;"
+                  >
+                    <img
+                      :src="localForm.thumbnailUrl || existingThumbnail[0]"
+                      style="width: 100%; height: 100%; object-fit: cover;"
+                    >
+                  </div>
+
+                  <div
+                    v-else
+                    class="text-grey"
+                  >
+                    No thumbnail uploaded
+                  </div>
+                </VCol>
+
+                <VCol cols="12">
+                  <div class="text-body-2 mb-1">
+                    3D Model Preview
+                  </div>
+
+                  <div
+                    ref="threeContainer"
+                    style="width: 100%; height: 300px; border-radius: 8px; background: #000;"
+                  />
+
+                  <div
+                    v-if="!localForm.modelUrl"
+                    class="text-grey mt-1"
+                  >
+                    No 3D model uploaded
+                  </div>
+                </VCol>
+                <!-- Documents Summary -->
+                <VCol cols="12">
+                  <h4 class="text-h5 mb-3">
+                    Documents
+                  </h4>
+                </VCol>
+
+                <template
+                  v-for="(doc, index) in localForm.documents"
+                  :key="index"
+                >
+                  <VCol
+                    class="mt-4"
+                    cols="12"
+                  >
+                    <strong>Document {{ index + 1 }}</strong>
+                  </VCol>
+
+                  <VCol
+                    cols="12"
+                    md="4"
+                  >
+                    <AppTextField
+                      :model-value="doc.title"
+                      disabled
+                      label="Document Name"
+                    />
+                  </VCol>
+
+                  <VCol
+                    cols="12"
+                    md="4"
+                  >
+                    <AppTextField
+                      :model-value="doc.description"
+                      disabled
+                      label="Document Type"
+                    />
+                  </VCol>
+
+                  <VCol
+                    cols="12"
+                    md="4"
+                  >
+                    <AppTextField
+                      :model-value="doc.files[0]?.name || doc.original_filename"
+                      disabled
+                      label="Original Filename"
+                    />
+                  </VCol>
+                </template>
               </VRow>
             </VWindowItem>
           </VWindow>
