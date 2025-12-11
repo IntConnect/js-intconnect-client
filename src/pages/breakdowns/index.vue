@@ -4,25 +4,25 @@ import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { useManageParameter } from "@/composables/useManageParameter"
+import { useManageBreakdown } from "@/composables/useManageBreakdown"
 
 // ==========================================
 // Composable
 // ==========================================
 const {
-  parameters,
+  breakdowns,
   loading,
   actionLoading,
-  fetchParametersPagination,
-  saveParameter,
-  deleteParameter,
+  fetchBreakdownsPagination,
+  saveBreakdown,
+  deleteBreakdown,
   totalItems,
   totalPages,
   error,
   formErrors,
   clearFormErrors,
   clearErrors,
-} = useManageParameter()
+} = useManageBreakdown()
 
 // ==========================================
 // Constants
@@ -50,17 +50,17 @@ const sortOrder = ref("asc")
 
 // UI States
 const showDeleteDialog = ref(false)
-const selectedParameter = ref(null)
+const selectedBreakdown = ref(null)
 
 // ==========================================
 // Methods
 // ==========================================
 
 /**
- * Load parameters from API
+ * Load breakdowns from API
  */
-const loadParameters = async () => {
-  await fetchParametersPagination({
+const loadBreakdowns = async () => {
+  await fetchBreakdownsPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -73,8 +73,8 @@ const loadParameters = async () => {
 /**
  * Open delete confirmation dialog
  */
-const openDeleteDialog = parameter => {
-  selectedParameter.value = parameter
+const openDeleteDialog = breakdown => {
+  selectedBreakdown.value = breakdown
   showDeleteDialog.value = true
 }
 
@@ -83,43 +83,43 @@ const openDeleteDialog = parameter => {
  */
 const closeDeleteDialog = () => {
   showDeleteDialog.value = false
-  selectedParameter.value = null
+  selectedBreakdown.value = null
 }
 
 /**
- * Handle save parameter (create or update)
+ * Handle save breakdown (create or update)
  */
-const handleSaveParameter = async parameterData => {
-  const result = await saveParameter(parameterData)
+const handleSaveBreakdown = async breakdownData => {
+  const result = await saveBreakdown(breakdownData)
 
   if (result.success) {
-    await loadParameters()
+    await loadBreakdowns()
 
   } else {
     // Errors sudah di-set di formErrors oleh composable
-    console.error('Failed to save parameter:', result.error || result.errors)
+    console.error('Failed to save breakdown:', result.error || result.errors)
   }
 }
 
 /**
- * Handle delete parameter
+ * Handle delete breakdown
  */
-const handleDeleteParameter = async formData => {
-  if (!selectedParameter.value?.id) {
-    console.warn('No parameter selected for deletion')
+const handleDeleteBreakdown = async formData => {
+  if (!selectedBreakdown.value?.id) {
+    console.warn('No breakdown selected for deletion')
 
     return
   }
 
   const reason = formData.reason || ''
-  const result = await deleteParameter(selectedParameter.value.id, reason)
+  const result = await deleteBreakdown(selectedBreakdown.value.id, reason)
 
   if (result.success) {
     closeDeleteDialog()
-    await loadParameters()
+    await loadBreakdowns()
 
   } else {
-    console.error('Failed to delete parameter:', result.error)
+    console.error('Failed to delete breakdown:', result.error)
 
     // Optional: Show error notification
   }
@@ -132,19 +132,19 @@ const handleDeleteParameter = async formData => {
 // Reset to page 1 when search query changes
 watch(searchQuery, () => {
   page.value = 1
-  loadParameters()
+  loadBreakdowns()
 })
 
 // Reload data when page or itemsPerPage changes
 watch([page, itemsPerPage], () => {
-  loadParameters()
+  loadBreakdowns()
 })
 
 // ==========================================
 // Lifecycle
 // ==========================================
 onMounted(() => {
-  loadParameters()
+  loadBreakdowns()
 })
 </script>
 
@@ -152,10 +152,10 @@ onMounted(() => {
   <section>
     <VCol cols="12">
       <h4 class="text-h4 mb-1">
-        All Parameters
+        All Breakdowns
       </h4>
       <p class="text-body-1 mb-0">
-        Manage all parameters configured for your 3D model.
+        Track and manage machine breakdowns to support maintenance operations.
       </p>
     </VCol>
     <VCard>
@@ -178,9 +178,9 @@ onMounted(() => {
             placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-          <RouterLink :to="{ name: 'parameters-manage-id', params: { id: 'new' } }">
+          <RouterLink :to="{ name: 'breakdowns-manage-id', params: { id: 'new' } }">
             <VBtn color="primary">
-              New Parameter
+              New Breakdown
             </VBtn>
           </RouterLink>
         </div>
@@ -202,12 +202,12 @@ onMounted(() => {
       <!-- Data Table -->
       <VDataTable
         :headers="TABLE_HEADERS"
-        :items="parameters"
+        :items="breakdowns"
         :items-per-page="itemsPerPage"
         :loading="loading"
         class="text-no-wrap"
         hide-default-footer
-        no-data-text="No parameters found"
+        no-data-text="No breakdowns found"
       >
         <!-- ID Column -->
         <template #item.id="{ index }">
@@ -218,7 +218,7 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <RouterLink :to="{ name: 'parameters-manage-id', params: { id: item.id } }">
+            <RouterLink :to="{ name: 'breakdowns-manage-id', params: { id: item.id } }">
               <VBtn
                 color="info"
                 icon
@@ -268,8 +268,8 @@ onMounted(() => {
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
-      title="Delete Parameter"
-      @submit="handleDeleteParameter"
+      title="Delete Breakdown"
+      @submit="handleDeleteBreakdown"
     />
   </section>
 </template>

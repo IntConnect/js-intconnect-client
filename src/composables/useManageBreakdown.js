@@ -1,12 +1,13 @@
 import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
 
-export const useManageMachine = () => {
+export const useManageBreakdown = () => {
   // --------------------
   // State
   // --------------------
-  const machines = ref([])
-  const machine = ref({})
+  const breakdowns = ref([])
+  const breakdown = ref({})
+  const breakdownDependency = ref({})
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -28,13 +29,13 @@ export const useManageMachine = () => {
   // Main API Methods
   // --------------------
 
-  const fetchMachinesPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
+  const fetchBreakdownsPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
     clearErrors()
     actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/machines/pagination', {
+        createUrl('/breakdowns/pagination', {
           query: { page, size, query, sort, order },
         }),
       )
@@ -45,7 +46,7 @@ export const useManageMachine = () => {
       if (!result.success) return result
       applyPaginationResponse(
         {
-          entries: machines,
+          entries: breakdowns,
           totalItems,
           currentPage,
           pageSize,
@@ -53,6 +54,7 @@ export const useManageMachine = () => {
         },
         response.value,
       )
+      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -60,24 +62,20 @@ export const useManageMachine = () => {
     }
   }
 
-  const fetchMachines = async () => {
+  const fetchBreakdowns = async () => {
     clearErrors()
     actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/machines', {}),
+        createUrl('/breakdowns', {}),
       )
         .get()
         .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      machines.value = response.value
-      
-      return {
-        success: true,
-      }
+      breakdowns.value = response.value
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -85,25 +83,43 @@ export const useManageMachine = () => {
     }
   }
 
-  const fetchMachine = async machineId => {
+  const fetchBreakdown = async id => {
     clearErrors()
     actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/machines/${machineId}`, {}),
+        createUrl(`/breakdowns/${id}`, {}),
+      )
+        .get()
+        .json()
+
+      console.log(response)
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      breakdown.value = response.value
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const fetchBreakdownDependency = async () => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl('/breakdowns/create', {}),
       )
         .get()
         .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-
-      machine.value = response.value
-
-      return {
-        success: true,
-      }
+      breakdownDependency.value = response.value
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -111,52 +127,22 @@ export const useManageMachine = () => {
     }
   }
 
-  const createMachine = async machineData => {
+  const createBreakdown = async breakdownData => {
     actionLoading.value = true
     clearFormErrors()
+
     try {
-      const formData = jsonToFormData(machineData)
-
-
-      // Don't set Content-Type header - let the browser set it automatically with boundary
-      const { data: response, error: apiError } = await useApi('/machines', {
-        headers: {
-          // Remove any default Content-Type headers
-        },
-      }).post(formData).json()
+      const { data: response, error: apiError } = await useApi('/breakdowns')
+        .post(breakdownData)
+        .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      return { success: true }
-    } catch (err) {
-      console.error(err)
 
-      return { success: false, error: 'Unknown error' }
-    } finally {
-      actionLoading.value = false
-    }
-  }
-
-  const updateMachine = async (machineId, machineData) => {
-    actionLoading.value = true
-    clearFormErrors()
-    try {
-      const formData = jsonToFormData(machineData)
-
-
-      // Don't set Content-Type header - let the browser set it automatically with boundary
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`, {
-        headers: {
-          // Remove any default Content-Type headers
-        },
-      }).put(formData).json()
-
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
       applyPaginationResponse(
         {
-          entries: machines,
+          entries: breakdowns,
           totalItems,
           currentPage,
           pageSize,
@@ -173,11 +159,45 @@ export const useManageMachine = () => {
     }
   }
 
-  const deleteMachine = async (machineId, reason = '') => {
+  const updateBreakdown = async (breakdownId, breakdownData) => {
     actionLoading.value = true
     clearFormErrors()
+
     try {
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`)
+      const { data: response, error: apiError } = await useApi(`/breakdowns/${breakdownId}`)
+        .put(breakdownData)
+        .json()
+
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+
+      if (!result.success) return result
+
+      applyPaginationResponse(
+        {
+          entries: breakdowns,
+          totalItems,
+          currentPage,
+          pageSize,
+          totalPages,
+        },
+        response.value,
+      )
+
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const deleteBreakdown = async (breakdownId, reason = '') => {
+    actionLoading.value = true
+    clearFormErrors()
+
+    try {
+      const { data: response, error: apiError } = await useApi(`/breakdowns/${breakdownId}`)
         .delete({ reason })
         .json()
 
@@ -186,7 +206,7 @@ export const useManageMachine = () => {
 
       applyPaginationResponse(
         {
-          entries: machines,
+          entries: breakdowns,
           totalItems,
           currentPage,
           pageSize,
@@ -203,19 +223,20 @@ export const useManageMachine = () => {
     }
   }
 
-  const saveMachine = async machineData => {
-    if (machineData.id) {
-      const { id, ...payload } = machineData
+  const saveBreakdown = async breakdownData => {
+    if (breakdownData.id) {
+      const { id, ...payload } = breakdownData
 
-      return updateMachine(id, payload)
+      return updateBreakdown(id, payload)
     }
 
-    return createMachine(machineData)
+    return createBreakdown(breakdownData)
   }
 
   return {
-    machines,
-    machine,
+    breakdown,
+    breakdowns,
+    breakdownDependency,
     totalItems,
     currentPage,
     pageSize,
@@ -224,13 +245,14 @@ export const useManageMachine = () => {
     errorMessage,
     formErrors,
 
-    fetchMachinesPagination,
-    fetchMachines,
-    fetchMachine,
-    createMachine,
-    updateMachine,
-    deleteMachine,
-    saveMachine,
+    fetchBreakdowns,
+    fetchBreakdown,
+    fetchBreakdownsPagination,
+    fetchBreakdownDependency,
+    createBreakdown,
+    updateBreakdown,
+    deleteBreakdown,
+    saveBreakdown,
     clearFormErrors,
     clearErrors,
   }

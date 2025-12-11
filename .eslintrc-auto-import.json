@@ -388,6 +388,7 @@
     "useManageReportDocumentTemplate": true,
     "useStaticFile": true,
     "useManageSmtpServer": true,
-    "useManageModbusServer": true
+    "useManageModbusServer": true,
+    "useManageBreakdown": true
   }
 }

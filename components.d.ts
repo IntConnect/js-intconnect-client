@@ -105,6 +105,7 @@ declare module 'vue' {
     ThemeSwitcher: typeof import('./src/@core/components/ThemeSwitcher.vue')['default']
     ThreeViewer: typeof import('./src/components/ThreeViewer.vue')['default']
     TiptapEditor: typeof import('./src/@core/components/TiptapEditor.vue')['default']
+    TipTapEditor: typeof import('./src/components/editor/TipTapEditor.vue')['default']
     TwoFactorAuthDialog: typeof import('./src/components/dialogs-demo/TwoFactorAuthDialog.vue')['default']
     UserInfoEditDialog: typeof import('./src/components/dialogs-demo/UserInfoEditDialog.vue')['default']
     UserList: typeof import('./src/components/user/UserList.vue')['default']

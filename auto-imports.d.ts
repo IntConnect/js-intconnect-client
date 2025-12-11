@@ -252,6 +252,7 @@ declare global {
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
   const useManageAuthentication: typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']
+  const useManageBreakdown: typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']
   const useManageFacilitie: typeof import('./src/composables/useManageFacility.js')['useManageFacilitie']
   const useManageFacility: typeof import('./src/composables/useManageFacility.js')['useManageFacility']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
@@ -633,6 +634,7 @@ declare module 'vue' {
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
+    readonly useManageBreakdown: UnwrapRef<typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']>
     readonly useManageFacility: UnwrapRef<typeof import('./src/composables/useManageFacility.js')['useManageFacility']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
     readonly useManageModbusServer: UnwrapRef<typeof import('./src/composables/useManageModbusServer.js')['useManageModbusServer']>
