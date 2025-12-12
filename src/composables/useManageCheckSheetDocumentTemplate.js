@@ -71,7 +71,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
     clearFormErrors()
 
     try {
-      const { data: response, error: apiError } = await useApi('/checksheet-document-templates')
+      const { data: response, error: apiError } = await useApi('/check-sheet-document-templates')
         .post(checksheetDocumentTemplateData)
         .json()
 

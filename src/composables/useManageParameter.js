@@ -62,13 +62,15 @@ export const useManageParameter = () => {
     }
   }
 
-  const fetchParameters = async () => {
+  const fetchParameters = async ({ isAutomatic = "all" }) => {
     clearErrors()
     actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/parameters', {}),
+        createUrl('/parameters', {
+          query: { is_automatic: isAutomatic },
+        }),
       )
         .get()
         .json()
@@ -76,6 +78,10 @@ export const useManageParameter = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
       parameters.value = response.value
+
+      return {
+        success: true,
+      }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -146,17 +152,6 @@ export const useManageParameter = () => {
       if (!result.success) return result
 
 
-      applyPaginationResponse(
-        {
-          entries: parameters,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
-
       return { success: true }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
@@ -178,17 +173,6 @@ export const useManageParameter = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
 
       if (!result.success) return result
-
-      applyPaginationResponse(
-        {
-          entries: parameters,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
 
       return { success: true }
     } catch (_) {

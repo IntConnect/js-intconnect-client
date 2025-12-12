@@ -41,8 +41,8 @@ const {
 // ==========================================
 const currentStep = ref(0)
 const name = ref('')
-const machineId = ref('')
-const mqttTopicId = ref('')
+const machineId = ref(null)
+const mqttTopicId = ref(null)
 const code = ref('')
 const unit = ref('')
 const minValue = ref(0)
@@ -56,7 +56,6 @@ const rotationY = ref(0)
 const rotationZ = ref(0)
 const isDisplay = ref(true)
 const isAutomatic = ref(true)
-const modelLoaded = ref(false)
 const processedMachines = ref([])
 const processedMqttTopic = ref([])
 const isAlertDialogVisible = ref(false)
@@ -98,7 +97,7 @@ const alertType = ref('info')
 
 onMounted(async () => {
   await fetchParameterDependency()
-  let result = await fetchParameter(id)
+  let result = await fetchParameter(id.value)
   await nextTick()
   processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
@@ -111,7 +110,7 @@ onMounted(async () => {
   if (result.success) {
     let processedParameter = parameter.value.entry
     console.log(processedParameter)
-
+    id.value = processedParameter.id
     name.value = processedParameter.name
     machineId.value = processedParameter.machine_id
     mqttTopicId.value = processedParameter.mqtt_topic_id
@@ -417,15 +416,17 @@ const initialModel = async () => {
   console.log(scene)
 }
 
+const id = ref('')
 const route = useRoute()
 const router = useRouter()
-const id = route.params.id
+id.value = route.params.id
 
 const onSubmit = () => {
   refForm.value.validate().then(async ({ valid }) => {
     if (!valid) return
 
     const parameterData = {
+      id: id.value,
       name: name.value,
       code: code.value,
       unit: unit.value,
@@ -450,8 +451,9 @@ const onSubmit = () => {
       await nextTick()
 
       isAlertDialogVisible.value = true
-      bodyAlert.value = 'Success manage Parameter'
+      bodyAlert.value = "You will be redirect to parameter page"
       alertType.value = 'info'
+      titleAlert.value = "Success manage Parameter"
 
       setTimeout(() => {
         router.push('/parameters')
@@ -565,7 +567,7 @@ watch([modelPath, () => scene], async () => {
                 <VCol>
                   <VCol cols="12">
                     <GeneralAlert
-                      v-if="formErrors"
+                      v-if="formErrors.value"
                       color="error"
                       description="There are error for some input, please fix it first!"
                       icon="tabler-bug"
