@@ -97,8 +97,14 @@ export const useManageParameter = () => {
       console.log(response)
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
+
+      console.log(result)
       if (!result.success) return result
       parameter.value = response.value
+
+      return {
+        success: true,
+      }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {

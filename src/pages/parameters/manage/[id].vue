@@ -8,6 +8,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import AlertDialog from "@/components/general/AlertDialog.vue"
 import { useManageParameter } from "@/composables/useManageParameter.js"
+import GeneralAlert from "@/components/general/GeneralAlert.vue"
 
 
 // ==========================================
@@ -53,6 +54,8 @@ const positionZ = ref(0)
 const rotationX = ref(0)
 const rotationY = ref(0)
 const rotationZ = ref(0)
+const isDisplay = ref(true)
+const isAutomatic = ref(true)
 const modelLoaded = ref(false)
 const processedMachines = ref([])
 const processedMqttTopic = ref([])
@@ -89,28 +92,14 @@ let model = null
 // marker untuk parameter ini
 let parameterMarker = null
 const showAdjustPopup = ref(false)
+const bodyAlert = ref('')
 const titleAlert = ref('')
+const alertType = ref('info')
 
 onMounted(async () => {
   await fetchParameterDependency()
-  await fetchParameter(id)
+  let result = await fetchParameter(id)
   await nextTick()
-  console.log(parameter)
-  let processedParameter = parameter.value.entry
-  name.value = processedParameter.name
-  machineId.value = processedParameter.machine_id
-  mqttTopicId.value = processedParameter.mqtt_topic_id
-  code.value = processedParameter.code
-  unit.value = processedParameter.unit
-  minValue.value = processedParameter.min_value
-  maxValue.value = processedParameter.max_value
-  description.value = processedParameter.description
-  positionX.value = processedParameter.position_x
-  positionY.value = processedParameter.position_y
-  positionZ.value = processedParameter.position_z
-  rotationX.value = processedParameter.rotation_x
-  rotationY.value = processedParameter.rotation_y
-  rotationZ.value = processedParameter.rotation_z
   processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,
@@ -119,6 +108,27 @@ onMounted(async () => {
     title: mqtt_topic.name,
     value: mqtt_topic.id,
   }))
+  if (result.success) {
+    let processedParameter = parameter.value.entry
+    console.log(processedParameter)
+
+    name.value = processedParameter.name
+    machineId.value = processedParameter.machine_id
+    mqttTopicId.value = processedParameter.mqtt_topic_id
+    code.value = processedParameter.code
+    unit.value = processedParameter.unit
+    minValue.value = processedParameter.min_value
+    maxValue.value = processedParameter.max_value
+    description.value = processedParameter.description
+    positionX.value = processedParameter.position_x
+    positionY.value = processedParameter.position_y
+    positionZ.value = processedParameter.position_z
+    rotationX.value = processedParameter.rotation_x
+    rotationY.value = processedParameter.rotation_y
+    rotationZ.value = processedParameter.rotation_z
+
+    initialModel()
+  }
 })
 
 
@@ -220,7 +230,9 @@ const updateMarkerRotation = () => {
 const setPositionFromClick = () => {
   if (!name.value || !code.value) {
     isAlertDialogVisible.value = true
-    titleAlert.value = 'Fill Name and Parameter First!'
+    bodyAlert.value = 'Fill Name and Parameter First!'
+    titleAlert.value = "Invalid Input"
+    alertType.value = 'error'
     return
   }
   isModelClickable.value = !isModelClickable.value
@@ -272,7 +284,8 @@ const setPositionFromClick = () => {
       // Cleanup listener
       renderer.domElement.removeEventListener("click", handleClick)
       isAlertDialogVisible.value = true
-      titleAlert.value = 'Position successfully set! you can adjusted in Adjust Manual button '
+      titleAlert.value = "Position successfully set"
+      bodyAlert.value = "You can adjusted in Adjust Manual button"
     }
   }
 
@@ -285,7 +298,9 @@ const setPositionFromClick = () => {
 const showAdjustment = () => {
   if (!name.value || !code.value) {
     isAlertDialogVisible.value = true
-    titleAlert.value = 'Fill Name and Parameter First!'
+    bodyAlert.value = 'Fill Name and Parameter First!'
+    alertType.value = 'error'
+
     return
   }
 
@@ -403,6 +418,7 @@ const initialModel = async () => {
 }
 
 const route = useRoute()
+const router = useRouter()
 const id = route.params.id
 
 const onSubmit = () => {
@@ -424,6 +440,8 @@ const onSubmit = () => {
       rotation_x: rotationX.value,
       rotation_y: rotationY.value,
       rotation_z: rotationZ.value,
+      is_display: isDisplay.value,
+      is_automatic: isAutomatic.value,
     }
 
     const result = await saveParameter(parameterData)
@@ -432,11 +450,14 @@ const onSubmit = () => {
       await nextTick()
 
       isAlertDialogVisible.value = true
-      titleAlert.value = 'Success manage Parameter'
+      bodyAlert.value = 'Success manage Parameter'
+      alertType.value = 'info'
+
       setTimeout(() => {
         router.push('/parameters')
       }, 2000)
     } else {
+      currentStep.value = 0
       console.error('Failed to save parameter:', result.error || result.errors)
     }
   })
@@ -457,7 +478,7 @@ watch(machineId, async value => {
 
   await fetchMachine(value)
   await nextTick()
-  console.log(machine.value.entry.model_path)
+  console.log(machine)
   modelPath.value = machine.value.entry.model_path
 
   // Reload 3D model
@@ -539,14 +560,22 @@ watch([modelPath, () => scene], async () => {
               v-model="currentStep"
               class="disable-tab-transition"
             >
+
               <VWindowItem>
                 <VCol>
                   <VCol cols="12">
+                    <GeneralAlert
+                      v-if="formErrors"
+                      color="error"
+                      description="There are error for some input, please fix it first!"
+                      icon="tabler-bug"
+                    />
                     <AppSelect
                       v-model="machineId"
                       :error="!!formErrors.machine_id"
                       :error-messages="formErrors.machine_id"
                       :items="processedMachines"
+                      class="mt-3"
                       label="Machine"
                       placeholder="Select a Machine"
                     />
@@ -628,6 +657,26 @@ watch([modelPath, () => scene], async () => {
                       :error-messages="formErrors.description"
                       label="Description"
                       placeholder="Describe this parameter"
+                    />
+                  </VCol>
+                  <VCol cols="12">
+                    <VLabel
+                      class="mb-1 text-body-2 text-wrap"
+                      style="line-height: 15px;"
+                      text="Is Display"
+                    />
+                    <VSwitch
+                      v-model="isDisplay"
+                      :label="isDisplay ? `Active` : `Inactive`"
+                    />
+                    <VLabel
+                      class="mb-1 text-body-2 text-wrap"
+                      style="line-height: 15px;"
+                      text="Is Automatic"
+                    />
+                    <VSwitch
+                      v-model="isAutomatic"
+                      :label="isAutomatic ? `Automatic` : `Manual`"
                     />
                   </VCol>
 
@@ -758,8 +807,10 @@ watch([modelPath, () => scene], async () => {
     </VCol>
   </VRow>
   <AlertDialog
+    :body-alert="bodyAlert"
     :is-dialog-visible="isAlertDialogVisible"
     :title-alert="titleAlert"
+    :type="alertType"
     @update:isDialogVisible="isAlertDialogVisible = $event"
 
   />

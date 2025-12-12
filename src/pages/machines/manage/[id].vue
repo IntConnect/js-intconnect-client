@@ -73,13 +73,11 @@ onMounted(async () => {
   const result = await fetchMachine(id)
 
   await nextTick()
-  processedFacilities.value = facilities.value?.entries?.map(facility => ({
-    title: facility.name,
-    value: facility.id,
-  })) || []
+
   if (processedFacilities.value.length > 0) {
     localForm.facility_id = processedFacilities.value[0].id
   }
+  console.log(facilities)
   processedFacilities.value = facilities.value?.entries?.map(facility => ({
     title: facility.name,
     value: facility.id,
@@ -311,9 +309,8 @@ function removeExistingDocument(docId, index) {
           />
         </div>
       </VCardText>
-
-      <VDivider />
-
+    </VCard>
+    <VCard class="mt-5">
       <VCardText>
         <VForm
           ref="vform"
