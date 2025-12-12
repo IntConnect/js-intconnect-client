@@ -390,6 +390,8 @@
     "useManageSmtpServer": true,
     "useManageModbusServer": true,
     "useManageBreakdown": true,
-    "extractFilename": true
+    "extractFilename": true,
+    "useManageChecksheetDocumentTemplate": true,
+    "useManageCheckSheetDocumentTemplate": true
   }
 }

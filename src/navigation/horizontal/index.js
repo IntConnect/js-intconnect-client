@@ -125,16 +125,16 @@ export default [
     ],
   },
   {
-    title: 'Checksheet',
+    title: 'Check Sheet',
     icon: { icon: 'tabler-checklist' },
     children: [
       {
-        title: 'Checksheet Document Template',
-        to: { name: 'audit-logs' },
+        title: 'Check Sheet Document Template',
+        to: { name: 'check-sheet-document-templates' },
         icon: { icon: 'tabler-checkup-list' },
       },
       {
-        title: 'Create Checksheet',
+        title: 'Create Check Sheet',
         to: { name: 'permissions' },
         icon: { icon: 'tabler-file-type-doc' },
       },
