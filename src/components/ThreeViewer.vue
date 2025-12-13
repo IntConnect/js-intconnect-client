@@ -4,12 +4,11 @@ import { onMounted, ref, nextTick } from 'vue'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as ThreeMeshUI from 'three-mesh-ui'
+import buildingModel from '@/assets/models/building.glb'
 
 const wrapperRef = ref(null)
 const canvasRef = ref(null)
 let model = null
-let modelLoaded = false
-
 onMounted(async () => {
   await nextTick()
   await new Promise(resolve => setTimeout(resolve, 100))
@@ -77,9 +76,8 @@ onMounted(async () => {
   // ----------------------------------------
   const loader = new GLTFLoader()
 
-  loader.load('/models/schema-5.glb', gltf => {
+  loader.load(buildingModel, gltf => {
     model = gltf.scene
-    modelLoaded = true
     model.updateMatrixWorld(true)
 
     // center model

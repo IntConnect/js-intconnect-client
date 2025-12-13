@@ -223,14 +223,11 @@ const closeDeleteDialog = () => {
 
             <!-- Bottom Pagination -->
             <template #bottom>
-              <VCardText class="pt-2">
-                <!-- Pagination Controls -->
-                <TablePagination
-                  v-model:page="page"
-                  :items-per-page="itemsPerPage"
-                  :total-items="totalItems"
-                />
-              </VCardText>
+              <TablePagination
+                v-model:page="page"
+                :items-per-page="itemsPerPage"
+                :total-items="totalItems"
+              />
             </template>
           </VDataTable>
         </VCard>

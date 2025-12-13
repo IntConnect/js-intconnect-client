@@ -24,6 +24,7 @@ export default defineConfig({
           .toLowerCase()
       },
     }),
+
     vue({
       template: {
         compilerOptions: {
@@ -104,4 +105,5 @@ export default defineConfig({
       './src/**/*.vue',
     ],
   },
+  assetsInclude: ['**/*.glb', '**/*.gltf'],
 })
