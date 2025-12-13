@@ -86,6 +86,23 @@ const parsedJwt = computed(() => {
               Profile
             </VListItemTitle>
           </VListItem>
+          <VListItem
+            class="text-white"
+            link
+            to="/faq"
+          >
+            <template #prepend>
+              <VIcon
+                class="me-2 text-white"
+                icon="tabler-bubble-text"
+                size="22"
+              />
+            </template>
+
+            <VListItemTitle class="text-white">
+              FAQ
+            </VListItemTitle>
+          </VListItem>
 
 
           <!-- Divider -->

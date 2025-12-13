@@ -140,5 +140,10 @@ export default [
       },
     ],
   },
+  {
+    title: 'App Settings',
+    icon: { icon: 'tabler-settings-spark' },
+    to: { name: 'app-settings' },
+  },
 
 ]

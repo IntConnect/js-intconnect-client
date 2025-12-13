@@ -20,6 +20,7 @@ declare module 'vue-router/auto-routes' {
   export interface RouteNamedMap {
     'root': RouteRecordInfo<'root', '/', Record<never, never>, Record<never, never>>,
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
+    'app-settings': RouteRecordInfo<'app-settings', '/app-settings', Record<never, never>, Record<never, never>>,
     'audit-logs': RouteRecordInfo<'audit-logs', '/audit-logs', Record<never, never>, Record<never, never>>,
     'breakdowns': RouteRecordInfo<'breakdowns', '/breakdowns', Record<never, never>, Record<never, never>>,
     'breakdowns-manage-id': RouteRecordInfo<'breakdowns-manage-id', '/breakdowns/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
@@ -29,6 +30,7 @@ declare module 'vue-router/auto-routes' {
     'drawings': RouteRecordInfo<'drawings', '/drawings', Record<never, never>, Record<never, never>>,
     'dynamic-dashboard': RouteRecordInfo<'dynamic-dashboard', '/dynamic-dashboard', Record<never, never>, Record<never, never>>,
     'facilities': RouteRecordInfo<'facilities', '/facilities', Record<never, never>, Record<never, never>>,
+    'faq': RouteRecordInfo<'faq', '/faq', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'machines': RouteRecordInfo<'machines', '/machines', Record<never, never>, Record<never, never>>,
     'machines-manage-id': RouteRecordInfo<'machines-manage-id', '/machines/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
