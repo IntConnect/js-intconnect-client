@@ -65,7 +65,7 @@ const localForm = reactive({
   preventive_action: '',
   problem_at: '',
 
-  breakdown_resources_requests: [
+  breakdown_resource_requests: [
     { image_file: null, video_file: null },
   ],
 })
@@ -77,14 +77,14 @@ const currentStep = ref(0)
 // HANDLERS
 // =========================
 const addResource = () => {
-  localForm.breakdown_resources_requests.push({
+  localForm.breakdown_resource_requests.push({
     image_file: null,
     video_file: null,
   })
 }
 
 const removeResource = index => {
-  localForm.breakdown_resources_requests.splice(index, 1)
+  localForm.breakdown_resource_requests.splice(index, 1)
 }
 
 // =========================
@@ -95,7 +95,7 @@ const onSubmit = async () => {
 
   const payload = {
     ...localForm,
-    breakdown_resources_requests: localForm.breakdown_resources_requests.map(r => ({
+    breakdown_resource_requests: localForm.breakdown_resource_requests.map(r => ({
       image_file: r.image_file ? r.image_file[0]?.file : null,
       video_file: r.video_file ? r.video_file[0]?.file : null,
     })),
@@ -103,15 +103,19 @@ const onSubmit = async () => {
 
   const result = await createBreakdown(payload)
 
+
+  return
+
   if (result.success) {
     router.push('/breakdowns')
+  } else {
+    currentStep.value = 0
   }
 }
 
 onMounted(async () => {
   await fetchMachines()
   await nextTick()
-  console.log(machines)
   processedMachines.value = machines.value.entries.map(machine => {
     return {
       title: machine.name,
@@ -168,7 +172,13 @@ onMounted(async () => {
                 <AppDateTimePicker
                   id="problemAt"
                   v-model="localForm.problem_at"
-                  :config="{ enableTime: true, dateFormat: 'd M Y H:i', time_24hr: true }"
+                  :config="{
+                    enableTime: true,
+                    dateFormat: 'Y-m-d H:i',
+                    altInput: true,
+                    altFormat: 'd M Y H:i',     
+                    time_24hr: true,
+                  }"
                   :error-messages="formErrors.problem_at || []"
                   label="Problem At"
                   placeholder="Select date and time"
@@ -332,7 +342,7 @@ onMounted(async () => {
               </VCol>
 
               <div
-                v-for="(resource, index) in localForm.breakdown_resources_requests"
+                v-for="(resource, index) in localForm.breakdown_resource_requests"
                 :key="index"
                 class="w-100"
               >
@@ -347,7 +357,7 @@ onMounted(async () => {
                       </h6>
 
                       <VBtn
-                        v-if="localForm.breakdown_resources_requests.length > 1"
+                        v-if="localForm.breakdown_resource_requests.length > 1"
                         color="error"
                         size="small"
                         variant="tonal"
@@ -406,7 +416,7 @@ onMounted(async () => {
           <!-- ====================== -->
           <div v-if="currentStep === 3">
             <h5 class="text-h5 mb-4">
-              Review Breakdown Information
+              Breakdown Summary
             </h5>
 
             <VRow>
@@ -423,115 +433,7 @@ onMounted(async () => {
                 />
               </VCol>
 
-              <!-- PROBLEM IDENTIFICATION -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.problem_identification"
-                  disabled
-                  label="Problem Identification"
-                />
-              </VCol>
-
-              <!-- PEOPLE ISSUE -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.people_issue"
-                  disabled
-                  label="People Issue"
-                />
-              </VCol>
-
-              <!-- INSPECTION ISSUE -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.inspection_issue"
-                  disabled
-                  label="Inspection Issue"
-                />
-              </VCol>
-
-              <!-- CONDITION ISSUE -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.condition_issue"
-                  disabled
-                  label="Condition Issue"
-                />
-              </VCol>
-
-              <!-- ACTION TAKEN -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.action_taken"
-                  disabled
-                  label="Action Taken"
-                />
-              </VCol>
-
-              <!-- PARTS ISSUE -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.parts_issue"
-                  disabled
-                  label="Parts Issue"
-                />
-              </VCol>
-
-              <!-- ANALYSIS NOTES -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.analysis_notes"
-                  disabled
-                  label="Analysis Notes"
-                />
-              </VCol>
-
-              <!-- CORRECTIVE ACTION -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.corrective_action"
-                  disabled
-                  label="Corrective Action"
-                />
-              </VCol>
-
-              <!-- PREVENTIVE ACTION -->
-              <VCol
-                cols="12"
-                md="6"
-              >
-                <AppTextField
-                  :model-value="localForm.preventive_action"
-                  disabled
-                  label="Preventive Action"
-                />
-              </VCol>
-
-              <!-- PROBLEM DATE -->
+              <!-- PROBLEM AT -->
               <VCol
                 cols="12"
                 md="6"
@@ -543,53 +445,174 @@ onMounted(async () => {
                 />
               </VCol>
 
-              <!-- RESOURCES -->
+              <!-- PROBLEM IDENTIFICATION -->
               <VCol
-                class="mt-4"
                 cols="12"
+                md="6"
               >
-                <h6 class="text-h6 mb-2">
-                  Supporting Files
-                </h6>
+                <AppTextField
+                  :model-value="stripHtml(localForm.problem_identification)"
+                  disabled
+                  label="Problem Identification"
+                  multiline
+                />
+              </VCol>
 
-                <VCard
-                  v-for="(resource, index) in localForm.breakdown_resources_requests"
-                  :key="index"
-                  class="pa-4 mb-3"
-                >
-                  <h6 class="text-subtitle-1 mb-2">
-                    Resource {{ index + 1 }}
-                  </h6>
+              <!-- PEOPLE ISSUE -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.people_issue)"
+                  disabled
+                  label="People Issue"
+                  multiline
+                />
+              </VCol>
 
-                  <!-- IMAGE -->
-                  <p class="text-caption">
-                    Image File
-                  </p>
-                  <div v-if="resource.image_file && resource.image_file[0]">
-                    {{ resource.image_file[0].file.name }}
-                  </div>
-                  <div
-                    v-else
-                    class="text-grey"
-                  >
-                    No image file
-                  </div>
+              <!-- INSPECTION ISSUE -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.inspection_issue)"
+                  disabled
+                  label="Inspection Issue"
+                  multiline
+                />
+              </VCol>
 
-                  <div class="mt-3" />
+              <!-- CONDITION ISSUE -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.condition_issue)"
+                  disabled
+                  label="Condition Issue"
+                  multiline
+                />
+              </VCol>
 
-                  <!-- VIDEO -->
-                  <p class="text-caption">
-                    Video File
-                  </p>
-                  <div v-if="resource.video_file && resource.video_file[0]">
-                    {{ resource.video_file[0].file.name }}
-                  </div>
-                  <div
-                    v-else
-                    class="text-grey"
-                  >
-                    No video file
-                  </div>
+              <!-- PARTS ISSUE -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.parts_issue)"
+                  disabled
+                  label="Parts Issue"
+                  multiline
+                />
+              </VCol>
+
+              <!-- ACTION TAKEN -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.action_taken)"
+                  disabled
+                  label="Action Taken"
+                  multiline
+                />
+              </VCol>
+
+              <!-- ANALYSIS NOTES -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.analysis_notes)"
+                  disabled
+                  label="Analysis Notes"
+                  multiline
+                />
+              </VCol>
+
+              <!-- CORRECTIVE ACTION -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.corrective_action)"
+                  disabled
+                  label="Corrective Action"
+                  multiline
+                />
+              </VCol>
+
+              <!-- PREVENTIVE ACTION -->
+              <VCol
+                cols="12"
+                md="6"
+              >
+                <AppTextField
+                  :model-value="stripHtml(localForm.preventive_action)"
+                  disabled
+                  label="Preventive Action"
+                  multiline
+                />
+              </VCol>
+            </VRow>
+
+            <!-- ===================== -->
+            <!-- SUPPORTING FILES -->
+            <!-- ===================== -->
+            <VDivider class="my-6"/>
+
+            <h6 class="text-h6 mb-3">
+              Supporting Files
+            </h6>
+
+            <VRow
+              v-for="(resource, index) in localForm.breakdown_resource_requests"
+              :key="index"
+              class="mb-2"
+            >
+              <VCol cols="12">
+                <VCard class="pa-4">
+                  <VRow>
+                    <VCol
+                      cols="12"
+                      md="4"
+                    >
+                      <AppTextField
+                        :model-value="`Resource ${index + 1}`"
+                        disabled
+                        label="Resource"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="4"
+                    >
+                      <AppTextField
+                        :model-value="getFileName(resource.image_file)"
+                        disabled
+                        label="Image File"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="4"
+                    >
+                      <AppTextField
+                        :model-value="getFileName(resource.video_file)"
+                        disabled
+                        label="Video File"
+                      />
+                    </VCol>
+                  </VRow>
                 </VCard>
               </VCol>
             </VRow>
@@ -614,7 +637,7 @@ onMounted(async () => {
 
             <div class="ml-auto d-flex gap-2">
               <VBtn
-                v-if="currentStep < 2"
+                v-if="currentStep < 3"
                 color="primary"
                 @click="currentStep++"
               >
@@ -622,7 +645,7 @@ onMounted(async () => {
               </VBtn>
 
               <VBtn
-                v-if="currentStep === 2"
+                v-if="currentStep === 3"
                 :loading="actionLoading"
                 color="success"
                 @click="onSubmit"

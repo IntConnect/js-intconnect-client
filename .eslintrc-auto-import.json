@@ -392,6 +392,8 @@
     "useManageBreakdown": true,
     "extractFilename": true,
     "useManageChecksheetDocumentTemplate": true,
-    "useManageCheckSheetDocumentTemplate": true
+    "useManageCheckSheetDocumentTemplate": true,
+    "getFileName": true,
+    "stripHtml": true
   }
 }

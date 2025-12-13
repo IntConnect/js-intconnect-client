@@ -27,6 +27,11 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits([
+  'update:content',
+  'update:formError',
+])
+
 
 const editor = useEditor({
   content: props.content,
@@ -41,6 +46,9 @@ const editor = useEditor({
     Placeholder.configure({ placeholder: props.placeholder }),
     Underline,
   ],
+  onUpdate: ({ editor }) => {
+    emit('update:content', editor.getHTML())
+  },
 })
 </script>
 
@@ -162,11 +170,13 @@ const editor = useEditor({
     </div>
     <VDivider class="my-4" />
     <EditorContent :editor="editor" />
-    <small
-      v-if="props.formError"
-      class="text-error"
-    >{{ formErrors.join(', ') }}</small>
   </div>
+  <p
+    v-if="formError"
+    class="text-body-2 mt-2 text-error"
+  >
+    {{ props.formError }}
+  </p>
 </template>
 
 <style lang="scss">

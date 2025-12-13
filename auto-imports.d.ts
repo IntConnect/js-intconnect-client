@@ -57,6 +57,7 @@ declare global {
   const getActivePinia: typeof import('pinia')['getActivePinia']
   const getCurrentInstance: typeof import('vue')['getCurrentInstance']
   const getCurrentScope: typeof import('vue')['getCurrentScope']
+  const getFileName: typeof import('./src/@core/utils/helpers.js')['getFileName']
   const h: typeof import('vue')['h']
   const handleApiError: typeof import('./src/utils/errorHandling.js')['handleApiError']
   const hexToRgb: typeof import('./src/@core/utils/colorConverter.js')['hexToRgb']
@@ -142,6 +143,7 @@ declare global {
   const shallowReadonly: typeof import('vue')['shallowReadonly']
   const shallowRef: typeof import('vue')['shallowRef']
   const storeToRefs: typeof import('pinia')['storeToRefs']
+  const stripHtml: typeof import('./src/@core/utils/helpers.js')['stripHtml']
   const syncRef: typeof import('@vueuse/core')['syncRef']
   const syncRefs: typeof import('@vueuse/core')['syncRefs']
   const templateRef: typeof import('@vueuse/core')['templateRef']
@@ -443,6 +445,7 @@ declare module 'vue' {
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
+    readonly getFileName: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['getFileName']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly handleApiError: UnwrapRef<typeof import('./src/utils/errorHandling.js')['handleApiError']>
     readonly hexToRgb: UnwrapRef<typeof import('./src/@core/utils/colorConverter.js')['hexToRgb']>
@@ -528,6 +531,7 @@ declare module 'vue' {
     readonly shallowReadonly: UnwrapRef<typeof import('vue')['shallowReadonly']>
     readonly shallowRef: UnwrapRef<typeof import('vue')['shallowRef']>
     readonly storeToRefs: UnwrapRef<typeof import('pinia')['storeToRefs']>
+    readonly stripHtml: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['stripHtml']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>

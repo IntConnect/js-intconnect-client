@@ -100,3 +100,17 @@ export function extractFilename(path) {
 
   return path.split('/').pop()
 }
+
+
+export const stripHtml = html => {
+  if (!html) return ''
+  const div = document.createElement('div')
+
+  div.innerHTML = html
+
+  return div.textContent || div.innerText || ''
+}
+
+export const getFileName = file => {
+  return file?.[0]?.file?.name || '-'
+}

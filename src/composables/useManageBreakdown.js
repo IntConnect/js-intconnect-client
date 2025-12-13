@@ -130,6 +130,7 @@ export const useManageBreakdown = () => {
   const createBreakdown = async breakdownData => {
     actionLoading.value = true
     clearFormErrors()
+    console.log(breakdownData)
 
     try {
       const { data: response, error: apiError } = await useApi('/breakdowns')
