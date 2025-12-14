@@ -65,9 +65,11 @@ import pages1 from '@images/pages/1.png'
         Centralized control for dashboard configuration and customization.
       </VCardText>
       <VCardActions>
-        <VBtn>
-          Manage
-        </VBtn>
+        <RouterLink to="system-settings/dashboard-settings">
+          <VBtn>
+            Manage
+          </VBtn>
+        </RouterLink>
       </VCardActions>
     </VCard>
   </VCol>

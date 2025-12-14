@@ -269,6 +269,7 @@ declare global {
   const useManageReportDocumentTemplate: typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']
   const useManageRole: typeof import('./src/composables/useManageRole.js')['useManageRole']
   const useManageSmtpServer: typeof import('./src/composables/useManageSmtpServer.js')['useManageSmtpServer']
+  const useManageSystemSetting: typeof import('./src/composables/useManageSystemSetting.js')['useManageSystemSetting']
   const useManageUser: typeof import('./src/composables/useManageUser.js')['useManageUser']
   const useManualRefHistory: typeof import('@vueuse/core')['useManualRefHistory']
   const useMath: typeof import('@vueuse/math')['useMath']
@@ -653,6 +654,7 @@ declare module 'vue' {
     readonly useManageReportDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>
     readonly useManageSmtpServer: UnwrapRef<typeof import('./src/composables/useManageSmtpServer.js')['useManageSmtpServer']>
+    readonly useManageSystemSetting: UnwrapRef<typeof import('./src/composables/useManageSystemSetting.js')['useManageSystemSetting']>
     readonly useManageUser: UnwrapRef<typeof import('./src/composables/useManageUser.js')['useManageUser']>
     readonly useManualRefHistory: UnwrapRef<typeof import('@vueuse/core')['useManualRefHistory']>
     readonly useMath: UnwrapRef<typeof import('@vueuse/math')['useMath']>

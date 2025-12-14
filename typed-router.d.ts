@@ -20,7 +20,6 @@ declare module 'vue-router/auto-routes' {
   export interface RouteNamedMap {
     'root': RouteRecordInfo<'root', '/', Record<never, never>, Record<never, never>>,
     '$error': RouteRecordInfo<'$error', '/:error(.*)', { error: ParamValue<true> }, { error: ParamValue<false> }>,
-    'app-settings': RouteRecordInfo<'app-settings', '/app-settings', Record<never, never>, Record<never, never>>,
     'audit-logs': RouteRecordInfo<'audit-logs', '/audit-logs', Record<never, never>, Record<never, never>>,
     'breakdowns': RouteRecordInfo<'breakdowns', '/breakdowns', Record<never, never>, Record<never, never>>,
     'breakdowns-manage-id': RouteRecordInfo<'breakdowns-manage-id', '/breakdowns/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
@@ -44,6 +43,8 @@ declare module 'vue-router/auto-routes' {
     'protocol-configurations': RouteRecordInfo<'protocol-configurations', '/protocol-configurations', Record<never, never>, Record<never, never>>,
     'report-document-templates': RouteRecordInfo<'report-document-templates', '/report-document-templates', Record<never, never>, Record<never, never>>,
     'smtp-server': RouteRecordInfo<'smtp-server', '/smtp-server', Record<never, never>, Record<never, never>>,
+    'system-settings': RouteRecordInfo<'system-settings', '/system-settings', Record<never, never>, Record<never, never>>,
+    'system-settings-dashboard-settings': RouteRecordInfo<'system-settings-dashboard-settings', '/system-settings/dashboard-settings', Record<never, never>, Record<never, never>>,
     'users': RouteRecordInfo<'users', '/users', Record<never, never>, Record<never, never>>,
     'users-profile': RouteRecordInfo<'users-profile', '/users/profile', Record<never, never>, Record<never, never>>,
   }

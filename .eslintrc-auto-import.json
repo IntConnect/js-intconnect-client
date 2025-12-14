@@ -394,6 +394,7 @@
     "useManageChecksheetDocumentTemplate": true,
     "useManageCheckSheetDocumentTemplate": true,
     "getFileName": true,
-    "stripHtml": true
+    "stripHtml": true,
+    "useManageSystemSetting": true
   }
 }

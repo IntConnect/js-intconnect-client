@@ -141,9 +141,9 @@ export default [
     ],
   },
   {
-    title: 'App Settings',
+    title: 'System Settings',
     icon: { icon: 'tabler-settings-spark' },
-    to: { name: 'app-settings' },
+    to: { name: 'system-settings' },
   },
 
 ]

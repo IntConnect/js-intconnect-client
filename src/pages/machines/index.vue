@@ -47,7 +47,6 @@ const TABLE_HEADERS = [
 const searchQuery = ref("")
 const sortBy = ref("id")
 const sortOrder = ref("asc")
-const currentStep = ref(0)
 
 
 // --- UI States

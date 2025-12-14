@@ -5,6 +5,23 @@ import LoadChillerWidget from "@/components/dashboard/LoadChillerWidget.vue"
 import CoefficientOfPerformance from "@/components/dashboard/CoefficientOfPerformance.vue"
 import PowerChart from "@/components/dashboard/PowerChart.vue"
 import ProductionChart from "@/components/dashboard/ProductionChart.vue"
+
+const {
+  systemSetting,
+  fetchSystemSetting,
+} = useManageSystemSetting()
+
+
+const modelConfigurationReady = computed(() => {
+
+  return Boolean(systemSetting.value)
+})
+
+onMounted(async () => {
+  let dashboardSettings = await fetchSystemSetting("DASHBOARD_SETTINGS")
+  await nextTick()
+  console.log(systemSetting.value.entry.value)
+})
 </script>
 
 <template>
@@ -29,7 +46,7 @@ import ProductionChart from "@/components/dashboard/ProductionChart.vue"
         lg="6"
         md="6"
       >
-        <AnalyticsEarningReportsWeeklyOverview />
+        <RealtimeStats />
       </VCol>
     </VRow>
     <VRow class="match-height">
@@ -39,7 +56,11 @@ import ProductionChart from "@/components/dashboard/ProductionChart.vue"
         lg="8"
         md="8"
       >
-        <ThreeViewer class="flex-grow-1" />
+        <ThreeViewer
+          v-if="modelConfigurationReady"
+          :model-configuration="systemSetting"
+          class="flex-grow-1"
+        />
       </VCol>
       <VCol
         cols="12"
@@ -133,9 +154,7 @@ import ProductionChart from "@/components/dashboard/ProductionChart.vue"
                 cols="12"
                 lg="8"
                 md="8"
-              >
-                <ApexChartAreaChart />
-              </VCol>
+              />
 
               <VCol
                 class="d-flex align-center justify-center h-100 mt-15"
