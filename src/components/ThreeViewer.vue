@@ -1,114 +1,262 @@
 <script setup>
 import * as THREE from 'three'
-import { onMounted, ref, nextTick } from 'vue'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import * as ThreeMeshUI from 'three-mesh-ui'
-import buildingModel from '@/assets/models/building.glb'
+import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
+/* =========================
+   PROPS
+========================= */
 const props = defineProps({
-  modelConfiguration: {
-    type: Object,
-    required: false,
-    default: () => {
-    },
-  },
+  modelConfiguration: Object,
+  facilities: Object,
 })
 
+let markerTemplate = null
+let markerWorldQuaternion = null
+const raycaster = new THREE.Raycaster()
+const mouse = new THREE.Vector2()
+
+/* =========================
+   REFS
+========================= */
+const wrapperRef = ref(null)
+const canvasRef = ref(null)
+
+/* =========================
+   THREE STATE
+========================= */
+let scene, camera, renderer, controls, model
+let facilityGroup = null
+let animationId = null
+
+/* =========================
+   WATCHERS
+========================= */
 watch(
   () => props.modelConfiguration,
-  async config => {
-    if (!config || !config.entry) return
-
+  async cfg => {
+    if (!cfg?.entry) return
     await nextTick()
-    initScene(config)
+    initScene(cfg.entry.value)
   },
   { immediate: true },
 )
 
+watch(
+  () => props.facilities,
+  facilities => {
+    if (!facilityGroup || !facilities?.entries) return
+    renderFacilities(facilities.entries)
+  },
+  { deep: true },
+)
 
-const wrapperRef = ref(null)
-const canvasRef = ref(null)
-
-let scene, camera, renderer, controls, model
-const labels = []
-
+/* =========================
+   INIT SCENE
+========================= */
 function initScene(config) {
-  if (!wrapperRef.value || !canvasRef.value) return
-
-  // CLEANUP (hot reload safe)
-  if (renderer) {
-    renderer.dispose()
-    renderer = null
-  }
+  destroyScene()
 
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xffffff)
+  scene.background = new THREE.Color(0xf2f2f2)
 
   const width = wrapperRef.value.clientWidth
-  const height = wrapperRef.value.clientHeight
+  const height = wrapperRef.value.clientHeight || 400 // 🔴 FIX UTAMA
 
-  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.set(
-    Number(config.entry.value.camera_x),
-    Number(config.entry.value.camera_y),
-    Number(config.entry.value.camera_z),
-  )
+  console.log('SCENE SIZE:', width, height)
+
+  camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000)
+  camera.position.set(0, 50, 120)
 
   renderer = new THREE.WebGLRenderer({
     canvas: canvasRef.value,
     antialias: true,
   })
-
   renderer.setSize(width, height)
   renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.domElement.addEventListener('click', onCanvasClick)
+  renderer.domElement.addEventListener('mousemove', onMouseMove)
 
-  scene.add(new THREE.AmbientLight(0xffffff, 1))
+  /* LIGHT */
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6))
+
+  const dir = new THREE.DirectionalLight(0xffffff, 1)
+
+  dir.position.set(50, 100, 50)
+  scene.add(dir)
+
+  /* DEBUG AXIS */
 
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
-  loadModel(config.entry.value.model_path)
+  controls.target.set(0, 0, 0)
+
+  /* FACILITY GROUP */
+  facilityGroup = new THREE.Group()
+  scene.add(facilityGroup)
+
+  loadModel(config.model_path)
   animate()
 }
 
-function animate() {
-  requestAnimationFrame(animate)
+/* =========================
+   LOAD MODEL
+========================= */
+function loadModel(path, pinObjectName) {
+  if (!path) return
 
-  if (controls) controls.update()
-  if (renderer && scene && camera) {
-    ThreeMeshUI.update()
-    renderer.render(scene, camera)
+  new GLTFLoader().load(useStaticFile(path), gltf => {
+    model = gltf.scene
+
+    const box = new THREE.Box3().setFromObject(model)
+    const center = box.getCenter(new THREE.Vector3())
+    const size = box.getSize(new THREE.Vector3())
+
+    model.position.sub(center)
+
+    /* 🔴 AMBIL MARKER TEMPLATE */
+    markerTemplate = model.getObjectByName('Mesh')
+
+
+    if (markerTemplate) {
+      model.updateMatrixWorld(true)
+
+      markerWorldQuaternion = new THREE.Quaternion()
+      markerTemplate.getWorldQuaternion(markerWorldQuaternion)
+
+      markerTemplate.visible = false
+      markerTemplate.parent.remove(markerTemplate)
+    }
+
+    scene.add(model)
+
+    /* AUTO FIT CAMERA */
+    const maxDim = Math.max(size.x, size.y, size.z)
+
+    camera.position.set(0, maxDim * 0.8, maxDim * 2)
+    controls.update()
+
+    /* render facilities if exist */
+    if (props.facilities?.entries) {
+      renderFacilities(props.facilities.entries)
+    }
+  })
+}
+
+/* =========================
+   FACILITIES
+========================= */
+function renderFacilities(entries) {
+  if (!markerTemplate || !markerWorldQuaternion) return
+
+  clearFacilities()
+
+  entries.forEach(facility => {
+    const marker = markerTemplate.clone(true)
+
+    marker.traverse(child => {
+      if (child.isMesh) {
+        child.material = child.material.clone()
+      }
+    })
+
+    /* 🔴 APPLY ROTASI ASLI */
+    marker.quaternion.copy(markerWorldQuaternion)
+
+    /* POSISI DARI DATABASE */
+    marker.position.set(
+      facility.position_x,
+      facility.position_y,
+      facility.position_z,
+    )
+    marker.userData.link = `/facilities/${facility.id}`
+
+    marker.visible = true
+    facilityGroup.add(marker)
+  })
+}
+
+function clearFacilities() {
+  while (facilityGroup.children.length) {
+    const obj = facilityGroup.children[0]
+
+    obj.traverse(child => {
+      if (child.isMesh) {
+        child.geometry?.dispose()
+        child.material?.dispose()
+      }
+    })
+
+    facilityGroup.remove(obj)
   }
 }
 
+/* =========================
+   LOOP
+========================= */
+function animate() {
+  animationId = requestAnimationFrame(animate)
 
-function loadModel(modelPath) {
-  if (!modelPath) return
+  raycaster.setFromCamera(mouse, camera)
 
-  const loader = new GLTFLoader()
-
-  loader.load(
-    "http://localhost:8080/api/public/uploads/system-settings/models/1765681869280599000-All%20Building.glb",
-    gltf => {
-      model = gltf.scene
-      model.updateMatrixWorld(true)
-
-      const box = new THREE.Box3().setFromObject(model)
-      const center = box.getCenter(new THREE.Vector3())
-
-      model.position.sub(center)
-      scene.add(model)
-
-      controls.target.set(0, 0, 0)
-      controls.update()
-
-    },
-    undefined,
-    err => {
-      console.error('GLTF LOAD FAILED:', err)
-    },
+  const intersects = raycaster.intersectObjects(
+    facilityGroup.children,
+    true,
   )
+
+  document.body.style.cursor = intersects.length
+    ? 'pointer'
+    : 'default'
+
+  controls?.update()
+  renderer?.render(scene, camera)
 }
+
+function onCanvasClick(event) {
+  const rect = renderer.domElement.getBoundingClientRect()
+
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+
+  raycaster.setFromCamera(mouse, camera)
+
+  const intersects = raycaster.intersectObjects(
+    facilityGroup.children,
+    true,
+  )
+
+  if (intersects.length === 0) return
+
+  const clicked = intersects[0].object
+  const link = clicked.userData?.link
+
+  if (link) {
+    window.location.href = link
+  }
+}
+
+function onMouseMove(event) {
+  const rect = renderer.domElement.getBoundingClientRect()
+
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+}
+
+/* =========================
+   CLEANUP
+========================= */
+function destroyScene() {
+  if (animationId) cancelAnimationFrame(animationId)
+
+  if (renderer?.domElement) {
+    renderer.domElement.removeEventListener('click', onCanvasClick)
+  }
+
+  renderer?.dispose()
+}
+
+onBeforeUnmount(destroyScene)
 </script>
 
 <template>

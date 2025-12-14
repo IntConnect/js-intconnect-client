@@ -129,10 +129,12 @@ function initThreePreview(config) {
   transformControls.addEventListener('objectChange', () => {
     if (!pinnedObject) return
 
-    const { x, y, z } = pinnedObject.position
-    positionX.value = Number(x.toFixed(4))
-    positionY.value = Number(y.toFixed(4))
-    positionZ.value = Number(z.toFixed(4))
+    const worldPos = new THREE.Vector3()
+    pinnedObject.getWorldPosition(worldPos)
+
+    positionX.value = Number(worldPos.x.toFixed(4))
+    positionY.value = Number(worldPos.y.toFixed(4))
+    positionZ.value = Number(worldPos.z.toFixed(4))
   })
   // Light
   scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
@@ -160,10 +162,10 @@ function initThreePreview(config) {
       transformControls.attach(pinnedObject)
 
       // restore saved position (jika ada)
-      pinnedObject.position.set(
-        positionX.value,
-        positionY.value,
-        positionZ.value,
+      pinnedObject.position.copy(
+        pinnedObject.parent.worldToLocal(
+          new THREE.Vector3(positionX.value, positionY.value, positionZ.value),
+        ),
       )
     }
   })

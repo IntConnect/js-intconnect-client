@@ -11,44 +11,28 @@ const {
   fetchSystemSetting,
 } = useManageSystemSetting()
 
+const {
+  facilities,
+  fetchFacilities,
+} = useManageFacility()
+
 
 const modelConfigurationReady = computed(() => {
-
-  return Boolean(systemSetting.value)
+  return Boolean(systemSetting.value) && Boolean(facilities.value)
 })
 
 onMounted(async () => {
-  let dashboardSettings = await fetchSystemSetting("DASHBOARD_SETTINGS")
+  fetchSystemSetting("DASHBOARD_SETTINGS")
+  await fetchFacilities()
   await nextTick()
+  console.log(facilities)
 })
 </script>
 
 <template>
   <div>
     <VRow class="match-height">
-      <VCol
-        cols="12"
-        md="3"
-        sm="3"
-      >
-        <LoadChillerWidget />
-      </VCol>
-      <VCol
-        cols="12"
-        md="3"
-        sm="3"
-      >
-        <EnergyConsumptionWidget />
-      </VCol>
-      <VCol
-        cols="12"
-        lg="6"
-        md="6"
-      >
-        <RealtimeStats />
-      </VCol>
-    </VRow>
-    <VRow class="match-height">
+      <!-- 3D Viewer -->
       <VCol
         class="d-flex"
         cols="8"
@@ -57,47 +41,76 @@ onMounted(async () => {
       >
         <ThreeViewer
           v-if="modelConfigurationReady"
+          :facilities="facilities"
           :model-configuration="systemSetting"
           class="flex-grow-1"
         />
       </VCol>
+
+      <!-- Widgets -->
       <VCol
-        cols="12"
+        cols="4"
         lg="4"
         md="4"
       >
         <VRow class="match-height">
           <VCol
-            cols="12"
-            lg="12"
-            md="12"
+            cols="6"
+            md="6"
+            sm="12"
           >
-            <VCard>
-              <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-                <VCardTitle>Power (kW/hr)</VCardTitle>
-              </VCardItem>
-
-              <VCardText>
-                <PowerChart />
-              </VCardText>
-            </VCard>
+            <LoadChillerWidget />
           </VCol>
-          <VCol
-            cols="12"
-            lg="12"
-            md="12"
-          >
-            <VCard>
-              <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-                <VCardTitle>Production (kW/hr)</VCardTitle>
-              </VCardItem>
 
-              <VCardText>
-                <ProductionChart />
-              </VCardText>
-            </VCard>
+          <VCol
+            cols="6"
+            md="6"
+            sm="12"
+          >
+            <EnergyConsumptionWidget />
           </VCol>
         </VRow>
+        <VRow class="match-height">
+          <VCol
+            cols="12"
+            md="12"
+            sm="12"
+          >
+            <RealtimeStats />
+          </VCol>
+        </VRow>
+      </VCol>
+    </VRow>
+    <VRow class="match-height">
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+      >
+        <VCard>
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Power (kW/hr)</VCardTitle>
+          </VCardItem>
+
+          <VCardText>
+            <PowerChart />
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+      >
+        <VCard>
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Production (kW/hr)</VCardTitle>
+          </VCardItem>
+
+          <VCardText>
+            <ProductionChart />
+          </VCardText>
+        </VCard>
       </VCol>
     </VRow>
 

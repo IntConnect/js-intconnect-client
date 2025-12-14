@@ -1,162 +1,101 @@
 <script setup>
-import { useTheme } from 'vuetify'
-import { hexToRgb } from '@layouts/utils'
-
-const vuetifyTheme = useTheme()
-
-const series = [{
-  data: [
-    40,
-    65,
-    50,
-    45,
-    90,
-    55,
-    70,
-  ],
-}]
-
-const chartOptions = computed(() => {
-  const currentTheme = vuetifyTheme.current.value.colors
-  const variableTheme = vuetifyTheme.current.value.variables
-
-  return {
-    chart: {
-      parentHeightOffset: 0,
-      type: 'bar',
-      toolbar: { show: false },
-    },
-    plotOptions: {
-      bar: {
-        barHeight: '60%',
-        columnWidth: '38%',
-        startingShape: 'rounded',
-        endingShape: 'rounded',
-        borderRadius: 4,
-        distributed: true,
-      },
-    },
-    grid: {
-      show: false,
-      padding: {
-        top: -30,
-        bottom: 0,
-        left: -10,
-        right: -10,
-      },
-    },
-    colors: [
-      `rgba(${hexToRgb(currentTheme.primary)},${variableTheme['dragged-opacity']})`,
-      `rgba(${hexToRgb(currentTheme.primary)},${variableTheme['dragged-opacity']})`,
-      `rgba(${hexToRgb(currentTheme.primary)},${variableTheme['dragged-opacity']})`,
-      `rgba(${hexToRgb(currentTheme.primary)},${variableTheme['dragged-opacity']})`,
-      `rgba(${hexToRgb(currentTheme.primary)}, 1)`,
-      `rgba(${hexToRgb(currentTheme.primary)},${variableTheme['dragged-opacity']})`,
-      `rgba(${hexToRgb(currentTheme.primary)},${variableTheme['dragged-opacity']})`,
-    ],
-    dataLabels: { enabled: false },
-    legend: { show: false },
-    xaxis: {
-      categories: [
-        'Mo',
-        'Tu',
-        'We',
-        'Th',
-        'Fr',
-        'Sa',
-        'Su',
-      ],
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: {
-        style: {
-          colors: `rgba(${hexToRgb(currentTheme['on-surface'])},${variableTheme['disabled-opacity']})`,
-          fontSize: '13px',
-          fontFamily: 'Public Sans',
-        },
-      },
-    },
-    yaxis: { labels: { show: false } },
-    tooltip: { enabled: false },
-    responsive: [{
-      breakpoint: 1025,
-      options: { chart: { height: 199 } },
-    }],
-  }
-})
-
-const earningsReports = [
-
+const sourceVisits = [
   {
-    color: 'primary',
-    icon: 'tabler-currency-dollar',
-    title: 'Earnings',
-    amount: '$545.69',
-    progress: '55',
+    avatarIcon: 'tabler-gauge',
+    title: 'Energy Efficiency',
+    subtitle: 'kW per TR',
+    stats: '0.456 kW/TR',
+    profitLoss: -0.344, // improvement from baseline
   },
   {
-    color: 'info',
-    icon: 'tabler-chart-pie-2',
-    title: 'Profit',
-    amount: '$256.34',
-    progress: '25',
+    avatarIcon: 'tabler-bolt',
+    title: 'Energy Consumption',
+    subtitle: 'Total Power Usage',
+    stats: '233,344 kWh',
+    profitLoss: -30234,
   },
   {
-    color: 'error',
-    icon: 'tabler-brand-paypal',
-    title: 'Expense',
-    amount: '$74.19',
-    progress: '65',
-  },
-]
-
-const moreList = [
-  {
-    title: 'View More',
-    value: 'View More',
+    avatarIcon: 'tabler-snowflake',
+    title: 'Cooling Load',
+    subtitle: 'Total TR-Hours',
+    stats: '520,610 TR-hr',
+    profitLoss: 175922, // increased load
   },
   {
-    title: 'Delete',
-    value: 'Delete',
+    avatarIcon: 'tabler-currency-dollar',
+    title: 'Cost Savings',
+    subtitle: 'Operational Savings',
+    stats: '$25,668',
+    profitLoss: 3312,
+  },
+  {
+    avatarIcon: 'tabler-leaf',
+    title: 'CO₂ Reduction',
+    subtitle: 'Carbon Emission Saved',
+    stats: '24 tons',
+    profitLoss: 0,
   },
 ]
 </script>
 
 <template>
   <VCard>
-    <VCardText>
-      <div class="border rounded  pa-5">
-        <VRow>
-          <VCol
-            v-for="report in earningsReports"
-            :key="report.title"
-            cols="12"
-            sm="4"
-          >
-            <div class="d-flex align-center">
-              <VAvatar
-                :color="report.color"
-                class="me-2"
-                rounded
-                size="26"
-                variant="tonal"
-              >
-                <VIcon
-                  :icon="report.icon"
-                  size="18"
-                />
-              </VAvatar>
+    <VCardItem>
+      <VCardTitle>Realtime Stats</VCardTitle>
+      <VCardSubtitle />
+    </VCardItem>
 
-              <h6 class="text-base font-weight-regular">
-                {{ report.title }}
-              </h6>
+    <VCardText>
+      <VList class="card-list">
+        <VListItem
+          v-for="visit in sourceVisits"
+          :key="visit.title"
+        >
+          <template #prepend>
+            <VAvatar
+              class="me-1"
+              color="secondary"
+              rounded
+              size="38"
+              variant="tonal"
+            >
+              <VIcon
+                :icon="visit.avatarIcon"
+                size="22"
+              />
+            </VAvatar>
+          </template>
+
+          <VListItemTitle class="font-weight-medium me-4">
+            {{ visit.title }}
+          </VListItemTitle>
+          <VListItemSubtitle class="me-4">
+            {{ visit.subtitle }}
+          </VListItemSubtitle>
+
+          <template #append>
+            <div class="d-flex align-center gap-x-4">
+              <div class="text-body-1">
+                {{ visit.stats }}
+              </div>
+              <VChip
+                :color="visit.profitLoss > 0 ? 'success' : 'error'"
+                label
+                size="small"
+              >
+                {{ visit.profitLoss > 0 ? '+' : '' }}
+                {{ visit.profitLoss }}%
+              </VChip>
             </div>
-            <h6 class="text-h4 mt-2">
-              {{ report.amount }}
-            </h6>
-          </VCol>
-        </VRow>
-      </div>
+          </template>
+        </VListItem>
+      </VList>
     </VCardText>
   </VCard>
 </template>
+
+<style lang="scss" scoped>
+.card-list {
+  --v-card-list-gap: 16px;
+}
+</style>
