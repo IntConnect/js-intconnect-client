@@ -166,7 +166,9 @@ onMounted(async () => {
                 cols="12"
                 lg="8"
                 md="8"
-              />
+              >
+                <EnergyLineChart />
+              </VCol>
 
               <VCol
                 class="d-flex align-center justify-center h-100 mt-15"

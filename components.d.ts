@@ -62,6 +62,7 @@ declare module 'vue' {
     EcommerceExpensesRadialBarCharts: typeof import('./src/components/dashboard/EcommerceExpensesRadialBarCharts.vue')['default']
     EnableOneTimePasswordDialog: typeof import('./src/components/dialogs-demo/EnableOneTimePasswordDialog.vue')['default']
     EnergyConsumptionWidget: typeof import('./src/components/dashboard/EnergyConsumptionWidget.vue')['default']
+    EnergyLineChart: typeof import('./src/components/dashboard/EnergyLineChart.vue')['default']
     ErrorHeader: typeof import('./src/components/ErrorHeader.vue')['default']
     GeneralAlert: typeof import('./src/components/general/GeneralAlert.vue')['default']
     HourlyEnergyConsumptionTrendDiagramChart: typeof import('./src/components/dashboard/HourlyEnergyConsumptionTrendDiagramChart.vue')['default']
