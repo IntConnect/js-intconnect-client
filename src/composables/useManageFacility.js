@@ -6,6 +6,7 @@ export const useManageFacility = () => {
   // State
   // --------------------
   const facilities = ref([])
+  const facility = ref({})
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -79,6 +80,33 @@ export const useManageFacility = () => {
       actionLoading.value = false
     }
   }
+
+  const fetchFacility = async facilityId => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/facilities/${facilityId}`, {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+
+      facility.value = response.value
+
+      return {
+        success: true,
+      }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
 
   const createFacility = async facilityData => {
     actionLoading.value = true
@@ -193,6 +221,7 @@ export const useManageFacility = () => {
 
   return {
     facilities,
+    facility,
     totalItems,
     currentPage,
     pageSize,
@@ -203,6 +232,7 @@ export const useManageFacility = () => {
 
     fetchFacilitiesPagination,
     fetchFacilities,
+    fetchFacility,
     createFacility,
     updateFacility,
     deleteFacility,

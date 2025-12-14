@@ -5,7 +5,7 @@ import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { format } from "date-fns"
-import { useManageFacility } from "@/composables/useManageFacility"
+import { useManageFacility } from "@/composables/useManageFacility.js"
 import AlertDialog from "@/components/general/AlertDialog.vue"
 
 // ==========================================
@@ -74,32 +74,6 @@ const loadFacilities = async () => {
   })
 }
 
-/**
- * Open drawer for adding new facilitie
- */
-const openManageFacilityDrawer = () => {
-  selectedFacility.value = null
-  clearFormErrors()
-  isManageFacilityVisible.value = true
-}
-
-/**
- * Close add/edit drawer
- */
-const closeManageFacilityDrawer = () => {
-  isManageFacilityVisible.value = false
-  selectedFacility.value = null
-  clearFormErrors()
-}
-
-/**
- * Open drawer for editing facilities
- */
-const handleEdit = facility => {
-  selectedFacility.value = { ...facility }
-  clearFormErrors()
-  isManageFacilityVisible.value = true
-}
 
 /**
  * Open delete confirmation dialog
@@ -117,24 +91,6 @@ const closeDeleteDialog = () => {
   selectedFacility.value = null
 }
 
-/**
- * Handle save facility (create or update)
- */
-const handleSaveFacility = async facilityData => {
-
-  const result = await saveFacility(facilityData)
-
-  if (result.success) {
-    closeManageFacilityDrawer()
-    await nextTick()
-
-    showAlertDialog.value = true
-    alertBody.value = "Data has been managed successfully."
-
-  } else {
-    console.error('Failed to save facilities:', result.error || result.errors)
-  }
-}
 
 /**
  * Handle delete facilities
@@ -210,17 +166,15 @@ onMounted(() => {
             placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-          <VBtn
-            :loading="actionLoading"
-            color="primary"
-            @click="openManageFacilityDrawer"
-          >
-            New Facility
-          </VBtn>
+          <RouterLink :to="{ name: 'facilities-manage-id', params: { id: 'new' } }">
+            <VBtn color="primary">
+              New Facility
+            </VBtn>
+          </RouterLink>
         </div>
       </VCardText>
 
-      <VDivider/>
+      <VDivider />
 
       <!-- Error Alert -->
       <VAlert
@@ -332,16 +286,6 @@ onMounted(() => {
       message="Please provide a reason for deletion"
       title="Delete Facility"
       @submit="handleDeleteFacility"
-    />
-
-    <!-- Add/Edit Facility Drawer -->
-    <ManageFacilityDrawer
-      v-model:is-drawer-open="isManageFacilityVisible"
-      :facility-data="selectedFacility"
-      :form-errors="formErrors"
-      :loading="actionLoading"
-      @close="closeManageFacilityDrawer"
-      @facility-data="handleSaveFacility"
     />
   </section>
   <AlertDialog

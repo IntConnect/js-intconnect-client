@@ -14,6 +14,11 @@ const {
   saveSystemSetting,
 } = useManageSystemSetting()
 
+const pinMode = ref(false)
+const selectedPinObject = ref(null)
+let lastPinnedObject = null
+
+
 /* =========================
    FORM STATE (PERSISTED)
 ========================= */
@@ -23,12 +28,11 @@ const localForm = reactive({
   description: '',
   model: null,
   modelUrl: null,
-
+  pinObjectName: "",
   camera: {
     x: 2,
     y: 1.5,
     z: 3,
-    zoom: 1,
   },
 })
 
@@ -96,7 +100,6 @@ function initThreePreview() {
     localForm.camera.y,
     localForm.camera.z,
   )
-  camera.zoom = localForm.camera.zoom
   camera.updateProjectionMatrix()
 
   // Controls
@@ -125,7 +128,69 @@ function initThreePreview() {
     scene.add(model)
   })
 
+  const raycaster = new THREE.Raycaster()
+  const mouse = new THREE.Vector2()
+
+  function onCanvasClick(event) {
+    if (!pinMode.value || !scene || !camera) return
+
+    const rect = renderer.domElement.getBoundingClientRect()
+
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+
+    raycaster.setFromCamera(mouse, camera)
+
+    const intersects = raycaster.intersectObjects(scene.children, true)
+    if (!intersects.length) return
+
+    const object = intersects[0].object
+
+    markAsPin(object)
+  }
+
+  renderer.domElement.addEventListener('click', onCanvasClick)
+
+
   animate()
+}
+
+function restoreObjectMaterial(object) {
+  const original = object.userData.__originalEmissive
+  if (object.material?.emissive && original) {
+    object.material.emissive.copy(original)
+  }
+}
+
+function markAsPin(object) {
+  // === RESTORE PIN SEBELUMNYA ===
+  if (lastPinnedObject) {
+    restoreObjectMaterial(lastPinnedObject)
+    lastPinnedObject.userData.isPin = false
+  }
+
+  // === SIMPAN STATE MATERIAL AWAL (sekali saja) ===
+  if (!object.userData.__originalEmissive) {
+    object.userData.__originalEmissive = object.material?.emissive
+      ? object.material.emissive.clone()
+      : null
+  }
+
+  // === SET PIN BARU ===
+  object.userData.isPin = true
+  selectedPinObject.value = object
+  localForm.pinObjectName = object.name
+  pinMode.value = false
+
+  if (object.material?.emissive) {
+    object.material.emissive.setHex(0xff0000)
+  }
+
+  lastPinnedObject = object
+
+  console.log('PIN OBJECT:', {
+    name: object.name,
+  })
 }
 
 function animate() {
@@ -141,7 +206,6 @@ function syncCameraState() {
   localForm.camera.x = Number(camera.position.x.toFixed(4))
   localForm.camera.y = Number(camera.position.y.toFixed(4))
   localForm.camera.z = Number(camera.position.z.toFixed(4))
-  localForm.camera.zoom = Number(camera.zoom.toFixed(4))
 }
 
 function destroyPreview() {
@@ -170,6 +234,7 @@ const onSubmit = async () => {
       camera_y: localForm.camera.y,
       camera_z: localForm.camera.z,
       model: localForm.model?.[0]?.file || null,
+      pin_object_name: localForm.pinObjectName,
     },
   }
 
@@ -279,16 +344,24 @@ const onSubmit = async () => {
               </VCol>
               <VCol cols="3">
                 <AppTextField
-                  :model-value="localForm.camera.zoom"
+                  :model-value="localForm.pinObjectName"
                   disabled
-                  label="Zoom"
+                  label="Selected Pin Object"
                 />
               </VCol>
             </VRow>
           </VCol>
         </VRow>
 
-        <div class="d-flex justify-end mt-6">
+        <div class="d-flex justify-end mt-6 gap-4">
+          <VBtn
+            color="primary"
+            variant="outlined"
+            @click="pinMode = !pinMode"
+          >
+            {{ pinMode ? 'Cancel Pin Selection' : 'Select Pin Object' }}
+          </VBtn>
+
           <VBtn
             color="success"
             @click="onSubmit"

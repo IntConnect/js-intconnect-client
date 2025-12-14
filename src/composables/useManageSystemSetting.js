@@ -74,6 +74,9 @@ export const useManageSystemSetting = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
       systemSettings.value = response.value
+      return {
+        success: true,
+      }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -117,18 +120,6 @@ export const useManageSystemSetting = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-
-
-      applyPaginationResponse(
-        {
-          entries: systemSettings,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
 
       return { success: true }
     } catch (_) {
