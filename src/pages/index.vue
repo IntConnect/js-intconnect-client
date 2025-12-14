@@ -16,6 +16,12 @@ const {
   fetchFacilities,
 } = useManageFacility()
 
+const selectedMachineIds = ref([])
+const selectedParameterIds = ref([])
+const parameterId = ref([])
+const interval = ref(0)
+const formErrors = ref({})
+
 
 const modelConfigurationReady = computed(() => {
   return Boolean(systemSetting.value) && Boolean(facilities.value)
@@ -148,7 +154,6 @@ onMounted(async () => {
           </VCardText>
         </VCard>
       </VCol>
-
       <VCol
         cols="12"
         lg="8"
@@ -179,6 +184,158 @@ onMounted(async () => {
                 <CoefficientOfPerformance />
               </VCol>
             </VRow>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+    <VRow>
+      <VCol
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <VCard class="fill-height">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Filter Machine & Parameter</VCardTitle>
+            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
+          </VCardItem>
+
+          <VCardText>
+            <VRow class="h-100">
+              <VCol
+                class="d-flex flex-row gap-4 align-end"
+                cols="12"
+                lg="12"
+                md="12"
+              >
+                <AppSelect
+                  v-model="selectedMachineIds"
+                  :error="!!formErrors.selected_machine_ids"
+                  :error-messages="formErrors.selected_machine_ids || []"
+                  :items="[]"
+                  :rules="[requiredValidator]"
+                  label="Machine"
+                  placeholder="Select machine"
+                />
+                <AppSelect
+                  v-model="selectedParameterIds"
+                  :error="!!formErrors.selected_parameter_ids"
+                  :error-messages="formErrors.selected_parameter_ids || []"
+                  :items="[]"
+                  :rules="[requiredValidator]"
+                  label="Parameter"
+                  placeholder="Select parameter"
+                />
+                <AppTextField
+                  v-model="interval"
+                  label="Interval (Minutes)"
+                  placeholder="60"
+                />
+                <VBtn
+                  color="error"
+                  type="submit"
+                >
+                  Stop
+                </VBtn>
+                <VBtn type="submit">
+                  Submit
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+    <VRow class="match-height">
+      <VCol
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <VCard class="fill-height">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Realtime Chart</VCardTitle>
+            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
+          </VCardItem>
+
+          <VCardText>
+            <VRow class="h-100">
+              <VCol
+                cols="12"
+                lg="12"
+                md="12"
+              >
+                <EnergyLineChart />
+              </VCol>
+            </VRow>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+    <VRow class="match-height">
+      <VCol
+        class="d-flex"
+        cols="6"
+        lg="6"
+        md="6"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Monthly Average (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+                  color="success"
+                  label
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+              </div>
+            </template>
+          </VCardItem>
+
+          <VCardText>
+            <SystemEfficiencyChart />
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol
+        class="d-flex"
+        cols="6"
+        lg="6"
+        md="6"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Weekly Average (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+                  color="success"
+                  label
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+              </div>
+            </template>
+          </VCardItem>
+
+          <VCardText>
+            <SystemEfficiencyChart />
           </VCardText>
         </VCard>
       </VCol>
