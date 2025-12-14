@@ -53,7 +53,6 @@ export const useManageSystemSetting = () => {
         },
         response.value,
       )
-      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -93,7 +92,6 @@ export const useManageSystemSetting = () => {
         .get()
         .json()
 
-      console.log(response)
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result

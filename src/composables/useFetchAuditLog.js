@@ -35,7 +35,6 @@ export const useFetchAuditLog = () => {
         .get()
         .json()
 
-      console.log(response)
 
       const result = handleApiError(apiError, { errorMessage })
       if (!result.success) return result
@@ -50,7 +49,6 @@ export const useFetchAuditLog = () => {
         },
         response.value,
       )
-      console.log(response.value)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {

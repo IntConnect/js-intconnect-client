@@ -105,7 +105,6 @@ const onSubmit = async () => {
     payload.append('avatar', formData.value.avatar)
 
   await updateProfile(payload)
-  console.log(formErrors)
 }
 
 const resetForm = () => {

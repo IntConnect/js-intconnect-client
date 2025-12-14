@@ -20,7 +20,6 @@ const modelConfigurationReady = computed(() => {
 onMounted(async () => {
   let dashboardSettings = await fetchSystemSetting("DASHBOARD_SETTINGS")
   await nextTick()
-  console.log(systemSetting.value.entry.value)
 })
 </script>
 

@@ -122,7 +122,6 @@ const handleSaveReportDocumentTemplate = async reportDocumentTemplateData => {
 
   const result = await saveReportDocumentTemplate(reportDocumentTemplateData)
 
-  console.log(reportDocumentTemplateData)
   if (result.success) {
     closeManageReportDocumentTemplateDrawer()
     await nextTick()

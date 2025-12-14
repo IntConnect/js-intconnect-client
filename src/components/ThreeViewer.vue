@@ -18,7 +18,6 @@ const props = defineProps({
 watch(
   () => props.modelConfiguration,
   async config => {
-    console.log(config)
     if (!config || !config.entry) return
 
     await nextTick()
@@ -88,7 +87,6 @@ function loadModel(modelPath) {
 
   const loader = new GLTFLoader()
 
-  console.log(useStaticFile(modelPath))
   loader.load(
     "http://localhost:8080/api/public/uploads/system-settings/models/1765681869280599000-All%20Building.glb",
     gltf => {
@@ -100,7 +98,6 @@ function loadModel(modelPath) {
 
       model.position.sub(center)
       scene.add(model)
-      console.log('Scene objects:', scene.children)
 
       controls.target.set(0, 0, 0)
       controls.update()

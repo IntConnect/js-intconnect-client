@@ -103,7 +103,6 @@ export const useManageRole = () => {
   const updateRole = async (roleId, roleData) => {
     actionLoading.value = true
     clearFormErrors()
-    console.log(roleData)
     try {
       const { data: response, error: apiError } = await useApi(`/roles/${roleId}`)
         .put(roleData)
@@ -144,7 +143,6 @@ export const useManageRole = () => {
   }
 
   const saveRole = async roleData => {
-    console.log(roleData)
     if (roleData.id) {
       const { id, ...payload } = roleData
 

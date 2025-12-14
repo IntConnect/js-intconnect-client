@@ -54,7 +54,6 @@ export const useManageParameter = () => {
         },
         response.value,
       )
-      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -100,11 +99,9 @@ export const useManageParameter = () => {
         .get()
         .json()
 
-      console.log(response)
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
 
-      console.log(result)
       if (!result.success) return result
       parameter.value = response.value
 

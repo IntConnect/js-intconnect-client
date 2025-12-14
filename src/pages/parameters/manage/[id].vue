@@ -77,6 +77,7 @@ const numberedSteps = [
 const buttonModelColor = computed(() => {
   return isModelClickable.value ? "warning" : "info"
 })
+
 const buttonModelText = computed(() => {
   return isModelClickable.value ? "Click Again to Off Set Position" : "Click on 3D Model to Set Position"
 })
@@ -109,7 +110,6 @@ onMounted(async () => {
   }))
   if (result.success) {
     let processedParameter = parameter.value.entry
-    console.log(processedParameter)
     id.value = processedParameter.id
     name.value = processedParameter.name
     machineId.value = processedParameter.machine_id
@@ -139,6 +139,7 @@ const removeMarker = marker => {
 
   while (marker.children.length > 0) {
     const child = marker.children[0]
+
     marker.remove(child)
     if (child.geometry) child.geometry.dispose()
     if (child.material) {
@@ -194,7 +195,7 @@ const createMarker = (parameterName, parameterValue, position) => {
 // ----------------------------------------
 // Update marker position
 // ----------------------------------------
-const updateMarkerPosition = (value) => {
+const updateMarkerPosition = value => {
   if (parameterMarker) {
     parameterMarker.position.set(
       positionX.value,
@@ -232,6 +233,7 @@ const setPositionFromClick = () => {
     bodyAlert.value = 'Fill Name and Parameter First!'
     titleAlert.value = "Invalid Input"
     alertType.value = 'error'
+    
     return
   }
   isModelClickable.value = !isModelClickable.value
@@ -263,13 +265,16 @@ const setPositionFromClick = () => {
       positionX.value = point.x
       positionY.value = point.y
       positionZ.value = point.z
+
       const hit = intersects[0]
 
       const normal = hit.face.normal.clone()
+
       normal.transformDirection(hit.object.matrixWorld)  // convert ke world normal
 
       // Convert normal ke rotasi (Euler)
       const rotation = new THREE.Euler()
+
       rotation.setFromVector3(normal)
 
       // Set ke form (dalam radian)
@@ -352,6 +357,7 @@ const initialModel = async () => {
   scene.add(new THREE.AmbientLight(0xffffff, 0.8))
 
   const dirLight = new THREE.DirectionalLight(0xffffff, 0.4)
+
   dirLight.position.set(50, 100, 50)
   scene.add(dirLight)
 
@@ -367,6 +373,8 @@ const initialModel = async () => {
   if (modelPath.value) {
     loadDynamicModel()
   }
+
+
   // ----------------------------------------
   // ANIMATE
   // ----------------------------------------
@@ -413,12 +421,12 @@ const initialModel = async () => {
     renderer.setSize(w, h)
   })
 
-  console.log(scene)
 }
 
 const id = ref('')
 const route = useRoute()
 const router = useRouter()
+
 id.value = route.params.id
 
 const onSubmit = () => {
@@ -480,7 +488,6 @@ watch(machineId, async value => {
 
   await fetchMachine(value)
   await nextTick()
-  console.log(machine)
   modelPath.value = machine.value.entry.model_path
 
   // Reload 3D model
@@ -490,6 +497,7 @@ watch(machineId, async value => {
 const loadDynamicModel = () => {
   if (!scene) {
     console.warn("Scene belum siap untuk load model")
+    
     return
   }
 
@@ -516,6 +524,7 @@ const loadDynamicModel = () => {
 
     const box = new THREE.Box3().setFromObject(model)
     const center = box.getCenter(new THREE.Vector3())
+
     model.position.sub(center)
 
     scene.add(model)
@@ -527,7 +536,6 @@ watch([modelPath, () => scene], async () => {
     loadDynamicModel()
   }
 })
-
 </script>
 
 <template>
@@ -554,15 +562,15 @@ watch([modelPath, () => scene], async () => {
     <VCol cols="12">
       <VCard>
         <VCardText>
-          <VForm ref="refForm"
-                 lazy-validation
-                 @submit.prevent="onSubmit"
+          <VForm
+            ref="refForm"
+            lazy-validation
+            @submit.prevent="onSubmit"
           >
             <VWindow
               v-model="currentStep"
               class="disable-tab-transition"
             >
-
               <VWindowItem>
                 <VCol>
                   <VCol cols="12">
@@ -681,14 +689,14 @@ watch([modelPath, () => scene], async () => {
                       :label="isAutomatic ? `Automatic` : `Manual`"
                     />
                   </VCol>
-
-
                 </VCol>
-
               </VWindowItem>
               <VWindowItem>
                 <VRow>
-                  <VCol class="h-100" cols="8">
+                  <VCol
+                    class="h-100"
+                    cols="8"
+                  >
                     <div
                       ref="wrapperRef"
                       class="three-wrapper rounded-lg grow"
@@ -698,7 +706,6 @@ watch([modelPath, () => scene], async () => {
                         class="rounded-lg"
                       />
                     </div>
-
                   </VCol>
                   <VCol cols="4">
                     <!-- Position -->
@@ -712,7 +719,9 @@ watch([modelPath, () => scene], async () => {
                       </VBtn>
                     </VCol>
                     <VCol cols="12">
-                      <h4 class="mt-1 mb-1">Position</h4>
+                      <h4 class="mt-1 mb-1">
+                        Position
+                      </h4>
                     </VCol>
 
 
@@ -740,10 +749,12 @@ watch([modelPath, () => scene], async () => {
                         @update:model-value="val => updateMarkerPosition(Number(val))"
                       />
                     </VCol>
-                    <VDivider class="my-2"/>
+                    <VDivider class="my-2" />
                     <!-- Rotation -->
                     <VCol cols="12">
-                      <h4 class="mt-1 mb-1">Rotation</h4>
+                      <h4 class="mt-1 mb-1">
+                        Rotation
+                      </h4>
                     </VCol>
                     <VCol cols="12">
                       <AppTextField
@@ -813,8 +824,7 @@ watch([modelPath, () => scene], async () => {
     :is-dialog-visible="isAlertDialogVisible"
     :title-alert="titleAlert"
     :type="alertType"
-    @update:isDialogVisible="isAlertDialogVisible = $event"
-
+    @update:is-dialog-visible="isAlertDialogVisible = $event"
   />
 </template>
 

@@ -41,7 +41,6 @@ const processedParameters = ref([])
 onMounted(async () => {
   await fetchParameters()
   await nextTick()
-  console.log(parameters)
   processedParameters.value = parameters.value.entries.map(parameter => ({
     title: parameter.code,
     value: parameter.id,

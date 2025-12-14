@@ -137,7 +137,6 @@ const handleSaveModbusServer = async modbusServerData => {
  * Handle delete modbusServer
  */
 const handleDeleteModbusServer = async formData => {
-  console.log(formData)
   if (!selectedModbusServer.value?.id) {
     console.warn('No Modbus Server selected for deletion')
 

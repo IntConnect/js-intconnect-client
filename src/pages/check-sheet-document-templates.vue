@@ -123,7 +123,6 @@ const handleSaveChecksheetDocumentTemplate = async reportDocumentTemplateData =>
 
   const result = await saveChecksheetDocumentTemplate(reportDocumentTemplateData)
 
-  console.log(reportDocumentTemplateData)
   if (result.success) {
     closeManageChecksheetDocumentTemplateDrawer()
     await nextTick()

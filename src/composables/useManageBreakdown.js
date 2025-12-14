@@ -54,7 +54,6 @@ export const useManageBreakdown = () => {
         },
         response.value,
       )
-      console.log(response)
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -94,7 +93,6 @@ export const useManageBreakdown = () => {
         .get()
         .json()
 
-      console.log(response)
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
@@ -130,7 +128,6 @@ export const useManageBreakdown = () => {
   const createBreakdown = async breakdownData => {
     actionLoading.value = true
     clearFormErrors()
-    console.log(breakdownData)
 
     try {
       const { data: response, error: apiError } = await useApi('/breakdowns')

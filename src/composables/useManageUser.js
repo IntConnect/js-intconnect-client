@@ -74,7 +74,6 @@ export const useManageUser = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      console.log(response.value)
       user.value = response.value
 
       return {
@@ -164,7 +163,7 @@ export const useManageUser = () => {
       if (token) {
         useCookie("access_token").value = token
       }
-      
+
       return { success: true }
     } catch (_) {
       return { success: false, error: 'Unknown error' }

@@ -37,6 +37,7 @@ const isAlertDialogVisible = ref(false)
 const bodyAlert = ref('')
 const titleAlert = ref('')
 const alertType = ref('info')
+
 /* =========================
    THREE.JS STATE (RUNTIME)
 ========================= */
@@ -172,7 +173,6 @@ const onSubmit = async () => {
     },
   }
 
-  console.log('SUBMIT PAYLOAD:', payload)
 
   const result = await saveSystemSetting(payload)
   if (result.success) {
@@ -304,6 +304,6 @@ const onSubmit = async () => {
     :is-dialog-visible="isAlertDialogVisible"
     :title-alert="titleAlert"
     :type="alertType"
-    @update:isDialogVisible="isAlertDialogVisible = $event"
+    @update:is-dialog-visible="isAlertDialogVisible = $event"
   />
 </template>

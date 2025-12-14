@@ -77,7 +77,6 @@ onMounted(async () => {
   if (processedFacilities.value.length > 0) {
     localForm.facility_id = processedFacilities.value[0].id
   }
-  console.log(facilities)
   processedFacilities.value = facilities.value?.entries?.map(facility => ({
     title: facility.name,
     value: facility.id,
@@ -85,17 +84,13 @@ onMounted(async () => {
   if (processedFacilities.value.length > 0) {
     localForm.facility_id = processedFacilities.value[0].id
   }
-  console.log(result)
   if (result.success) {
     isEditMode.value = true
 
     const processedMachine = machine.value.entry
 
-    console.log(processedMachine)
-
 
     existingThumbnail.value = [useStaticFile(processedMachine.thumbnail_path)]
-    console.log(processedMachine.machine_documents)
     Object.assign(localForm, {
       id: processedMachine.id,
       name: processedMachine.name,
@@ -161,8 +156,6 @@ const onSubmit = async () => {
     })),
   }
 
-  console.log(payload, deletedDocumentIds)
-
 
   const result = await saveMachine(payload)
 
@@ -207,7 +200,6 @@ let model = null
 watch(
   () => currentStep.value,
   async step => {
-    console.log(step)
     if (step === 2) {
       await nextTick()
       initThreePreview()
@@ -268,7 +260,6 @@ function initThreePreview() {
     model.scale.set(1, 1, 1)
     scene.add(model)
   })
-  console.log("animate")
   animate()
 }
 
