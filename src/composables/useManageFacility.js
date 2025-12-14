@@ -125,17 +125,7 @@ export const useManageFacility = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
 
-      applyPaginationResponse(
-        {
-          entries: facilities,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
-
+    
       return { success: true }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
@@ -160,16 +150,6 @@ export const useManageFacility = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      applyPaginationResponse(
-        {
-          entries: facilities,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
 
       return { success: true }
     } catch (_) {

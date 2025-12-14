@@ -235,18 +235,19 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <VBtn
-              color="info"
-              icon
-              size="small"
-              variant="text"
-              @click="handleEdit(item)"
-            >
-              <VIcon
-                icon="tabler-pencil"
-                size="20"
-              />
-            </VBtn>
+            <RouterLink :to="{ name: 'facilities-manage-id', params: { id: item.id } }">
+              <VBtn
+                color="info"
+                icon
+                size="small"
+                variant="text"
+              >
+                <VIcon
+                  icon="tabler-pencil"
+                  size="20"
+                />
+              </VBtn>
+            </RouterLink>
             <VBtn
               color="error"
               icon

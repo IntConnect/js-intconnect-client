@@ -26,7 +26,7 @@ const {
   fetchSystemSetting,
 } = useManageSystemSetting()
 
-const isEditMode = computed(() => Boolean(id.value))
+const isEditMode = ref(false)
 
 
 // ==========================================
@@ -160,13 +160,11 @@ function initThreePreview(config) {
       transformControls.attach(pinnedObject)
 
       // restore saved position (jika ada)
-      if (config.pin_position) {
-        pinnedObject.position.set(
-          config.pin_position.x,
-          config.pin_position.y,
-          config.pin_position.z,
-        )
-      }
+      pinnedObject.position.set(
+        positionX.value,
+        positionY.value,
+        positionZ.value,
+      )
     }
   })
 
@@ -207,6 +205,7 @@ const onSubmit = async () => {
   formErrors.value = {}
 
   const payload = {
+    id: id,
     name: name.value,
     code: code.value,
     description: description.value,
@@ -238,13 +237,27 @@ onMounted(async () => {
   let facilityResult = await fetchFacility(id)
   let systemSettingResult = await fetchSystemSetting("DASHBOARD_SETTINGS")
   await nextTick()
+  if (facilityResult.success) {
+    isEditMode.value = true
+  }
+  let processedFacility = facility.value.entry
+  console.log(processedFacility)
+  name.value = processedFacility.name
+  code.value = processedFacility.code
+  description.value = processedFacility.description
+  location.value = processedFacility.location
+  positionX.value = processedFacility.position_x
+  positionY.value = processedFacility.position_y
+  positionZ.value = processedFacility.position_z
+  existingThumbnail.value = [useStaticFile(processedFacility.thumbnail_path)]
+
 })
 </script>
 
 <template>
   <VCol cols="12">
     <h4 class="text-h4 mb-1">
-      Manage Dashboard Settings
+      {{ isEditMode ? 'Edit' : 'Create' }} Facility
     </h4>
     <p class="text-body-1 mb-4">
       Configure dashboard model and camera position
