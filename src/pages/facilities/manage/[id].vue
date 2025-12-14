@@ -221,9 +221,9 @@ const onSubmit = async () => {
   const result = await saveFacility(payload)
   if (result.success) {
     isAlertDialogVisible.value = true
-    bodyAlert.value = "You will be redirect to parameter page"
+    bodyAlert.value = "You will be redirect to facilities page"
     alertType.value = 'info'
-    titleAlert.value = "Success manage Parameter"
+    titleAlert.value = "Success manage Facilities"
 
     setTimeout(() => {
       router.push('/facilities')
