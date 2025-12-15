@@ -77,24 +77,38 @@ function initThreePreview(config) {
 
   // Camera (restore saved state)
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.set(
-    config.camera_x,
-    config.camera_y,
-    config.camera_z,
-  )
+  camera.position.set(0, 2, 5)
+
   camera.updateProjectionMatrix()
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
+  controls.dampingFactor = 0.05
+
+  controls.enableRotate = true
+  controls.enableZoom = true
+  controls.enablePan = true   // 🔴 INI PENTING
+
+// === KECEPATAN ===
+  controls.rotateSpeed = 0.6
+  controls.zoomSpeed = 0.8
+  controls.panSpeed = 0.6
+
+// === PAN SCREEN SPACE (lebih natural) ===
+  controls.screenSpacePanning = true
   controls.addEventListener('end', syncCameraState)
+
+// === TARGET AWAL ===
+  controls.target.set(0, 0, 0)
+  controls.update()
 
   // Light
   scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
 
   // Load Model
   const loader = new GLTFLoader()
-
+  console.log(useStaticFile(config.model_path))
   loader.load(useStaticFile(config.model_path), gltf => {
     model = gltf.scene
     model.updateMatrixWorld(true)
@@ -161,7 +175,7 @@ onMounted(async () => {
   positionY.value = processedFacility.position_y
   positionZ.value = processedFacility.position_z
   existingThumbnail.value = [useStaticFile(processedFacility.thumbnail_path)]
-
+  initThreePreview(processedFacility)
 })
 
 const sourceVisits = [
@@ -310,7 +324,7 @@ const columnGroups = computed(() => {
     >
       <VCard
       >
-        <VImg :src="pages3"/>
+        <VImg :src="useStaticFile(machine.thumbnail_path)"/>
 
         <VCardItem>
           <VCardTitle>{{ machine.name }}</VCardTitle>

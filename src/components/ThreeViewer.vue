@@ -67,7 +67,7 @@ function initScene(config) {
   console.log('SCENE SIZE:', width, height)
 
   camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000)
-  camera.position.set(0, 50, 120)
+  camera.position.set(config.camera_x, config.camera_y, config.camera_z)
 
   renderer = new THREE.WebGLRenderer({
     canvas: canvasRef.value,
@@ -96,17 +96,17 @@ function initScene(config) {
   facilityGroup = new THREE.Group()
   scene.add(facilityGroup)
 
-  loadModel(config.model_path)
+  loadModel(config)
   animate()
 }
 
 /* =========================
    LOAD MODEL
 ========================= */
-function loadModel(path, pinObjectName) {
-  if (!path) return
+function loadModel(config) {
+  if (!config.model_path) return
 
-  new GLTFLoader().load(useStaticFile(path), gltf => {
+  new GLTFLoader().load(useStaticFile(config.model_path), gltf => {
     model = gltf.scene
 
     const box = new THREE.Box3().setFromObject(model)
@@ -134,7 +134,10 @@ function loadModel(path, pinObjectName) {
     /* AUTO FIT CAMERA */
     const maxDim = Math.max(size.x, size.y, size.z)
 
-    camera.position.set(0, maxDim * 0.8, maxDim * 2)
+    camera.position.set(config.camera_x, config.camera_y, config.camera_z)
+    controls.autoRotate = true
+    controls.autoRotateSpeed = 0.6 // kecepatan putar (positif = ke kanan)
+
     controls.update()
 
     /* render facilities if exist */
@@ -170,7 +173,7 @@ function renderFacilities(entries) {
       facility.position_y,
       facility.position_z,
     )
-    marker.userData.link = `/facilities/${facility.id}`
+    marker.userData.link = `/facilities/show/${facility.id}`
 
     marker.visible = true
     facilityGroup.add(marker)

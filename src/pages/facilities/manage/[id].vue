@@ -12,7 +12,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 
 const route = useRoute()
 const router = useRouter()
-const id = route.params.id
+let id = route.params.id
 
 const {
   facility,
@@ -42,6 +42,7 @@ const description = ref('')
 const location = ref('')
 const thumbnail = ref([])
 const existingThumbnail = ref([])
+const uploadedModel = ref([])
 const positionX = ref(0)
 const positionY = ref(0)
 const positionZ = ref(0)
@@ -78,6 +79,7 @@ watch(
 )
 
 const thumbnailFile = computed(() => thumbnail.value[0]?.file || null)
+const uploadedModelFile = computed(() => uploadedModel.value[0]?.file || null)
 
 /* =========================
    THREE.JS FUNCTIONS
@@ -213,6 +215,7 @@ const onSubmit = async () => {
     description: description.value,
     location: location.value,
     thumbnail: thumbnailFile.value,
+    model: uploadedModelFile.value,
     position_x: positionX.value,
     position_y: positionY.value,
     position_z: positionZ.value,
@@ -237,21 +240,22 @@ const onSubmit = async () => {
 
 onMounted(async () => {
   let facilityResult = await fetchFacility(id)
-  let systemSettingResult = await fetchSystemSetting("DASHBOARD_SETTINGS")
+  await fetchSystemSetting("DASHBOARD_SETTINGS")
   await nextTick()
   if (facilityResult.success) {
     isEditMode.value = true
+    let processedFacility = facility.value.entry
+    name.value = processedFacility.name
+    code.value = processedFacility.code
+    description.value = processedFacility.description
+    location.value = processedFacility.location
+    positionX.value = processedFacility.position_x
+    positionY.value = processedFacility.position_y
+    positionZ.value = processedFacility.position_z
+    existingThumbnail.value = [useStaticFile(processedFacility.thumbnail_path)]
+  } else {
+    id = null
   }
-  let processedFacility = facility.value.entry
-  console.log(processedFacility)
-  name.value = processedFacility.name
-  code.value = processedFacility.code
-  description.value = processedFacility.description
-  location.value = processedFacility.location
-  positionX.value = processedFacility.position_x
-  positionY.value = processedFacility.position_y
-  positionZ.value = processedFacility.position_z
-  existingThumbnail.value = [useStaticFile(processedFacility.thumbnail_path)]
 
 })
 </script>
@@ -279,7 +283,7 @@ onMounted(async () => {
                 :error-messages="formErrors.name || []"
                 :rules="[requiredValidator]"
                 label="Name"
-                placeholder="Drier"
+                placeholder="HVAC"
               />
             </VCol>
             <VCol cols="6">
@@ -288,7 +292,7 @@ onMounted(async () => {
                 :error-messages="formErrors.code || []"
                 :rules="[requiredValidator]"
                 label="Code"
-                placeholder="Drier"
+                placeholder="HVAC-01"
               />
             </VCol>
           </VRow>
@@ -300,7 +304,7 @@ onMounted(async () => {
                 :error-messages="formErrors.description || []"
                 :rules="[requiredValidator]"
                 label="Description"
-                placeholder="Drier"
+                placeholder="Area for chiller"
               />
             </VCol>
             <VCol cols="6">
@@ -309,10 +313,11 @@ onMounted(async () => {
                 :error-messages="formErrors.location || []"
                 :rules="[requiredValidator]"
                 label="Location"
-                placeholder="Drier"
+                placeholder="0, 0, 0"
               />
             </VCol>
           </VRow>
+
 
           <VRow>
             <VCol cols="6">
@@ -338,7 +343,7 @@ onMounted(async () => {
               cols="6"
             >
               <p class="text-body-2 mb-2">
-                3D Preview
+                Facility Position
               </p>
               <div
                 ref="threeContainer"
@@ -379,6 +384,28 @@ onMounted(async () => {
 
               />
             </VCol>
+          </VRow>
+          <VRow>
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <p class="text-body-2">
+                3D Model {{ isEditMode ? '(Optional)' : '' }}
+              </p>
+              <Vue3Dropzone
+                v-model="uploadedModel"
+                :max-file-size="500"
+                :multiple="false"
+              />
+              <p
+                v-if="formErrors.model"
+                class="text-body-2 mt-2 text-red"
+              >
+                {{ props.formErrors.model }}
+              </p>
+            </VCol>
+
           </VRow>
 
           <!-- Actions -->

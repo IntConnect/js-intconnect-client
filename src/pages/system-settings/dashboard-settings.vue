@@ -12,6 +12,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 const {
   systemSetting,
   saveSystemSetting,
+  fetchSystemSetting,
 } = useManageSystemSetting()
 
 const pinMode = ref(false)
@@ -28,6 +29,7 @@ const localForm = reactive({
   description: '',
   model: null,
   modelUrl: null,
+  existingModelUrl: null,
   pinObjectName: "",
   camera: {
     x: 2,
@@ -61,6 +63,19 @@ watch(
   val => {
     if (val?.[0]?.file) {
       localForm.modelUrl = URL.createObjectURL(val[0].file)
+      nextTick(initThreePreview)
+    } else {
+      destroyPreview()
+    }
+  },
+  { deep: true },
+)
+
+watch(
+  () => localForm.existingModelUrl,
+  val => {
+    if (val) {
+      localForm.modelUrl = val
       nextTick(initThreePreview)
     } else {
       destroyPreview()
@@ -113,7 +128,7 @@ function initThreePreview() {
   // Load Model
   const loader = new GLTFLoader()
 
-  loader.load(localForm.modelUrl, gltf => {
+  loader.load(localForm.existingModelUrl ? useStaticFile(localForm.modelUrl) : localForm.modelUrl, gltf => {
     model = gltf.scene
     model.updateMatrixWorld(true)
 
@@ -242,9 +257,9 @@ const onSubmit = async () => {
   const result = await saveSystemSetting(payload)
   if (result.success) {
     isAlertDialogVisible.value = true
-    bodyAlert.value = "You will be redirect to parameter page"
+    bodyAlert.value = "You will be redirect to system settings page"
     alertType.value = 'info'
-    titleAlert.value = "Success manage Parameter"
+    titleAlert.value = "Success manage Dashboard settings"
 
     setTimeout(() => {
       router.push('/system-settings')
@@ -254,6 +269,24 @@ const onSubmit = async () => {
     console.error('submit failed', result)
   }
 }
+
+onMounted(async () => {
+  await fetchSystemSetting("DASHBOARD_SETTINGS")
+  await nextTick()
+  console.log(systemSetting.value)
+
+  Object.assign(localForm, {
+    description: systemSetting.value.entry.description,
+    existingModelUrl: systemSetting.value.entry.value.model_path,
+    pinObjectName: systemSetting.value.entry.value.pin_object_name,
+    camera: {
+      x: systemSetting.value.entry.value.camera_x,
+      y: systemSetting.value.entry.value.camera_y,
+      z: systemSetting.value.entry.value.camera_z,
+    },
+  })
+
+})
 </script>
 
 <template>

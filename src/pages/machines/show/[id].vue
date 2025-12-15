@@ -5,7 +5,7 @@ import '@jaxtheprime/vue3-dropzone/dist/style.css'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import pages3 from '@images/pages/3.png'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
 
 
 const route = useRoute()
@@ -13,12 +13,9 @@ const router = useRouter()
 const id = route.params.id
 
 const {
-  facility,
-  fetchFacility,
-} = useManageFacility()
-
-const {
   machines,
+  machine,
+  fetchMachine,
   fetchMachines,
 } = useManageMachine()
 
@@ -55,6 +52,7 @@ let model = null
    THREE.JS FUNCTIONS
 ========================= */
 function initThreePreview(config) {
+  console.log(config)
   if (!threeContainer.value || !config.model_path) return
 
   destroyPreview()
@@ -74,23 +72,36 @@ function initThreePreview(config) {
   // Scene
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xffffff)
-
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  scene.environment = pmrem.fromScene(
+    new RoomEnvironment(),
+    0.04,
+  ).texture
   // Camera (restore saved state)
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.set(
-    config.camera_x,
-    config.camera_y,
-    config.camera_z,
-  )
+  camera.position.set(0, 2, 5)
+
   camera.updateProjectionMatrix()
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
+  controls.dampingFactor = 0.05
+
+  controls.enableRotate = true
+  controls.enableZoom = true
+  controls.enablePan = true   // 🔴 INI PENTING
+
+// === KECEPATAN ===
+  controls.rotateSpeed = 0.6
+  controls.zoomSpeed = 0.8
+  controls.panSpeed = 0.6
+
+// === PAN SCREEN SPACE (lebih natural) ===
+  controls.screenSpacePanning = true
   controls.addEventListener('end', syncCameraState)
 
   // Light
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
 
   // Load Model
   const loader = new GLTFLoader()
@@ -147,21 +158,12 @@ function destroyPreview() {
 ========================= */
 
 onMounted(async () => {
-  await fetchFacility(id)
-  await fetchMachines()
+  await fetchMachine(id)
   await nextTick()
-  console.log(machines)
-  let processedFacility = facility.value.entry
-  console.log(processedFacility)
-  name.value = processedFacility.name
-  code.value = processedFacility.code
-  description.value = processedFacility.description
-  location.value = processedFacility.location
-  positionX.value = processedFacility.position_x
-  positionY.value = processedFacility.position_y
-  positionZ.value = processedFacility.position_z
-  existingThumbnail.value = [useStaticFile(processedFacility.thumbnail_path)]
 
+  name.value = machine.value.entry.name
+  code.value = machine.value.entry.code
+  initThreePreview(machine.value.entry)
 })
 
 const sourceVisits = [
@@ -246,7 +248,7 @@ const columnGroups = computed(() => {
   <VRow>
     <VCol cols="12">
       <h4 class="text-h4 mb-1">
-        Facility {{ code }}-{{ name }}
+        Machine {{ code }}-{{ name }}
       </h4>
       <p class="text-body-1 mb-4">
         {{ description }}
@@ -255,14 +257,14 @@ const columnGroups = computed(() => {
       <VCard>
         <VCardText>
           <VRow class="match-height">
-            <!--            <VCol class="d-flex" cols="7">-->
+            <VCol class="d-flex" cols="7">
 
-            <!--              <div-->
-            <!--                ref="threeContainer"-->
-            <!--                class="rounded-lg overflow-hidden"-->
-            <!--                style="width: 100%; border: 1px solid #e0e0e0;"-->
-            <!--              />-->
-            <!--            </VCol>-->
+              <div
+                ref="threeContainer"
+                class="rounded-lg overflow-hidden"
+                style="width: 100%; border: 1px solid #e0e0e0;"
+              />
+            </VCol>
             <VCol cols="5">
               <div class="horizontal-scroll">
                 <VRow class="flex-nowrap" no-gutters>
@@ -302,38 +304,33 @@ const columnGroups = computed(() => {
     </VCol>
   </VRow>
   <VRow>
-    <VCol
-      v-for="machine in machines.entries"
-      cols="12"
-      md="4"
-      sm="6"
-    >
-      <VCard
-      >
-        <VImg :src="pages3"/>
-
+    <VCol cols="12">
+      <VCard>
         <VCardItem>
-          <VCardTitle>{{ machine.name }}</VCardTitle>
+          <VCardTitle>Machine Performance</VCardTitle>
+          <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
         </VCardItem>
-
         <VCardText>
-          {{ machine.description }}
+          <VRow class="h-100">
+            <VCol
+              cols="12"
+              lg="6"
+              md="6"
+            >
+              <EnergyLineChart/>
+            </VCol>
+            <VCol
+              cols="12"
+              lg="6"
+              md="6"
+            >
+              <EnergyLineChart/>
+            </VCol>
+          </VRow>
+
         </VCardText>
-
-        <VCardActions>
-          <RouterLink :to="{ name: 'breakdowns-manage-id', params: { id: 'new' } }">
-            <VBtn>
-              Details
-            </VBtn>
-          </RouterLink>
-          <VSpacer/>
-
-        </VCardActions>
-
-
       </VCard>
     </VCol>
-
   </VRow>
 
   <AlertDialog
