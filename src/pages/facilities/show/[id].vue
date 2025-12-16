@@ -19,7 +19,7 @@ const {
 
 const {
   machines,
-  fetchMachines,
+  fetchMachinesByFacilityId,
 } = useManageMachine()
 
 
@@ -90,16 +90,16 @@ function initThreePreview(config) {
   controls.enableZoom = true
   controls.enablePan = true   // 🔴 INI PENTING
 
-// === KECEPATAN ===
+  // === KECEPATAN ===
   controls.rotateSpeed = 0.6
   controls.zoomSpeed = 0.8
   controls.panSpeed = 0.6
 
-// === PAN SCREEN SPACE (lebih natural) ===
+  // === PAN SCREEN SPACE (lebih natural) ===
   controls.screenSpacePanning = true
   controls.addEventListener('end', syncCameraState)
 
-// === TARGET AWAL ===
+  // === TARGET AWAL ===
   controls.target.set(0, 0, 0)
   controls.update()
 
@@ -108,7 +108,7 @@ function initThreePreview(config) {
 
   // Load Model
   const loader = new GLTFLoader()
-  console.log(useStaticFile(config.model_path))
+
   loader.load(useStaticFile(config.model_path), gltf => {
     model = gltf.scene
     model.updateMatrixWorld(true)
@@ -162,11 +162,9 @@ function destroyPreview() {
 
 onMounted(async () => {
   await fetchFacility(id)
-  await fetchMachines()
+  await fetchMachinesByFacilityId(id)
   await nextTick()
-  console.log(machines)
   let processedFacility = facility.value.entry
-  console.log(processedFacility)
   name.value = processedFacility.name
   code.value = processedFacility.code
   description.value = processedFacility.description
@@ -178,81 +176,29 @@ onMounted(async () => {
   initThreePreview(processedFacility)
 })
 
-const sourceVisits = [
-  {
-    avatarIcon: 'tabler-gauge',
-    title: 'Energy Efficiency',
-    subtitle: 'kW per TR',
-    stats: '0.456 kW/TR',
-    profitLoss: -0.344, // improvement from baseline
-  },
-  {
-    avatarIcon: 'tabler-bolt',
-    title: 'Energy Consumption',
-    subtitle: 'Total Power Usage',
-    stats: '233,344 kWh',
-    profitLoss: -30234,
-  },
-  {
-    avatarIcon: 'tabler-snowflake',
-    title: 'Cooling Load',
-    subtitle: 'Total TR-Hours',
-    stats: '520,610 TR-hr',
-    profitLoss: 175922, // increased load
-  },
-  {
-    avatarIcon: 'tabler-currency-dollar',
-    title: 'Cost Savings',
-    subtitle: 'Operational Savings',
-    stats: '$25,668',
-    profitLoss: 3312,
-  },
-  {
-    avatarIcon: 'tabler-leaf',
-    title: 'CO₂ Reduction',
-    subtitle: 'Carbon Emission Saved',
-    stats: '24 tons',
-    profitLoss: 0,
-  },
-  {
-    avatarIcon: 'tabler-currency-dollar',
-    title: 'Cost Savings',
-    subtitle: 'Operational Savings',
-    stats: '$25,668',
-    profitLoss: 3312,
-  },
-  {
-    avatarIcon: 'tabler-leaf',
-    title: 'CO₂ Reduction',
-    subtitle: 'Carbon Emission Saved',
-    stats: '24 tons',
-    profitLoss: 0,
-  },
-  {
-    avatarIcon: 'tabler-currency-dollar',
-    title: 'Cost Savings',
-    subtitle: 'Operational Savings',
-    stats: '$25,668',
-    profitLoss: 3312,
-  },
-  {
-    avatarIcon: 'tabler-leaf',
-    title: 'CO₂ Reduction',
-    subtitle: 'Carbon Emission Saved',
-    stats: '24 tons',
-    profitLoss: 0,
-  },
-]
+const currentTab = ref(0)
 
-const columnGroups = computed(() => {
-  const size = 8
-  const result = []
+const processedMachines = computed(() => {
+  console.log(machines)
 
-  for (let i = 0; i < sourceVisits.length; i += size) {
-    result.push(sourceVisits.slice(i, i + size))
-  }
+  const entries = machines.value?.entries
 
-  return result
+  if (!Array.isArray(entries)) return []
+  console.log(entries)
+
+  return entries.map(machine => {
+    let parameters = machine.parameters.map(parameter => {
+      return {
+        name: parameter?.name ?? '-',
+        code: parameter?.code ?? '-',
+      }
+    })
+
+    return {
+      name: machine.name,
+      parameters: parameters,
+    }
+  })
 })
 </script>
 
@@ -269,47 +215,65 @@ const columnGroups = computed(() => {
       <VCard>
         <VCardText>
           <VRow class="match-height">
-            <VCol class="d-flex" cols="7">
-
+            <VCol
+              class="d-flex"
+              cols="7"
+            >
               <div
                 ref="threeContainer"
                 class="rounded-lg overflow-hidden"
-                style="width: 100%; border: 1px solid #e0e0e0;"
+                style="width: 100%; min-height:500px;border: 1px solid #e0e0e0;"
               />
             </VCol>
-            <VCol cols="5">
-              <div class="horizontal-scroll">
-                <VRow class="flex-nowrap" no-gutters>
-                  <VCol
-                    v-for="(group, i) in columnGroups"
-                    :key="i"
-                    class="scroll-item"
-                    cols="6"
+            <VCol
+              class="scroll-item"
+              cols="5"
+            >
+              <VCard class="country-order-card d-flex flex-column" height="500">
+                <VTabs
+                  v-model="currentTab"
+                  class="flex-shrink-0"
+                >
+                  <VTab
+                    v-for="(machine, index) in processedMachines"
+                    :key="index"
+                    :value="index"
                   >
-                    <VList>
-                      <VListItem
-                        v-for="visit in group"
-                        :key="visit.title"
-                      >
-                        <VListItemTitle>
-                          {{ visit.title }}
-                        </VListItemTitle>
-                        <VListItemSubtitle>
-                          {{ visit.subtitle }}
-                        </VListItemSubtitle>
-                        <template #append>
-                          <div class="d-flex align-center gap-x-4">
-                            <div class="text-body-1"> {{ visit.stats }}</div>
+                    {{ machine.name }}
+                  </VTab>
+                </VTabs>
 
-                          </div>
-                        </template>
-                      </VListItem>
-                    </VList>
-                  </VCol>
-                </VRow>
-              </div>
+                <VCardText class="flex-grow-1 pa-0 overflow-hidden">
+                  <VWindow
+                    v-model="currentTab"
+                    class="h-100"
+                  >
+                    <VWindowItem
+                      v-for="(machine, index) in processedMachines"
+                      :key="index"
+                      :value="index"
+                      class="h-100"
+                    >
+                      <div class="parameter-vertical-scroll">
+                        <VList lines="two">
+                          <VListItem
+                            v-for="(parameter, i) in machine.parameters"
+                            :key="i"
+                          >
+                            <VListItemTitle>
+                              {{ parameter.name }}
+                            </VListItemTitle>
+                            <VListItemSubtitle>
+                              {{ parameter.code }}
+                            </VListItemSubtitle>
+                          </VListItem>
+                        </VList>
+                      </div>
+                    </VWindowItem>
+                  </VWindow>
+                </VCardText>
+              </VCard>
             </VCol>
-
           </VRow>
         </VCardText>
       </VCard>
@@ -357,21 +321,70 @@ const columnGroups = computed(() => {
     :type="alertType"
     @update:is-dialog-visible="isAlertDialogVisible = $event"
   />
+
 </template>
 
 
 <style scoped>
-.horizontal-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  width: 100%;
+/* Fix untuk VCard container */
+.country-order-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* VTabs tidak boleh shrink */
+.country-order-card .v-tabs {
+  flex-shrink: 0;
+}
+
+/* VCardText harus bisa grow dan handle overflow */
+.country-order-card .v-card-text {
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* VWindow harus full height */
+.country-order-card .v-window {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* VWindowItem harus full height */
+.country-order-card .v-window-item {
+  height: 100%;
+}
+
+/* Parameter scroll container */
+.parameter-vertical-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+/* Custom scrollbar */
+.parameter-vertical-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.parameter-vertical-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.parameter-vertical-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.parameter-vertical-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .scroll-item {
   flex: 0 0 auto;
-}
-
-.horizontal-scroll {
-  scroll-behavior: smooth;
 }
 </style>

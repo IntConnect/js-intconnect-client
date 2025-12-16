@@ -5,9 +5,20 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Breakdown',
-    to: { name: 'breakdowns' },
+    title: 'Issue',
     icon: { icon: 'tabler-exclamation-circle' },
+    children: [
+      {
+        title: 'Breakdown',
+        to: { name: 'breakdowns' },
+        icon: { icon: 'tabler-robot-off' },
+      },
+      {
+        title: 'Log Alarm',
+        to: { name: 'breakdowns' },
+        icon: { icon: 'tabler-bell-minus' },
+      },
+    ],
   },
 
   // {
@@ -109,7 +120,7 @@ export default [
     ],
   },
   {
-    title: 'Report',
+    title: 'Document',
     icon: { icon: 'tabler-clipboard-data' },
     children: [
       {
@@ -122,12 +133,6 @@ export default [
         to: { name: 'permissions' },
         icon: { icon: 'tabler-file-type-doc' },
       },
-    ],
-  },
-  {
-    title: 'Check Sheet',
-    icon: { icon: 'tabler-checklist' },
-    children: [
       {
         title: 'Check Sheet Document Template',
         to: { name: 'check-sheet-document-templates' },
@@ -140,6 +145,7 @@ export default [
       },
     ],
   },
+
   {
     title: 'System Settings',
     icon: { icon: 'tabler-settings-spark' },

@@ -13,11 +13,13 @@ const router = useRouter()
 const id = route.params.id
 
 const {
-  machines,
   machine,
   fetchMachine,
-  fetchMachines,
 } = useManageMachine()
+const processedMachine = computed(() => {
+  if (!machine?.value) return {}
+  return machine?.value.entry
+})
 
 
 // Form fields
@@ -52,7 +54,6 @@ let model = null
    THREE.JS FUNCTIONS
 ========================= */
 function initThreePreview(config) {
-  console.log(config)
   if (!threeContainer.value || !config.model_path) return
 
   destroyPreview()
@@ -92,16 +93,21 @@ function initThreePreview(config) {
   controls.enableZoom = true
   controls.enablePan = true   // 🔴 INI PENTING
 
-// === KECEPATAN ===
+  // === KECEPATAN ===
   controls.rotateSpeed = 0.6
   controls.zoomSpeed = 0.8
   controls.panSpeed = 0.6
 
-// === PAN SCREEN SPACE (lebih natural) ===
+  // === PAN SCREEN SPACE (lebih natural) ===
   controls.screenSpacePanning = true
   controls.addEventListener('end', syncCameraState)
 
+  // === TARGET AWAL ===
+  controls.target.set(0, 0, 0)
+  controls.update()
+
   // Light
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
 
   // Load Model
   const loader = new GLTFLoader()
@@ -160,88 +166,19 @@ function destroyPreview() {
 onMounted(async () => {
   await fetchMachine(id)
   await nextTick()
-
-  name.value = machine.value.entry.name
-  code.value = machine.value.entry.code
-  initThreePreview(machine.value.entry)
+  console.log(processedMachine.value)
+  name.value = processedMachine.value.name
+  code.value = processedMachine.value.code
+  description.value = processedMachine.value.description
+  location.value = processedMachine.value.location
+  positionX.value = processedMachine.value.position_x
+  positionY.value = processedMachine.value.position_y
+  positionZ.value = processedMachine.value.position_z
+  initThreePreview(processedMachine.value)
 })
 
-const sourceVisits = [
-  {
-    avatarIcon: 'tabler-gauge',
-    title: 'Energy Efficiency',
-    subtitle: 'kW per TR',
-    stats: '0.456 kW/TR',
-    profitLoss: -0.344, // improvement from baseline
-  },
-  {
-    avatarIcon: 'tabler-bolt',
-    title: 'Energy Consumption',
-    subtitle: 'Total Power Usage',
-    stats: '233,344 kWh',
-    profitLoss: -30234,
-  },
-  {
-    avatarIcon: 'tabler-snowflake',
-    title: 'Cooling Load',
-    subtitle: 'Total TR-Hours',
-    stats: '520,610 TR-hr',
-    profitLoss: 175922, // increased load
-  },
-  {
-    avatarIcon: 'tabler-currency-dollar',
-    title: 'Cost Savings',
-    subtitle: 'Operational Savings',
-    stats: '$25,668',
-    profitLoss: 3312,
-  },
-  {
-    avatarIcon: 'tabler-leaf',
-    title: 'CO₂ Reduction',
-    subtitle: 'Carbon Emission Saved',
-    stats: '24 tons',
-    profitLoss: 0,
-  },
-  {
-    avatarIcon: 'tabler-currency-dollar',
-    title: 'Cost Savings',
-    subtitle: 'Operational Savings',
-    stats: '$25,668',
-    profitLoss: 3312,
-  },
-  {
-    avatarIcon: 'tabler-leaf',
-    title: 'CO₂ Reduction',
-    subtitle: 'Carbon Emission Saved',
-    stats: '24 tons',
-    profitLoss: 0,
-  },
-  {
-    avatarIcon: 'tabler-currency-dollar',
-    title: 'Cost Savings',
-    subtitle: 'Operational Savings',
-    stats: '$25,668',
-    profitLoss: 3312,
-  },
-  {
-    avatarIcon: 'tabler-leaf',
-    title: 'CO₂ Reduction',
-    subtitle: 'Carbon Emission Saved',
-    stats: '24 tons',
-    profitLoss: 0,
-  },
-]
+const currentTab = ref(0)
 
-const columnGroups = computed(() => {
-  const size = 8
-  const result = []
-
-  for (let i = 0; i < sourceVisits.length; i += size) {
-    result.push(sourceVisits.slice(i, i + size))
-  }
-
-  return result
-})
 </script>
 
 <template>
@@ -257,47 +194,45 @@ const columnGroups = computed(() => {
       <VCard>
         <VCardText>
           <VRow class="match-height">
-            <VCol class="d-flex" cols="7">
-
+            <VCol
+              class="d-flex"
+              cols="7"
+            >
               <div
                 ref="threeContainer"
                 class="rounded-lg overflow-hidden"
-                style="width: 100%; border: 1px solid #e0e0e0;"
+                style="width: 100%; min-height:500px;border: 1px solid #e0e0e0;"
               />
             </VCol>
-            <VCol cols="5">
-              <div class="horizontal-scroll">
-                <VRow class="flex-nowrap" no-gutters>
-                  <VCol
-                    v-for="(group, i) in columnGroups"
-                    :key="i"
-                    class="scroll-item"
-                    cols="6"
-                  >
-                    <VList>
+            <VCol
+              class="scroll-item"
+              cols="5"
+            >
+              <VCard
+                class="country-order-card d-flex flex-column"
+                height="500"
+              >
+
+                <VCardText class="flex-grow-1 pa-0 overflow-hidden">
+                  <div class="parameter-vertical-scroll">
+                    <VList lines="two">
                       <VListItem
-                        v-for="visit in group"
-                        :key="visit.title"
+                        v-for="(parameter, i) in processedMachine?.parameters"
+                        :key="i"
                       >
                         <VListItemTitle>
-                          {{ visit.title }}
+                          {{ parameter.name }}
                         </VListItemTitle>
                         <VListItemSubtitle>
-                          {{ visit.subtitle }}
+                          {{ parameter.code }}
                         </VListItemSubtitle>
-                        <template #append>
-                          <div class="d-flex align-center gap-x-4">
-                            <div class="text-body-1"> {{ visit.stats }}</div>
-
-                          </div>
-                        </template>
                       </VListItem>
                     </VList>
-                  </VCol>
-                </VRow>
-              </div>
-            </VCol>
+                  </div>
 
+                </VCardText>
+              </VCard>
+            </VCol>
           </VRow>
         </VCardText>
       </VCard>
@@ -327,12 +262,10 @@ const columnGroups = computed(() => {
               <EnergyLineChart/>
             </VCol>
           </VRow>
-
         </VCardText>
       </VCard>
     </VCol>
   </VRow>
-
   <AlertDialog
     :body-alert="bodyAlert"
     :is-dialog-visible="isAlertDialogVisible"
@@ -344,17 +277,65 @@ const columnGroups = computed(() => {
 
 
 <style scoped>
-.horizontal-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  width: 100%;
+/* Fix untuk VCard container */
+.country-order-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* VTabs tidak boleh shrink */
+.country-order-card .v-tabs {
+  flex-shrink: 0;
+}
+
+/* VCardText harus bisa grow dan handle overflow */
+.country-order-card .v-card-text {
+  flex: 1 1 auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* VWindow harus full height */
+.country-order-card .v-window {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* VWindowItem harus full height */
+.country-order-card .v-window-item {
+  height: 100%;
+}
+
+/* Parameter scroll container */
+.parameter-vertical-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+/* Custom scrollbar */
+.parameter-vertical-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.parameter-vertical-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.parameter-vertical-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.parameter-vertical-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .scroll-item {
   flex: 0 0 auto;
-}
-
-.horizontal-scroll {
-  scroll-behavior: smooth;
 }
 </style>

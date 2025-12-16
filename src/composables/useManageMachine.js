@@ -74,7 +74,32 @@ export const useManageMachine = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
       machines.value = response.value
-      
+
+      return {
+        success: true,
+      }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const fetchMachinesByFacilityId = async id => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/machines/facilities/${id}`, {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      machines.value = response.value
+
       return {
         success: true,
       }
@@ -225,6 +250,7 @@ export const useManageMachine = () => {
     formErrors,
 
     fetchMachinesPagination,
+    fetchMachinesByFacilityId,
     fetchMachines,
     fetchMachine,
     createMachine,
