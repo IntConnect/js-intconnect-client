@@ -63,6 +63,7 @@ watch(
   val => {
     if (val?.[0]?.file) {
       localForm.modelUrl = URL.createObjectURL(val[0].file)
+      localForm.existingModelUrl = null
       nextTick(initThreePreview)
     } else {
       destroyPreview()
