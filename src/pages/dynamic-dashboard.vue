@@ -40,7 +40,7 @@ const fileInput = ref(null)
 // Dialog visibility
 const isAddWidgetDialogVisible = computed({
   get: () => showAddWidget.value,
-  set: (val) => showAddWidget.value = val,
+  set: val => showAddWidget.value = val,
 })
 
 // Initialize dashboard
@@ -49,7 +49,7 @@ onMounted(() => {
 })
 
 // Get chart options untuk ApexCharts
-const getChartOptions = (widget) => {
+const getChartOptions = widget => {
   const data = dashboardStore.getDataSource(widget.dataSource)
 
   const baseOptions = {
@@ -123,7 +123,7 @@ const getChartOptions = (widget) => {
 }
 
 // Get series data
-const getChartSeries = (widget) => {
+const getChartSeries = widget => {
   const data = dashboardStore.getDataSource(widget.dataSource)
 
   if (widget.type === 'pie' || widget.type === 'donut') {
@@ -137,6 +137,7 @@ const getChartSeries = (widget) => {
 const handleAddWidget = () => {
   if (!newWidget.value.title.trim()) {
     alert('Please enter widget title')
+    
     return
   }
 
@@ -162,12 +163,13 @@ const handleImportClick = () => {
   fileInput.value?.click()
 }
 
-const handleImport = (event) => {
+const handleImport = event => {
   const file = event.target.files?.[0]
   if (!file) return
 
   const reader = new FileReader()
-  reader.onload = (e) => {
+
+  reader.onload = e => {
     const success = dashboardStore.importDashboard(e.target?.result)
     if (success) {
       alert('Dashboard imported successfully!')
@@ -182,7 +184,7 @@ const handleImport = (event) => {
 }
 
 // Handle layout change
-const handleLayoutUpdate = (newLayout) => {
+const handleLayoutUpdate = newLayout => {
   dashboardStore.updateLayout(newLayout)
 }
 </script>
@@ -259,7 +261,7 @@ const handleLayoutUpdate = (newLayout) => {
                 accept=".json"
                 class="d-none"
                 @change="handleImport"
-              />
+              >
 
               <VBtn
                 variant="outlined"
@@ -314,7 +316,7 @@ const handleLayoutUpdate = (newLayout) => {
         class="dialog-close-btn"
         @click="isAddWidgetDialogVisible"
       >
-        <VIcon icon="tabler-x"/>
+        <VIcon icon="tabler-x" />
       </VBtn>
       <VCard class="pa-2 pa-sm-10">
         <VCardText>
@@ -439,30 +441,40 @@ const handleLayoutUpdate = (newLayout) => {
           :i="widget.i"
           class="transition-all"
         >
-          <div
-            class="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow"
-          >
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow">
             <!-- Widget Header -->
-            <div
-              class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white"
-            >
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
               <div class="flex items-center gap-3">
-                <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
+                <div class="w-2 h-8 bg-blue-500 rounded-full" />
                 <div>
-                  <h3 class="font-semibold text-gray-900">{{ widget.title }}</h3>
-                  <p class="text-xs text-gray-500 mt-0.5">{{ widget.type }} chart</p>
+                  <h3 class="font-semibold text-gray-900">
+                    {{ widget.title }}
+                  </h3>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    {{ widget.type }} chart
+                  </p>
                 </div>
               </div>
 
               <div class="flex items-center gap-2">
                 <button
                   v-if="isEditing"
-                  @click="dashboardStore.removeWidget(widget.i)"
                   class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Remove widget"
+                  @click="dashboardStore.removeWidget(widget.i)"
                 >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -471,7 +483,10 @@ const handleLayoutUpdate = (newLayout) => {
             <!-- Widget Content -->
             <div class="flex-1 p-6 overflow-auto">
               <!-- Charts -->
-              <div v-if="widget.type !== 'metric'" class="h-full">
+              <div
+                v-if="widget.type !== 'metric'"
+                class="h-full"
+              >
                 <VueApexCharts
                   :type="widget.type === 'donut' ? 'donut' : widget.type === 'pie' ? 'pie' : widget.type"
                   :options="getChartOptions(widget)"
@@ -481,7 +496,10 @@ const handleLayoutUpdate = (newLayout) => {
               </div>
 
               <!-- Metric Cards -->
-              <div v-else class="grid grid-cols-2 gap-4 h-full auto-rows-fr">
+              <div
+                v-else
+                class="grid grid-cols-2 gap-4 h-full auto-rows-fr"
+              >
                 <div
                   v-for="(value, key) in dashboardStore.getDataSource(widget.dataSource)"
                   :key="key"
@@ -501,13 +519,22 @@ const handleLayoutUpdate = (newLayout) => {
       </GridLayout>
 
       <!-- Empty State -->
-      <div v-if="widgets.length === 0" class="text-center py-20">
-        <div class="text-6xl mb-4">📊</div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2">No Widgets Yet</h3>
-        <p class="text-gray-500 mb-6">Start building your dashboard by adding widgets</p>
+      <div
+        v-if="widgets.length === 0"
+        class="text-center py-20"
+      >
+        <div class="text-6xl mb-4">
+          📊
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+          No Widgets Yet
+        </h3>
+        <p class="text-gray-500 mb-6">
+          Start building your dashboard by adding widgets
+        </p>
         <button
-          @click="dashboardStore.loadDefaultLayout(); dashboardStore.saveLayout()"
           class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          @click="dashboardStore.loadDefaultLayout(); dashboardStore.saveLayout()"
         >
           Load Default Layout
         </button>

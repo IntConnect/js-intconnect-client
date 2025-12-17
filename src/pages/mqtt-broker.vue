@@ -222,7 +222,7 @@ onMounted(() => {
         </div>
       </VCardText>
 
-      <VDivider/>
+      <VDivider />
 
       <!-- Error Alert -->
       <VAlert
@@ -262,17 +262,22 @@ onMounted(() => {
         </template>
 
         <template #item.is_active="{ item }">
-          <div v-if="item.is_active" class="d-flex align-center gap-x-4">
+          <div
+            v-if="item.is_active"
+            class="d-flex align-center gap-x-4"
+          >
             <VChip color="primary">
               Active
             </VChip>
           </div>
-          <div v-if="!item.is_active" class="d-flex align-center gap-x-4">
+          <div
+            v-if="!item.is_active"
+            class="d-flex align-center gap-x-4"
+          >
             <VChip color="error">
               Inactive
             </VChip>
           </div>
-
         </template>
 
         <!-- Actions Column -->

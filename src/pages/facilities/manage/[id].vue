@@ -105,6 +105,8 @@ watch(
   val => {
     if (val?.[0]?.file) {
       const url = URL.createObjectURL(val[0].file)
+
+
       // false = don't restore camera, use auto-fit for new uploads
       initModelPreview(url, false)
     } else {
@@ -168,6 +170,7 @@ function initThreePreview(config) {
     if (!pinnedObject) return
 
     const worldPos = new THREE.Vector3()
+
     pinnedObject.getWorldPosition(worldPos)
 
     positionX.value = Number(worldPos.x.toFixed(4))
@@ -180,6 +183,7 @@ function initThreePreview(config) {
 
   // Load Model
   const loader = new GLTFLoader()
+
   loader.load(useStaticFile(config.model_path), gltf => {
     model = gltf.scene
     model.updateMatrixWorld(true)
@@ -203,6 +207,7 @@ function initThreePreview(config) {
       if (positionX.value !== 0 || positionY.value !== 0 || positionZ.value !== 0) {
         const worldPos = new THREE.Vector3(positionX.value, positionY.value, positionZ.value)
         const localPos = pinnedObject.parent.worldToLocal(worldPos)
+
         pinnedObject.position.copy(localPos)
       }
     }
@@ -282,12 +287,15 @@ function initModelPreview(modelUrl, shouldRestoreCamera = false) {
 
   // Light
   previewScene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+
   directionalLight.position.set(5, 10, 7.5)
   previewScene.add(directionalLight)
 
   // Load uploaded model
   const loader = new GLTFLoader()
+
   loader.load(
     isEditMode.value ? useStaticFile(modelUrl) : modelUrl,
     gltf => {
@@ -314,6 +322,7 @@ function initModelPreview(modelUrl, shouldRestoreCamera = false) {
 
       if (hasSavedCamera) {
         console.log(cameraX.value)
+
         // Restore saved camera position
         previewCamera.position.set(
           cameraX.value,
@@ -519,7 +528,7 @@ onBeforeUnmount(() => {
                 accept="image/png, image/jpeg"
                 mode="edit"
                 @error="e => handleFileRejected('thumbnail' , e)"
-                @fileUploaded="clearError('thumbnail')"
+                @file-uploaded="clearError('thumbnail')"
               />
               <p
                 v-if="formErrors.thumbnail || dropzoneError.thumbnail"
@@ -576,8 +585,7 @@ onBeforeUnmount(() => {
                 :multiple="false"
                 accept=".glb,.gltf"
                 @error="e => handleFileRejected('model' , e)"
-                @fileUploaded="clearError('model')"
-
+                @file-uploaded="clearError('model')"
               />
               <p
                 v-if="formErrors.model || dropzoneError.model"

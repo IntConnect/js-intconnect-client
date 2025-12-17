@@ -45,18 +45,22 @@ const {
 
   // (optional) machines etc if needed
 } = useManageMachine()
+
+
 // Preview state
 let previewRenderer = null
 let previewScene = null
 let previewCamera = null
 let previewControls = null
 let previewModel = null
+
 const {
   machine,
   fetchMachine,
 
   // (optional) machines etc if needed
 } = useManageMachine()
+
 const threePreviewContainer = ref(null)
 
 // localForm: reactive copy to avoid two-way bind issues during editing
@@ -113,6 +117,7 @@ onMounted(async () => {
     })
 
     initModelPreview(processedMachine.model_path, true)
+
     // ADD THIS
     localForm.documents = processedMachine.machine_documents.map(doc => ({
       id: doc.id,
@@ -187,20 +192,25 @@ function initModelPreview(modelUrl, shouldRestoreCamera = false) {
   previewControls.enableDamping = true
   previewControls.dampingFactor = 0.05
   previewControls.addEventListener('end', syncPreviewCameraState)
+
   const pmrem = new THREE.PMREMGenerator(previewRenderer)
 
   previewScene.environment = pmrem.fromScene(
     new RoomEnvironment(),
     0.04,
   ).texture
+
   // Light
   previewScene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
+
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+
   directionalLight.position.set(5, 10, 7.5)
   previewScene.add(directionalLight)
 
   // Load uploaded model
   const loader = new GLTFLoader()
+
   loader.load(
     shouldRestoreCamera ? useStaticFile(modelUrl) : modelUrl,
     gltf => {
@@ -314,6 +324,7 @@ const onSubmit = async () => {
     router.push('/machines')
   } else {
     currentStep.value = 0
+
     // errors are already populated into formErrors by composable
     console.error('submit failed', result)
   }
@@ -399,11 +410,14 @@ function initThreePreview() {
   // Scene
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xffffff)
+
   const pmrem = new THREE.PMREMGenerator(renderer)
+
   scene.environment = pmrem.fromScene(
     new RoomEnvironment(),
     0.04,
   ).texture
+
   // Camera
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
   camera.position.set(2, 1.5, 3)
@@ -558,8 +572,7 @@ function removeExistingDocument(docId, index) {
                     :max-file-size="500"
                     :multiple="false"
                     @error="e => handleFileRejected('model' , e)"
-                    @fileUploaded="clearError('model')"
-
+                    @file-uploaded="clearError('model')"
                   />
                   <p
                     v-if="formErrors.model || dropzoneError.model"
@@ -583,8 +596,9 @@ function removeExistingDocument(docId, index) {
                     :max-file-size="1"
                     :multiple="false"
                     accept="image/png, image/jpeg"
-                    mode="edit" @error="e => handleFileRejected('thumbnail' , e)"
-                    @fileUploaded="clearError('thumbnail')"
+                    mode="edit"
+                    @error="e => handleFileRejected('thumbnail' , e)"
+                    @file-uploaded="clearError('thumbnail')"
                   />
                   <p
                     v-if="formErrors.thumbnail || dropzoneError.thumbnail"
@@ -629,7 +643,6 @@ function removeExistingDocument(docId, index) {
                     </VCol>
                   </VCol>
                 </VCol>
-
               </VRow>
             </VWindowItem>
 
@@ -856,7 +869,6 @@ function removeExistingDocument(docId, index) {
                 </VCol>
 
                 <VCol cols="12">
-
                   <h4 class="text-h5 mb-3">
                     3D Model Preview
                   </h4>

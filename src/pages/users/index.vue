@@ -17,7 +17,7 @@ import UserList from "@/components/user/UserList.vue"
 
     <!-- 👉 Roles Cards -->
     <VCol cols="12">
-      <RoleCards/>
+      <RoleCards />
     </VCol>
 
     <VCol cols="12">
@@ -31,7 +31,7 @@ import UserList from "@/components/user/UserList.vue"
 
     <VCol cols="12">
       <!-- 👉 User List  -->
-      <UserList/>
+      <UserList />
     </VCol>
   </VRow>
 </template>

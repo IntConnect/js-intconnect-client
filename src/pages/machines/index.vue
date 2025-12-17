@@ -156,7 +156,7 @@ const closeDeleteDialog = () => {
             </div>
           </VCardText>
 
-          <VDivider/>
+          <VDivider />
 
           <!-- Data Table -->
           <VDataTable

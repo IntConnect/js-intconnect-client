@@ -202,7 +202,7 @@ const timeSpendingChartSeries = [
         md="8"
       >
         <!-- 👉 Topic You are Interested in -->
-        <AcademyTopicYouAreInterested/>
+        <AcademyTopicYouAreInterested />
       </VCol>
 
       <!-- 👉 Popular Instructors  -->
@@ -211,7 +211,7 @@ const timeSpendingChartSeries = [
         md="4"
         sm="6"
       >
-        <AcademyCardPopularInstructors/>
+        <AcademyCardPopularInstructors />
       </VCol>
 
       <!-- 👉 Academy Top Courses  -->
@@ -220,7 +220,7 @@ const timeSpendingChartSeries = [
         md="4"
         sm="6"
       >
-        <AcademyCardTopCourses/>
+        <AcademyCardTopCourses />
       </VCol>
 
       <!-- 👉 Academy Upcoming Webinar -->
@@ -229,7 +229,7 @@ const timeSpendingChartSeries = [
         md="4"
         sm="6"
       >
-        <AcademyUpcomingWebinar/>
+        <AcademyUpcomingWebinar />
       </VCol>
 
       <!-- 👉 Academy Assignment Progress  -->
@@ -238,13 +238,13 @@ const timeSpendingChartSeries = [
         md="4"
         sm="6"
       >
-        <AcademyAssignmentProgress/>
+        <AcademyAssignmentProgress />
       </VCol>
 
       <!-- 👉 Academy Course Table  -->
-      <!--      <VCol>-->
-      <!--        <AcademyCourseTable/>-->
-      <!--      </VCol>-->
+      <!--      <VCol> -->
+      <!--        <AcademyCourseTable/> -->
+      <!--      </VCol> -->
     </VRow>
   </div>
 </template>

@@ -71,6 +71,7 @@ function initThreePreview(config) {
   renderer.setSize(width, height)
   renderer.setPixelRatio(window.devicePixelRatio)
   threeContainer.value.appendChild(renderer.domElement)
+
   const pmrem = new THREE.PMREMGenerator(renderer)
 
   // Scene
@@ -80,6 +81,7 @@ function initThreePreview(config) {
     new RoomEnvironment(),
     0.04,
   ).texture
+
   // Camera (restore saved state)
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
   camera.position.set(config.camera_x, config.camera_y, config.camera_z)
@@ -231,6 +233,7 @@ function handleMqttMessage(topic, data) {
   // Validasi struktur data
   if (!data || typeof data !== 'object') {
     console.warn('Invalid data structure:', data)
+    
     return
   }
 
@@ -238,6 +241,7 @@ function handleMqttMessage(topic, data) {
 
   if (!dataValues || typeof dataValues !== 'object') {
     console.warn('Missing "d" field in data:', data)
+    
     return
   }
 
@@ -247,6 +251,7 @@ function handleMqttMessage(topic, data) {
 
   if (!machine) {
     console.warn(`No machine found for topic: ${topic}`)
+    
     return
   }
 
@@ -338,6 +343,7 @@ function getFormattedValue(machineId, paramCode) {
   if (type === 'number') {
     // Round to 2 decimal places
     const rounded = Math.round(value * 100) / 100
+    
     return unit ? `${rounded} ${unit}` : rounded.toString()
   }
 
@@ -372,6 +378,7 @@ function getParameterStatus(machineId, paramCode) {
 function connectBroker(brokerKey, brokerData) {
   if (mqttClients[brokerKey]?.connected) {
     console.log(`Already connected to ${brokerKey}`)
+    
     return
   }
 
@@ -379,6 +386,7 @@ function connectBroker(brokerKey, brokerData) {
 
   if (!broker.host_name || !broker.ws_port) {
     console.error('Invalid broker configuration:', broker)
+    
     return
   }
 
@@ -403,7 +411,7 @@ function connectBroker(brokerKey, brokerData) {
       mqttStatus[brokerKey] = 'connected'
 
       topics.forEach(topic => {
-        client.subscribe(topic, { qos: 0 }, (err) => {
+        client.subscribe(topic, { qos: 0 }, err => {
           if (err) {
             console.error(`Failed to subscribe to ${topic}:`, err)
           } else {
@@ -418,6 +426,7 @@ function connectBroker(brokerKey, brokerData) {
 
       try {
         const data = JSON.parse(message)
+
         handleMqttMessage(topic, data)
       } catch (err) {
         console.error('❌ Failed to parse JSON:', err)
@@ -425,7 +434,7 @@ function connectBroker(brokerKey, brokerData) {
       }
     })
 
-    client.on('error', (err) => {
+    client.on('error', err => {
       console.error(`❌ MQTT error (${brokerKey}):`, err.message)
       mqttStatus[brokerKey] = 'error'
     })
@@ -451,7 +460,7 @@ function connectBroker(brokerKey, brokerData) {
 // Watch and connect
 watch(
   groupedBrokers,
-  (brokers) => {
+  brokers => {
     Object.entries(brokers).forEach(([key, data]) => {
       connectBroker(key, data)
     })
@@ -509,7 +518,10 @@ const processedMachinesWithData = computed(() => {
 <template>
   <VRow>
     <!-- MQTT Status Indicators -->
-    <VCol v-if="Object.keys(mqttStatus).length > 0" cols="12">
+    <VCol
+      v-if="Object.keys(mqttStatus).length > 0"
+      cols="12"
+    >
       <VCard>
         <VCardText>
           <div class="d-flex gap-2 flex-wrap">
@@ -543,7 +555,10 @@ const processedMachinesWithData = computed(() => {
       <VCard>
         <VCardText>
           <VRow class="match-height">
-            <VCol class="d-flex" cols="7">
+            <VCol
+              class="d-flex"
+              cols="7"
+            >
               <div
                 ref="threeContainer"
                 class="rounded-lg overflow-hidden"
@@ -551,9 +566,18 @@ const processedMachinesWithData = computed(() => {
               />
             </VCol>
 
-            <VCol class="scroll-item" cols="5">
-              <VCard class="country-order-card d-flex flex-column" height="500">
-                <VTabs v-model="currentTab" class="flex-shrink-0">
+            <VCol
+              class="scroll-item"
+              cols="5"
+            >
+              <VCard
+                class="country-order-card d-flex flex-column"
+                height="500"
+              >
+                <VTabs
+                  v-model="currentTab"
+                  class="flex-shrink-0"
+                >
                   <VTab
                     v-for="(machine, index) in processedMachinesWithData"
                     :key="index"
@@ -572,7 +596,10 @@ const processedMachinesWithData = computed(() => {
                 </VTabs>
 
                 <VCardText class="flex-grow-1 pa-0 overflow-hidden">
-                  <VWindow v-model="currentTab" class="h-100">
+                  <VWindow
+                    v-model="currentTab"
+                    class="h-100"
+                  >
                     <VWindowItem
                       v-for="(machine, index) in processedMachinesWithData"
                       :key="index"
@@ -581,7 +608,10 @@ const processedMachinesWithData = computed(() => {
                     >
                       <div class="parameter-vertical-scroll">
                         <!-- Last Update Info -->
-                        <div v-if="machine.lastUpdate" class="pa-3 text-caption text-medium-emphasis">
+                        <div
+                          v-if="machine.lastUpdate"
+                          class="pa-3 text-caption text-medium-emphasis"
+                        >
                           Last update: {{ new Date(machine.lastUpdate).toLocaleString() }}
                         </div>
 
@@ -602,9 +632,9 @@ const processedMachinesWithData = computed(() => {
                               >
                                 {{
                                   parameter.status === 'active' ? 'tabler-circle-check-filled' :
-                                    parameter.status === 'warning' ? 'tabler-alert-circle' :
-                                      parameter.status === 'inactive' ? 'tabler-circle-x' :
-                                        'tabler-circle'
+                                  parameter.status === 'warning' ? 'tabler-alert-circle' :
+                                  parameter.status === 'inactive' ? 'tabler-circle-x' :
+                                  'tabler-circle'
                                 }}
                               </VIcon>
                             </template>
@@ -641,7 +671,7 @@ const processedMachinesWithData = computed(() => {
       sm="6"
     >
       <VCard>
-        <VImg :src="useStaticFile(machines.entries.find(m => m.id === machine.id)?.thumbnail_path)"/>
+        <VImg :src="useStaticFile(machines.entries.find(m => m.id === machine.id)?.thumbnail_path)" />
 
         <VCardItem>
           <VCardTitle class="d-flex align-center gap-2">
@@ -664,7 +694,7 @@ const processedMachinesWithData = computed(() => {
           <RouterLink :to="{ name: 'machines-show-id', params: { id: machine.id } }">
             <VBtn>Details</VBtn>
           </RouterLink>
-          <VSpacer/>
+          <VSpacer />
         </VCardActions>
       </VCard>
     </VCol>

@@ -43,11 +43,11 @@ export const useDashboardStore = defineStore('dashboard', {
   }),
 
   getters: {
-    getWidgetById: (state) => (id) => {
+    getWidgetById: state => id => {
       return state.widgets.find(w => w.i === id)
     },
 
-    getDataSource: (state) => (sourceKey) => {
+    getDataSource: state => sourceKey => {
       return state.dataSources[sourceKey] || null
     },
   },
@@ -59,6 +59,7 @@ export const useDashboardStore = defineStore('dashboard', {
       if (saved) {
         try {
           const data = JSON.parse(saved)
+
           this.widgets = data.widgets || []
           this.widgetIdCounter = data.widgetIdCounter || this.widgets.length
         } catch (e) {
@@ -124,6 +125,7 @@ export const useDashboardStore = defineStore('dashboard', {
         widgetIdCounter: this.widgetIdCounter,
         timestamp: new Date().toISOString(),
       }
+
       localStorage.setItem('dashboard-layout', JSON.stringify(data))
       this.isEditing = false
     },
@@ -187,9 +189,11 @@ export const useDashboardStore = defineStore('dashboard', {
         version: '1.0',
         exportedAt: new Date().toISOString(),
       }
+
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
+
       a.href = url
       a.download = `dashboard-${Date.now()}.json`
       a.click()
@@ -204,11 +208,13 @@ export const useDashboardStore = defineStore('dashboard', {
           this.widgets = data.widgets
           this.widgetIdCounter = Math.max(...data.widgets.map(w => parseInt(w.i)), 0) + 1
           this.saveLayout()
+          
           return true
         }
       } catch (e) {
         console.error('Failed to import dashboard:', e)
       }
+      
       return false
     },
   },

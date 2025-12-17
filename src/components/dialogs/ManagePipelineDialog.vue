@@ -21,18 +21,20 @@ const emit = defineEmits([
   'submit',
   'update:isDialogVisible',
 ])
+
 const pipeline = ref(structuredClone(toRaw(props.pipeline)))
 
 // 🔹 watch khusus untuk props.pipeline
 watch(
   () => props.pipeline,
-  (newVal) => {
+  newVal => {
     if (newVal) {
       pipeline.value = structuredClone(toRaw(newVal))
     }
   },
   { immediate: true, deep: true },
 )
+
 const formSubmit = () => {
   emit('submit', pipeline.value)
   emit('update:isDialogVisible', false)
@@ -50,7 +52,7 @@ const dialogModelValueUpdate = () => {
     @update:model-value="dialogModelValueUpdate"
   >
     <!-- Dialog close btn -->
-    <DialogCloseBtn @click="dialogModelValueUpdate(false)"/>
+    <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
 
     <VCard class="pa-2 pa-sm-10">
       <!-- 👉 Title -->
@@ -68,7 +70,6 @@ const dialogModelValueUpdate = () => {
       <VCardText class="pt-6">
         <VForm @submit.prevent="() => {}">
           <VRow>
-
             <!-- 👉 Card Name -->
             <VCol
               cols="12"

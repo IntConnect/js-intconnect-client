@@ -566,7 +566,7 @@ onMounted(async () => {
             <!-- ===================== -->
             <!-- SUPPORTING FILES -->
             <!-- ===================== -->
-            <VDivider class="my-6"/>
+            <VDivider class="my-6" />
 
             <h6 class="text-h6 mb-3">
               Supporting Files

@@ -78,11 +78,14 @@ function initScene(config) {
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.domElement.addEventListener('click', onCanvasClick)
   renderer.domElement.addEventListener('mousemove', onMouseMove)
+
   const pmrem = new THREE.PMREMGenerator(renderer)
+
   scene.environment = pmrem.fromScene(
     new RoomEnvironment(),
     0.01,
   ).texture
+
   /* LIGHT */
 
   /* DEBUG AXIS */

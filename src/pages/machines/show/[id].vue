@@ -54,6 +54,7 @@ let model = null
 
 const processedMachine = computed(() => {
   if (!machine?.value?.entry) return null
+  
   return machine.value.entry
 })
 
@@ -64,6 +65,7 @@ const processedMachine = computed(() => {
 function connectMQTT() {
   if (!processedMachine.value?.mqtt_topic?.mqtt_broker) {
     console.warn('No MQTT broker configuration found')
+    
     return
   }
 
@@ -72,6 +74,7 @@ function connectMQTT() {
 
   if (!broker.host_name || !broker.ws_port) {
     console.error('Invalid broker configuration')
+    
     return
   }
 
@@ -97,7 +100,7 @@ function connectMQTT() {
       mqttStatus.value = 'connected'
 
       // Subscribe to topic
-      mqttClient.value.subscribe(topic, { qos: 0 }, (err) => {
+      mqttClient.value.subscribe(topic, { qos: 0 }, err => {
         if (err) {
           console.error(`Failed to subscribe to ${topic}:`, err)
           mqttStatus.value = 'error'
@@ -114,6 +117,7 @@ function connectMQTT() {
 
       try {
         const data = JSON.parse(message)
+
         handleMqttMessage(data)
       } catch (err) {
         console.error('❌ Failed to parse JSON:', err)
@@ -121,7 +125,7 @@ function connectMQTT() {
       }
     })
 
-    mqttClient.value.on('error', (err) => {
+    mqttClient.value.on('error', err => {
       console.error(`❌ MQTT error:`, err.message)
       mqttStatus.value = 'error'
     })
@@ -147,6 +151,7 @@ function handleMqttMessage(data) {
 
   if (!data || typeof data !== 'object') {
     console.warn('Invalid data structure')
+    
     return
   }
 
@@ -154,6 +159,7 @@ function handleMqttMessage(data) {
 
   if (!dataValues || typeof dataValues !== 'object') {
     console.warn('Missing "d" field in data')
+    
     return
   }
 
@@ -199,6 +205,7 @@ function getFormattedValue(paramCode) {
 
   if (type === 'number') {
     const rounded = Math.round(value * 100) / 100
+    
     return unit ? `${rounded} ${unit}` : rounded.toString()
   }
 
@@ -268,7 +275,9 @@ function initThreePreview(config) {
   // Scene
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xffffff)
+
   const pmrem = new THREE.PMREMGenerator(renderer)
+
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
 
   // Camera
@@ -295,6 +304,7 @@ function initThreePreview(config) {
 
   // Load Model
   const loader = new GLTFLoader()
+
   loader.load(useStaticFile(config.model_path), gltf => {
     model = gltf.scene
     model.updateMatrixWorld(true)
@@ -354,7 +364,7 @@ onBeforeUnmount(() => {
 })
 
 // Watch for machine data changes
-watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
+watch(() => processedMachine.value?.mqtt_topic, newTopic => {
   if (newTopic && !mqttClient.value) {
     connectMQTT()
   }
@@ -364,7 +374,10 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
 <template>
   <VRow>
     <!-- MQTT Status -->
-    <VCol v-if="processedMachine?.mqtt_topic" cols="12">
+    <VCol
+      v-if="processedMachine?.mqtt_topic"
+      cols="12"
+    >
       <VCard>
         <VCardText>
           <div class="d-flex gap-2 flex-wrap align-center">
@@ -377,11 +390,14 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
               "
               size="small"
             >
-              <VIcon size="small" start>
+              <VIcon
+                size="small"
+                start
+              >
                 {{
                   mqttStatus === 'connected' ? 'tabler-plug-connected' :
-                    mqttStatus === 'error' ? 'tabler-plug-x' :
-                      'tabler-plug'
+                  mqttStatus === 'error' ? 'tabler-plug-x' :
+                  'tabler-plug'
                 }}
               </VIcon>
               MQTT: {{ mqttStatus }}
@@ -420,7 +436,10 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
       <VCard>
         <VCardText>
           <VRow class="match-height">
-            <VCol class="d-flex" cols="7">
+            <VCol
+              class="d-flex"
+              cols="7"
+            >
               <div
                 ref="threeContainer"
                 class="rounded-lg overflow-hidden"
@@ -428,8 +447,14 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
               />
             </VCol>
 
-            <VCol class="scroll-item" cols="5">
-              <VCard class="country-order-card d-flex flex-column" height="500">
+            <VCol
+              class="scroll-item"
+              cols="5"
+            >
+              <VCard
+                class="country-order-card d-flex flex-column"
+                height="500"
+              >
                 <VCardItem class="pb-2">
                   <VCardTitle>Real-time Parameters</VCardTitle>
                   <VCardSubtitle>
@@ -441,7 +466,10 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
                     >
                       Live Data
                     </VBadge>
-                    <span v-else class="text-medium-emphasis">
+                    <span
+                      v-else
+                      class="text-medium-emphasis"
+                    >
                       Connecting...
                     </span>
                   </VCardSubtitle>
@@ -467,9 +495,9 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
                           >
                             {{
                               parameter.status === 'active' ? 'tabler-circle-check-filled' :
-                                parameter.status === 'warning' ? 'tabler-alert-circle' :
-                                  parameter.status === 'inactive' ? 'tabler-circle-x' :
-                                    'tabler-circle'
+                              parameter.status === 'warning' ? 'tabler-alert-circle' :
+                              parameter.status === 'inactive' ? 'tabler-circle-x' :
+                              'tabler-circle'
                             }}
                           </VIcon>
                         </template>
@@ -489,14 +517,20 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
                           <strong class="text-h6">{{ parameter.formattedValue }}</strong>
                           <br>
                           <span class="text-caption">({{ parameter.code }})</span>
-                          <span v-if="parameter.timestamp" class="text-caption ml-2">
+                          <span
+                            v-if="parameter.timestamp"
+                            class="text-caption ml-2"
+                          >
                             • {{ new Date(parameter.timestamp).toLocaleTimeString() }}
                           </span>
                         </VListItemSubtitle>
                       </VListItem>
 
                       <VListItem v-if="parametersWithData.length === 0">
-                        <VAlert density="compact" type="info">
+                        <VAlert
+                          density="compact"
+                          type="info"
+                        >
                           No parameters configured for this machine
                         </VAlert>
                       </VListItem>
@@ -521,11 +555,19 @@ watch(() => processedMachine.value?.mqtt_topic, (newTopic) => {
         </VCardItem>
         <VCardText>
           <VRow class="h-100">
-            <VCol cols="12" lg="6" md="6">
-              <EnergyLineChart/>
+            <VCol
+              cols="12"
+              lg="6"
+              md="6"
+            >
+              <EnergyLineChart />
             </VCol>
-            <VCol cols="12" lg="6" md="6">
-              <EnergyLineChart/>
+            <VCol
+              cols="12"
+              lg="6"
+              md="6"
+            >
+              <EnergyLineChart />
             </VCol>
           </VRow>
         </VCardText>
