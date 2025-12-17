@@ -39,7 +39,6 @@ declare module 'vue-router/auto-routes' {
     'modbus-server': RouteRecordInfo<'modbus-server', '/modbus-server', Record<never, never>, Record<never, never>>,
     'mqtt-broker': RouteRecordInfo<'mqtt-broker', '/mqtt-broker', Record<never, never>, Record<never, never>>,
     'mqtt-topic': RouteRecordInfo<'mqtt-topic', '/mqtt-topic', Record<never, never>, Record<never, never>>,
-    'operation': RouteRecordInfo<'operation', '/operation', Record<never, never>, Record<never, never>>,
     'parameters': RouteRecordInfo<'parameters', '/parameters', Record<never, never>, Record<never, never>>,
     'parameters-manage-id': RouteRecordInfo<'parameters-manage-id', '/parameters/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'permissions': RouteRecordInfo<'permissions', '/permissions', Record<never, never>, Record<never, never>>,
