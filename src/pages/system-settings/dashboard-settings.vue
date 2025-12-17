@@ -275,17 +275,18 @@ onMounted(async () => {
   await nextTick()
   console.log(systemSetting.value)
 
-  Object.assign(localForm, {
-    description: systemSetting.value.entry.description,
-    existingModelUrl: systemSetting.value.entry.value.model_path,
-    pinObjectName: systemSetting.value.entry.value.pin_object_name,
-    camera: {
-      x: systemSetting.value.entry.value.camera_x,
-      y: systemSetting.value.entry.value.camera_y,
-      z: systemSetting.value.entry.value.camera_z,
-    },
-  })
-
+  if (systemSetting.value.entry) {
+    Object.assign(localForm, {
+      description: systemSetting.value.entry.description,
+      existingModelUrl: systemSetting.value.entry.value.model_path,
+      pinObjectName: systemSetting.value.entry.value.pin_object_name,
+      camera: {
+        x: systemSetting.value.entry.value.camera_x,
+        y: systemSetting.value.entry.value.camera_y,
+        z: systemSetting.value.entry.value.camera_z,
+      },
+    })
+  }
 })
 </script>
 

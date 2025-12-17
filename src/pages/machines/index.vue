@@ -53,7 +53,8 @@ const sortOrder = ref("asc")
 const showDeleteDialog = ref(false)
 const selectedMachine = ref(null)
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
+const titleAlert = ref('')
+const bodyAlert = ref('')
 
 // --- Edit user
 function handleEdit(row) {
@@ -94,7 +95,8 @@ const handleDeleteMachine = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete machine'
+    titleAlert.value = 'Action success'
+    bodyAlert.value = 'Machine has been deleted'
 
   } else {
     console.error('Failed to delete machine:', result.error)
@@ -154,7 +156,7 @@ const closeDeleteDialog = () => {
             </div>
           </VCardText>
 
-          <VDivider />
+          <VDivider/>
 
           <!-- Data Table -->
           <VDataTable
@@ -249,6 +251,7 @@ const closeDeleteDialog = () => {
   </VRow>
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"
-    :title-alert="alertMessage"
+    :body-alert="bodyAlert"
+    :title-alert="titleAlert"
   />
 </template>

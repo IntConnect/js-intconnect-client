@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
 
 /* =========================
    PROPS
@@ -77,14 +78,12 @@ function initScene(config) {
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.domElement.addEventListener('click', onCanvasClick)
   renderer.domElement.addEventListener('mousemove', onMouseMove)
-
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  scene.environment = pmrem.fromScene(
+    new RoomEnvironment(),
+    0.01,
+  ).texture
   /* LIGHT */
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6))
-
-  const dir = new THREE.DirectionalLight(0xffffff, 1)
-
-  dir.position.set(50, 100, 50)
-  scene.add(dir)
 
   /* DEBUG AXIS */
 

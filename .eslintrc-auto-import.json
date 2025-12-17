@@ -395,6 +395,7 @@
     "useManageCheckSheetDocumentTemplate": true,
     "getFileName": true,
     "stripHtml": true,
-    "useManageSystemSetting": true
+    "useManageSystemSetting": true,
+    "useDropzoneValidation": true
   }
 }

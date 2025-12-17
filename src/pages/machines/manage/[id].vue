@@ -12,6 +12,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { useManageFacility } from "@/composables/useManageFacility.js"
 import { useManageMachine } from "@/composables/useManageMachine.js"
 import { extractFilename } from "@core/utils/helpers.js"
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
 
 const numberedSteps = [
   {
@@ -44,13 +45,19 @@ const {
 
   // (optional) machines etc if needed
 } = useManageMachine()
-
+// Preview state
+let previewRenderer = null
+let previewScene = null
+let previewCamera = null
+let previewControls = null
+let previewModel = null
 const {
   machine,
   fetchMachine,
 
   // (optional) machines etc if needed
 } = useManageMachine()
+const threePreviewContainer = ref(null)
 
 // localForm: reactive copy to avoid two-way bind issues during editing
 const localForm = reactive({
@@ -63,6 +70,9 @@ const localForm = reactive({
   thumbnailUrl: null, // File or null
   modelUrl: null, // File or null
   facility_id: null,
+  camera_x: 0,
+  camera_y: 0,
+  camera_z: 0,
   documents: [],
 })
 
@@ -97,9 +107,12 @@ onMounted(async () => {
       code: processedMachine.code,
       description: processedMachine.description,
       facility_id: processedMachine.facility_id,
+      camera_x: processedMachine.camera_x,
+      camera_y: processedMachine.camera_y,
+      camera_z: processedMachine.camera_z,
     })
 
-
+    initModelPreview(processedMachine.model_path, true)
     // ADD THIS
     localForm.documents = processedMachine.machine_documents.map(doc => ({
       id: doc.id,
@@ -111,9 +124,28 @@ onMounted(async () => {
       isExisting: true,
     }))
   }
-
-
 })
+
+function destroyModelPreview() {
+  if (previewControls) {
+    previewControls.removeEventListener('end', syncPreviewCameraState)
+    previewControls.dispose()
+    previewControls = null
+  }
+
+  if (previewRenderer) {
+    previewRenderer.dispose()
+    previewRenderer = null
+  }
+
+  if (threePreviewContainer.value) {
+    threePreviewContainer.value.innerHTML = ''
+  }
+
+  previewScene = null
+  previewCamera = null
+  previewModel = null
+}
 
 // helpers: documents
 const addDocument = () => {
@@ -124,6 +156,121 @@ const removeDocument = idx => {
   localForm.documents.splice(idx, 1)
 }
 
+function initModelPreview(modelUrl, shouldRestoreCamera = false) {
+  if (!threePreviewContainer.value || !modelUrl) return
+
+  destroyModelPreview()
+
+  const width = threePreviewContainer.value.clientWidth
+  const height = 300
+
+  // Renderer
+  previewRenderer = new THREE.WebGLRenderer({ antialias: true })
+  previewRenderer.domElement.style.width = '100%'
+  previewRenderer.domElement.style.height = '100%'
+  previewRenderer.domElement.style.display = 'block'
+  previewRenderer.setSize(width, height)
+  previewRenderer.setPixelRatio(window.devicePixelRatio)
+  threePreviewContainer.value.appendChild(previewRenderer.domElement)
+
+  // Scene
+  previewScene = new THREE.Scene()
+  previewScene.background = new THREE.Color(0xf5f5f5)
+
+  // Camera - set default position first
+  previewCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
+  previewCamera.position.set(localForm.camera_x, localForm.camera_y, localForm.camera_z)
+  previewCamera.updateProjectionMatrix()
+
+  // Controls
+  previewControls = new OrbitControls(previewCamera, previewRenderer.domElement)
+  previewControls.enableDamping = true
+  previewControls.dampingFactor = 0.05
+  previewControls.addEventListener('end', syncPreviewCameraState)
+  const pmrem = new THREE.PMREMGenerator(previewRenderer)
+
+  previewScene.environment = pmrem.fromScene(
+    new RoomEnvironment(),
+    0.04,
+  ).texture
+  // Light
+  previewScene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+  directionalLight.position.set(5, 10, 7.5)
+  previewScene.add(directionalLight)
+
+  // Load uploaded model
+  const loader = new GLTFLoader()
+  loader.load(
+    shouldRestoreCamera ? useStaticFile(modelUrl) : modelUrl,
+    gltf => {
+      previewModel = gltf.scene
+      previewModel.updateMatrixWorld(true)
+
+      // Center model
+      const box = new THREE.Box3().setFromObject(previewModel)
+      const center = box.getCenter(new THREE.Vector3())
+      const size = box.getSize(new THREE.Vector3())
+
+      previewModel.position.x -= center.x
+      previewModel.position.y -= center.y
+      previewModel.position.z -= center.z
+
+      previewScene.add(previewModel)
+
+      // Check if we should restore saved camera position or auto-fit
+      const hasSavedCamera = shouldRestoreCamera && (
+        localForm.camera_x !== 0 ||
+        localForm.camera_y !== 0 ||
+        localForm.camera_z !== 0
+      )
+
+      if (hasSavedCamera) {
+        // Restore saved camera position
+        previewCamera.position.set(
+          localForm.camera_x,
+          localForm.camera_y,
+          localForm.camera_z,
+        )
+        previewCamera.updateProjectionMatrix()
+        previewControls.update()
+      } else {
+        // Auto-fit camera for new uploads
+        const maxDim = Math.max(size.x, size.y, size.z)
+        const fov = previewCamera.fov * (Math.PI / 180)
+        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2))
+        cameraZ *= 1.5
+
+        previewCamera.position.z = cameraZ
+        previewControls.update()
+
+        // Sync camera state after auto-fit
+        syncPreviewCameraState()
+      }
+    },
+    undefined,
+    error => {
+      console.error('Error loading preview model:', error)
+    },
+  )
+
+  animatePreview()
+}
+
+function animatePreview() {
+  if (!previewRenderer) return
+  requestAnimationFrame(animatePreview)
+  previewControls.update()
+  previewRenderer.render(previewScene, previewCamera)
+}
+
+function syncPreviewCameraState() {
+  if (!previewCamera) return
+
+  localForm.camera_x = Number(previewCamera.position.x.toFixed(4))
+  localForm.camera_y = Number(previewCamera.position.y.toFixed(4))
+  localForm.camera_z = Number(previewCamera.position.z.toFixed(4))
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -154,14 +301,19 @@ const onSubmit = async () => {
       description: document.description,
       files: document.files, // array of File
     })),
+    camera_x: localForm.camera_x,
+    camera_y: localForm.camera_y,
+    camera_z: localForm.camera_z,
   }
 
+  console.log(payload)
 
   const result = await saveMachine(payload)
 
   if (result.success) {
     router.push('/machines')
   } else {
+    currentStep.value = 0
     // errors are already populated into formErrors by composable
     console.error('submit failed', result)
   }
@@ -182,6 +334,7 @@ watch(
   val => {
     if (val && val[0]?.file) {
       localForm.modelUrl = URL.createObjectURL(val[0].file)
+      initModelPreview(localForm.modelUrl, false)
     }
   },
   { deep: true },
@@ -195,6 +348,14 @@ let scene = null
 let camera = null
 let controls = null
 let model = null
+
+const {
+  errors: dropzoneError,
+  handleFileRejected,
+  clearError,
+  clearAllErrors,
+} = useDropzoneValidation()
+
 
 // Watch step: initialize preview when going to summary (step index 2)
 watch(
@@ -238,7 +399,11 @@ function initThreePreview() {
   // Scene
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0xffffff)
-
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  scene.environment = pmrem.fromScene(
+    new RoomEnvironment(),
+    0.04,
+  ).texture
   // Camera
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
   camera.position.set(2, 1.5, 3)
@@ -367,25 +532,6 @@ function removeExistingDocument(docId, index) {
                     placeholder="Select facility"
                   />
                 </VCol>
-
-                <VCol
-                  cols="12"
-                  md="6"
-                >
-                  <p class="text-body-2">
-                    3D Model {{ isEditMode ? '(Optional)' : '' }}
-                  </p>
-                  <Vue3Dropzone
-                    v-model="localForm.model"
-                    :max-file-size="500"
-                    :multiple="false"
-                  />
-                  <small
-                    v-if="formErrors.model"
-                    class="text-error"
-                  >{{ formErrors.model.join(', ') }}</small>
-                </VCol>
-
                 <VCol
                   cols="12"
                   md="6"
@@ -399,6 +545,31 @@ function removeExistingDocument(docId, index) {
                     textarea
                   />
                 </VCol>
+
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <p class="text-body-2">
+                    3D Model {{ isEditMode ? '(Optional)' : '' }}
+                  </p>
+                  <Vue3Dropzone
+                    v-model="localForm.model"
+                    :max-file-size="500"
+                    :multiple="false"
+                    @error="e => handleFileRejected('model' , e)"
+                    @fileUploaded="clearError('model')"
+
+                  />
+                  <p
+                    v-if="formErrors.model || dropzoneError.model"
+                    class="text-body-2 mt-2 text-danger"
+                  >
+                    {{ formErrors.model || dropzoneError.model.message }}
+                  </p>
+                </VCol>
+
+
                 <VCol
                   cols="12"
                   md="6"
@@ -412,15 +583,53 @@ function removeExistingDocument(docId, index) {
                     :max-file-size="1"
                     :multiple="false"
                     accept="image/png, image/jpeg"
-                    mode="edit"
+                    mode="edit" @error="e => handleFileRejected('thumbnail' , e)"
+                    @fileUploaded="clearError('thumbnail')"
                   />
                   <p
-                    v-if="formErrors.thumbnail"
-                    class="text-body-2 mt-2 text-red"
+                    v-if="formErrors.thumbnail || dropzoneError.thumbnail"
+                    class="text-body-2 mt-2 text-danger"
                   >
-                    {{ props.formErrors.thumbnail }}
+                    {{ formErrors.thumbnail || dropzoneError.thumbnail.message }}
                   </p>
                 </VCol>
+
+                <VCol cols="6">
+                  <p class="text-body-2 mb-2">
+                    3D Preview (Rotate to set camera)
+                  </p>
+                  <div
+                    ref="threePreviewContainer"
+                    class="rounded-lg overflow-hidden"
+                    style="width: 100%; height: 300px; border: 1px solid #e0e0e0; background: #f5f5f5;"
+                  />
+                </VCol>
+                <VCol cols="6">
+                  <VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model="localForm.camera_x"
+                        disabled
+                        label="Camera X"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model="localForm.camera_y"
+                        disabled
+                        label="Camera Y"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField
+                        v-model="localForm.camera_z"
+                        disabled
+                        label="Camera Z"
+                      />
+                    </VCol>
+                  </VCol>
+                </VCol>
+
               </VRow>
             </VWindowItem>
 
@@ -647,11 +856,13 @@ function removeExistingDocument(docId, index) {
                 </VCol>
 
                 <VCol cols="12">
-                  <div class="text-body-2 mb-1">
+
+                  <h4 class="text-h5 mb-3">
                     3D Model Preview
-                  </div>
+                  </h4>
 
                   <div
+                    v-if="localForm.modelUrl"
                     ref="threeContainer"
                     style="width: 100%; height: 300px; border-radius: 8px; background: #000;"
                   />
@@ -668,6 +879,12 @@ function removeExistingDocument(docId, index) {
                   <h4 class="text-h5 mb-3">
                     Documents
                   </h4>
+                  <div
+                    v-if="localForm.documents.length == 0"
+                    class="text-grey mt-1"
+                  >
+                    No Document uploaded
+                  </div>
                 </VCol>
 
                 <template
