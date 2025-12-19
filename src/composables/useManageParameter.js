@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageParameter = () => {
   // --------------------
@@ -179,6 +179,29 @@ export const useManageParameter = () => {
     }
   }
 
+  const manageParameterOperation = async (parameterId, parameterOperationData) => {
+    actionLoading.value = true
+    clearFormErrors()
+    console.log(parameterOperationData)
+    
+    try {
+      const { data: response, error: apiError } = await useApi(`/parameters/operation/${parameterId}`)
+        .put(parameterOperationData)
+        .json()
+
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+
+      if (!result.success) return result
+
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
   const deleteParameter = async (parameterId, reason = '') => {
     actionLoading.value = true
     clearFormErrors()
@@ -238,6 +261,7 @@ export const useManageParameter = () => {
     fetchParameterDependency,
     createParameter,
     updateParameter,
+    manageParameterOperation,
     deleteParameter,
     saveParameter,
     clearFormErrors,

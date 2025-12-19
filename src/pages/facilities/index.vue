@@ -1,12 +1,11 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
-import { useManageFacility } from "@/composables/useManageFacility.js"
 import AlertDialog from "@/components/general/AlertDialog.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import { useManageFacility } from "@/composables/useManageFacility.js"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { onMounted, ref, watch } from 'vue'
 
 // ==========================================
 // Composable
@@ -235,6 +234,19 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
+            <RouterLink :to="{ name: 'facilities-show-id', params: { id: item.id } }">
+              <VBtn
+                color="success"
+                icon
+                size="small"
+                variant="text"
+              >
+                <VIcon
+                  icon="tabler-eye"
+                  size="20"
+                />
+              </VBtn>
+            </RouterLink>
             <RouterLink :to="{ name: 'facilities-manage-id', params: { id: item.id } }">
               <VBtn
                 color="info"

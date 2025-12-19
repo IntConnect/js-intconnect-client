@@ -195,6 +195,19 @@ const closeDeleteDialog = () => {
               <div class="d-flex gap-2">
                 <RouterLink :to="{ name: 'machines-manage-id', params: { id: item.id } }">
                   <VBtn
+                    color="success"
+                    icon
+                    size="small"
+                    variant="text"
+                  >
+                    <VIcon
+                      icon="tabler-eye"
+                      size="20"
+                    />
+                  </VBtn>
+                </RouterLink>
+                <RouterLink :to="{ name: 'machines-manage-id', params: { id: item.id } }">
+                  <VBtn
                     color="info"
                     icon
                     size="small"

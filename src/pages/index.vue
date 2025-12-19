@@ -1,10 +1,10 @@
 <script setup>
 import ThreeViewer from "@/components/ThreeViewer.vue"
-import SystemEfficiencyChart from "@/components/dashboard/SystemEfficiencyChart.vue"
-import LoadChillerWidget from "@/components/dashboard/LoadChillerWidget.vue"
 import CoefficientOfPerformance from "@/components/dashboard/CoefficientOfPerformance.vue"
+import LoadChillerWidget from "@/components/dashboard/LoadChillerWidget.vue"
 import PowerChart from "@/components/dashboard/PowerChart.vue"
 import ProductionChart from "@/components/dashboard/ProductionChart.vue"
+import SystemEfficiencyChart from "@/components/dashboard/SystemEfficiencyChart.vue"
 
 const {
   systemSetting,
@@ -15,6 +15,7 @@ const {
   facilities,
   fetchFacilities,
 } = useManageFacility()
+
 
 const selectedMachineIds = ref([])
 const selectedParameterIds = ref([])

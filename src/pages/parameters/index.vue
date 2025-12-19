@@ -1,10 +1,11 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
+import ManageParameterOperationDialog from "@/components/dialogs/ManageParameterOperationDialog.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { useManageParameter } from "@/composables/useManageParameter"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 // ==========================================
 // Composable
@@ -16,6 +17,7 @@ const {
   fetchParametersPagination,
   saveParameter,
   deleteParameter,
+  manageParameterOperation,
   totalItems,
   totalPages,
   error,
@@ -50,6 +52,7 @@ const sortOrder = ref("asc")
 
 // UI States
 const showDeleteDialog = ref(false)
+const showParameterOperationDialog = ref(false)
 const selectedParameter = ref(null)
 
 // ==========================================
@@ -78,6 +81,12 @@ const openDeleteDialog = parameter => {
   showDeleteDialog.value = true
 }
 
+const openParameterOperationDialog = parameter => {
+  showParameterOperationDialog.value = true
+  selectedParameter.value = parameter
+}
+
+
 /**
  * Close delete dialog
  */
@@ -86,20 +95,12 @@ const closeDeleteDialog = () => {
   selectedParameter.value = null
 }
 
-/**
- * Handle save parameter (create or update)
- */
-const handleSaveParameter = async parameterData => {
-  const result = await saveParameter(parameterData)
-
-  if (result.success) {
-    await loadParameters()
-
-  } else {
-    // Errors sudah di-set di formErrors oleh composable
-    console.error('Failed to save parameter:', result.error || result.errors)
-  }
+const closeParameterOperationDialog = () => {
+  showParameterOperationDialog.value = false
+  selectedParameter.value = null
 }
+
+
 
 /**
  * Handle delete parameter
@@ -120,6 +121,26 @@ const handleDeleteParameter = async formData => {
 
   } else {
     console.error('Failed to delete parameter:', result.error)
+
+    // Optional: Show error notification
+  }
+}
+
+const handleManageParameterOperation = async payload => {
+  if (!selectedParameter.value?.id) {
+    console.warn('No parameter selected for operation')
+
+    return
+  }
+
+  const result = await  manageParameterOperation(selectedParameter.value.id, payload)
+
+  if (result.success) {
+    closeParameterOperationDialog()
+    await loadParameters()
+
+  } else {
+    console.error('Failed to delete parameter:', formErrors)
 
     // Optional: Show error notification
   }
@@ -236,7 +257,7 @@ onMounted(() => {
               icon
               size="small"
               variant="text"
-              @click="openDeleteDialog(item)"
+              @click="openParameterOperationDialog(item)"
             >
               <VIcon
                 icon="tabler-math"
@@ -282,6 +303,11 @@ onMounted(() => {
       message="Please provide a reason for deletion"
       title="Delete Parameter"
       @submit="handleDeleteParameter"
+    />
+    <ManageParameterOperationDialog
+      :is-dialog-visible="showParameterOperationDialog"
+      :parameter="selectedParameter"
+      @submit="handleManageParameterOperation"
     />
   </section>
 </template>
