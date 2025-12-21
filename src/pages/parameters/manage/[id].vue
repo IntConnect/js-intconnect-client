@@ -1,14 +1,14 @@
 <script setup>
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import * as ThreeMeshUI from "three-mesh-ui"
-import * as THREE from 'three'
-import { onMounted, ref, reactive, nextTick } from 'vue'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import AlertDialog from "@/components/general/AlertDialog.vue"
-import { useManageParameter } from "@/composables/useManageParameter.js"
 import GeneralAlert from "@/components/general/GeneralAlert.vue"
+import { useManageParameter } from "@/composables/useManageParameter.js"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import * as THREE from 'three'
+import * as ThreeMeshUI from "three-mesh-ui"
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { nextTick, onMounted, ref } from 'vue'
 
 
 // ==========================================
@@ -590,7 +590,10 @@ watch([modelPath, () => scene], async () => {
                       placeholder="Select a Machine"
                     />
                   </VCol>
-                  <VCol cols="12">
+                  <VCol
+                    v-if="isAutomatic"
+                    cols="12"
+                  >
                     <AppSelect
                       v-model="mqttTopicId"
                       :error="!!formErrors.mqtt_topic_id"

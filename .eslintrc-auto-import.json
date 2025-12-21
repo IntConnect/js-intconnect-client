@@ -396,6 +396,8 @@
     "getFileName": true,
     "stripHtml": true,
     "useManageSystemSetting": true,
-    "useDropzoneValidation": true
+    "useDropzoneValidation": true,
+    "useFetchTelemetry": true,
+    "usefetchTelemetry": true
   }
 }

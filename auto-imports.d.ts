@@ -233,6 +233,7 @@ declare global {
   const useFetch: typeof import('@vueuse/core')['useFetch']
   const useFetchAuditLog: typeof import('./src/composables/useFetchAuditLog.js')['useFetchAuditLog']
   const useFetchPermission: typeof import('./src/composables/useFetchPermission.js')['useFetchPermission']
+  const useFetchTelemetry: typeof import('./src/composables/useFetchTelemetry.js')['useFetchTelemetry']
   const useFileDialog: typeof import('@vueuse/core')['useFileDialog']
   const useFileSystemAccess: typeof import('@vueuse/core')['useFileSystemAccess']
   const useFloor: typeof import('@vueuse/math')['useFloor']
@@ -367,6 +368,7 @@ declare global {
   const useWindowFocus: typeof import('@vueuse/core')['useWindowFocus']
   const useWindowScroll: typeof import('@vueuse/core')['useWindowScroll']
   const useWindowSize: typeof import('@vueuse/core')['useWindowSize']
+  const usefetchTelemetry: typeof import('./src/composables/useFetchTelemetry.js')['usefetchTelemetry']
   const watch: typeof import('vue')['watch']
   const watchArray: typeof import('@vueuse/core')['watchArray']
   const watchAtMost: typeof import('@vueuse/core')['watchAtMost']
@@ -622,6 +624,7 @@ declare module 'vue' {
     readonly useFetch: UnwrapRef<typeof import('@vueuse/core')['useFetch']>
     readonly useFetchAuditLog: UnwrapRef<typeof import('./src/composables/useFetchAuditLog.js')['useFetchAuditLog']>
     readonly useFetchPermission: UnwrapRef<typeof import('./src/composables/useFetchPermission.js')['useFetchPermission']>
+    readonly useFetchTelemetry: UnwrapRef<typeof import('./src/composables/useFetchTelemetry.js')['useFetchTelemetry']>
     readonly useFileDialog: UnwrapRef<typeof import('@vueuse/core')['useFileDialog']>
     readonly useFileSystemAccess: UnwrapRef<typeof import('@vueuse/core')['useFileSystemAccess']>
     readonly useFloor: UnwrapRef<typeof import('@vueuse/math')['useFloor']>

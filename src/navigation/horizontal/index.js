@@ -130,7 +130,7 @@ export default [
       },
       {
         title: 'Generate Report',
-        to: { name: 'permissions' },
+        to: { name: 'generate-reports' },
         icon: { icon: 'tabler-file-type-doc' },
       },
       {
@@ -140,7 +140,7 @@ export default [
       },
       {
         title: 'Create Check Sheet',
-        to: { name: 'permissions' },
+        to: { name: 'check-sheets' },
         icon: { icon: 'tabler-file-type-doc' },
       },
     ],

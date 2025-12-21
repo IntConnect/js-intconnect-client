@@ -1,10 +1,9 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
-import { useApi } from "@/composables/useApi"
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -39,9 +38,11 @@ const {
 const processedParameters = ref([])
 
 onMounted(async () => {
-  await fetchParameters()
+  
+  await fetchParameters({ isAutomatic: "true" })
   await nextTick()
-  processedParameters.value = parameters.value.entries.map(parameter => ({
+  console.log(parameters)
+  processedParameters.value = parameters.value.entries?.map(parameter => ({
     title: parameter.code,
     value: parameter.id,
   }))

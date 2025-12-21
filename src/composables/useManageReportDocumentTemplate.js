@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageReportDocumentTemplate = () => {
   // --------------------
@@ -58,6 +58,29 @@ export const useManageReportDocumentTemplate = () => {
         },
         response.value,
       )
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const fetchReportDocumentTemplates = async () => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi('/report-document-templates')
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      reportDocumentTemplates.value = response.value
+      
+      return {
+        success: true,
+      }
     } catch (_) {
       return { success: false, error: 'Unknown error' }
     } finally {
@@ -182,6 +205,7 @@ export const useManageReportDocumentTemplate = () => {
     formErrors,
 
     fetchReportDocumentTemplatesPagination,
+    fetchReportDocumentTemplates,
     createReportDocumentTemplate,
     updateReportDocumentTemplate,
     deleteReportDocumentTemplate,
