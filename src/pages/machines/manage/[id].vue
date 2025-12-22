@@ -1,18 +1,18 @@
 <script setup>
-import { ref, reactive, onMounted, computed, toRaw } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import AppStepper from "@core/components/AppStepper.vue"
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import "@jaxtheprime/vue3-dropzone/dist/style.css"
-import AppStepper from "@core/components/AppStepper.vue"
 import * as THREE from 'three'
+import { computed, onMounted, reactive, ref } from 'vue'
 
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { useManageFacility } from "@/composables/useManageFacility.js"
 import { useManageMachine } from "@/composables/useManageMachine.js"
 import { extractFilename } from "@core/utils/helpers.js"
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 const numberedSteps = [
   {
@@ -316,7 +316,6 @@ const onSubmit = async () => {
     camera_z: localForm.camera_z,
   }
 
-  console.log(payload)
 
   const result = await saveMachine(payload)
 

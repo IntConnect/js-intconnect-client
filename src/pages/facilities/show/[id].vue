@@ -1,11 +1,11 @@
 <script setup>
-import { ref, reactive, watch, onMounted, nextTick } from 'vue'
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 import mqtt from 'mqtt'
 

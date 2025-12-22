@@ -36,16 +36,12 @@ const selectedReportDocumentTemplateId = ref(null)
 const flatRows = computed(() => {
   if (telemetries.value.length == 0) return []
   
-  const groupedTelemetries = telemetries.value.entries.flatMap(group =>
+  return telemetries.value.entries.flatMap(group =>
     group.entries.map(e => ({
       ...e,
       timestamp: group.timestamp,
     })),
   )
-
-  console.log(groupedTelemetries)
-  
-  return groupedTelemetries
 })
 
 const headers = [
@@ -74,7 +70,6 @@ const resolveStatusVariant = status => {
 const getIcon = props => props.icon
 
 const handleSubmitTelemetryReport = async payload => {
-  console.log(payload)
  
   refForm.value?.validate().then(async ({ valid }) => {
     if (!valid) return
@@ -90,9 +85,7 @@ const handleSubmitTelemetryReport = async payload => {
 onMounted(async () => {
   let result =  await fetchReportDocumentTemplates()
   await nextTick()
-  console.log(result)
   if(result.success){
-    console.log(reportDocumentTemplates)
     processedReportDocumentTemplates.value = reportDocumentTemplates.value.entries?.map(reportDocumentTemplate => {
       return {
         title: reportDocumentTemplate.code,

@@ -29,10 +29,9 @@ const modelConfigurationReady = computed(() => {
 })
 
 onMounted(async () => {
-  fetchSystemSetting("DASHBOARD_SETTINGS")
-  await fetchFacilities()
+  fetchSystemSetting({ isMinimal: true, key: "DASHBOARD_SETTINGS" })
+  await fetchFacilities({ isMinimal: true })
   await nextTick()
-  console.log(facilities)
 })
 </script>
 

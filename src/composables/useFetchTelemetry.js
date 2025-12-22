@@ -34,7 +34,6 @@ export const useFetchTelemetry = () => {
 
       const result = handleApiError(apiError, { errorMessage })
       if (!result.success) return result
-      console.log(telemetries)
       telemetries.value = response.value
       
       return {

@@ -1,13 +1,13 @@
 <script setup>
-import { ref, reactive, watch, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import AppTextField from '@core/components/app-form-elements/AppTextField.vue'
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
+import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 
 const route = useRoute()
@@ -321,8 +321,6 @@ function initModelPreview(modelUrl, shouldRestoreCamera = false) {
       )
 
       if (hasSavedCamera) {
-        console.log(cameraX.value)
-
         // Restore saved camera position
         previewCamera.position.set(
           cameraX.value,
@@ -583,7 +581,7 @@ onBeforeUnmount(() => {
                 v-model="uploadedModel"
                 :max-file-size="500"
                 :multiple="false"
-                accept=".glb,.gltf"
+                accept=".glb"
                 @error="e => handleFileRejected('model' , e)"
                 @file-uploaded="clearError('model')"
               />
