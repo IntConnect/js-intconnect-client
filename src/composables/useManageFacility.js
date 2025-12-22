@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageFacility = () => {
   // --------------------
@@ -60,13 +60,18 @@ export const useManageFacility = () => {
     }
   }
 
-  const fetchFacilities = async () => {
+  const fetchFacilities = async ({ isMinimal = false }) => {
     clearErrors()
     actionLoading.value = true
-
+    console.log(isMinimal)
     try {
+      let urlEndpoint = '/facilities'
+      if (isMinimal) {
+        urlEndpoint = '/public/facilities'
+      }
+
       const { data: response, error: apiError } = await useApi(
-        createUrl('/facilities', {}),
+        createUrl(urlEndpoint, {}),
       )
         .get()
         .json()

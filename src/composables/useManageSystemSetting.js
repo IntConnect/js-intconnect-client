@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageSystemSetting = () => {
   // --------------------
@@ -85,13 +85,18 @@ export const useManageSystemSetting = () => {
     }
   }
 
-  const fetchSystemSetting = async key => {
+  const fetchSystemSetting = async ({ isMinimal= true, key }) => {
     clearErrors()
     actionLoading.value = true
 
     try {
+      let urlEndpoint = `/system-settings/${key}`
+      if (isMinimal) {
+        urlEndpoint = `/public/system-settings/${key}`
+      }
+
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/system-settings/${key}`, {}),
+        createUrl(`${urlEndpoint}`, {}),
       )
         .get()
         .json()
