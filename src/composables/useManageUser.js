@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageUser = () => {
   // --------------------
@@ -68,6 +68,31 @@ export const useManageUser = () => {
     try {
       const { data: response, error: apiError } = await useApi(
         createUrl(`/users/${id}`, {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      user.value = response.value
+
+      return {
+        success: true,
+      }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const fetchProfile = async () => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/users/profile`, {}),
       )
         .get()
         .json()
@@ -226,6 +251,7 @@ export const useManageUser = () => {
 
     fetchUsers,
     fetchUser,
+    fetchProfile,
     createUser,
     updateUser,
     updateProfile,

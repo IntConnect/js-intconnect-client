@@ -1,12 +1,17 @@
 <script setup>
-import avatar1 from '@images/avatars/avatar-1.png'
+import { useManageAuthentication } from "@/composables/useManageAuthentication"
 import { parseJwt } from "@core/utils/helpers.js"
+import avatar1 from '@images/avatars/avatar-1.png'
 
 const rawJwt = ref('')
 
 onMounted(() => {
   rawJwt.value = useCookie('access_token').value
 })
+
+const {
+  handleLogout,  
+} = useManageAuthentication()
 
 const parsedJwt = computed(() => {
   return parseJwt(rawJwt.value)
@@ -109,7 +114,7 @@ const parsedJwt = computed(() => {
           <VDivider class="my-2" />
 
           <!-- 👉 Logout -->
-          <VListItem to="/login">
+          <VListItem @click="handleLogout">
             <template #prepend>
               <VIcon
                 class="me-2"

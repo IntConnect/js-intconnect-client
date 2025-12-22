@@ -29,6 +29,27 @@ export const useManageAuthentication = () => {
     }
   }
 
+  const handleLogout = async form => {
+    clearErrors()
+
+    try {
+      const { data: response, error: apiError } = await useApi('/users/logout')
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+
+      if (!result.success) return result
+
+      useCookie('access_token', { expires: new Date(0) }).value = null
+
+      // Redirect
+      window.location.href = "/"
+    } catch (err) {
+      console.error("Login failed:", err)
+    }
+  }
+
   // 🧹 Membersihkan error form
   const clearErrors = () => {
     formErrors.value = {}
@@ -36,6 +57,6 @@ export const useManageAuthentication = () => {
   }
 
   return {
-    handleLogin, formErrors, errorMessage,
+    handleLogin, handleLogout,  formErrors, errorMessage,
   }
 }

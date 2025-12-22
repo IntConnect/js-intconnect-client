@@ -7,16 +7,19 @@ export default [
   {
     title: 'Issue',
     icon: { icon: 'tabler-exclamation-circle' },
+    
     children: [
       {
         title: 'Breakdown',
         to: { name: 'breakdowns' },
         icon: { icon: 'tabler-robot-off' },
+        requiredPermission: "BREAKDOWN_VIEW",
       },
       {
         title: 'Log Alarm',
         to: { name: 'breakdowns' },
         icon: { icon: 'tabler-bell-minus' },
+        requiredPermission: "LOG_ALARM_VIEW",
       },
     ],
   },
@@ -57,16 +60,19 @@ export default [
         title: 'Facilities',
         to: { name: 'facilities' },
         icon: { icon: 'tabler-building-factory-2' },
+        requiredPermission: "FACILITY_VIEW",
       },
       {
         title: 'Machines',
         to: { name: 'machines' },
         icon: { icon: 'tabler-brand-databricks' },
+        requiredPermission: "MACHINE_VIEW",
       },
       {
         title: 'Parameter',
         to: { name: 'parameters' },
         icon: { icon: 'tabler-binary-tree-2' },
+        requiredPermission: "PARAMETER_VIEW",
       },
     ],
   },
@@ -78,21 +84,25 @@ export default [
         title: 'MQTT Broker',
         to: { name: 'mqtt-broker' },
         icon: { icon: 'tabler-cooker' },
+        requiredPermission: "MQTT_BROKER_VIEW",
       },
       {
         title: 'MQTT Topic',
         to: { name: 'mqtt-topic' },
         icon: { icon: 'tabler-topology-star-3' },
+        requiredPermission: "MQTT_TOPIC_VIEW",
       },
       {
         title: 'SMTP Server',
         to: { name: 'smtp-server' },
         icon: { icon: 'tabler-mail' },
+        requiredPermission: "SMTP_SERVER_VIEW",
       },
       {
         title: 'Modbus Server',
         to: { name: 'modbus-server' },
         icon: { icon: 'tabler-server-spark' },
+        requiredPermission: "MODBUS_SERVER_VIEW",
       },
 
     ],
@@ -106,16 +116,19 @@ export default [
         title: 'Role & User',
         to: { name: 'users' },
         icon: { icon: 'tabler-user' },
+        requiredPermission: "ROLE_USER_VIEW",
       },
       {
         title: 'Permissions',
         to: { name: 'permissions' },
         icon: { icon: 'tabler-brand-auth0' },
+        requiredPermission: "PERMISSION_VIEW",
       },
       {
         title: 'Audit Log',
         to: { name: 'audit-logs' },
         icon: { icon: 'tabler-adjustments-cog' },
+        requiredPermission: "AUDIT_LOG_VIEW",
       },
     ],
   },
@@ -127,21 +140,25 @@ export default [
         title: 'Report Document Template',
         to: { name: 'report-document-templates' },
         icon: { icon: 'tabler-clipboard-text' },
+        requiredPermission: "REPORT_DOCUMENT_TEMPLATE_VIEW",
       },
       {
         title: 'Generate Report',
         to: { name: 'generate-reports' },
         icon: { icon: 'tabler-file-type-doc' },
+        requiredPermission: "GENERATE_REPORT_VIEW",
       },
       {
         title: 'Check Sheet Document Template',
         to: { name: 'check-sheet-document-templates' },
         icon: { icon: 'tabler-checkup-list' },
+        requiredPermission: "CHECK_SHEET_TEMPLATE_VIEW",
       },
       {
-        title: 'Create Check Sheet',
+        title: 'Check Sheet',
         to: { name: 'check-sheets' },
         icon: { icon: 'tabler-file-type-doc' },
+        requiredPermission: "CHECK_SHEET_VIEW",
       },
     ],
   },
@@ -150,6 +167,7 @@ export default [
     title: 'System Settings',
     icon: { icon: 'tabler-settings-spark' },
     to: { name: 'system-settings' },
+    requiredPermission: "SYSTEM_SETTING_VIEW",
   },
 
 ]
