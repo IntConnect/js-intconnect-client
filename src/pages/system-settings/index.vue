@@ -1,6 +1,6 @@
 <script setup>
-import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
-import pages1 from '@images/pages/1.png'
+import pages1 from '@images/pages/1.png';
+import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
 </script>
 
 <template>
@@ -58,7 +58,7 @@ import pages1 from '@images/pages/1.png'
       />
 
       <VCardItem>
-        <VCardTitle>Manage Dashboard</VCardTitle>
+        <VCardTitle>Dashboard Settings</VCardTitle>
       </VCardItem>
 
       <VCardText>

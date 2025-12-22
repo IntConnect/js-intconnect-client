@@ -1,19 +1,28 @@
 <script setup>
-import { ref, reactive, watch, onMounted, nextTick } from 'vue'
 import AppTextField from '@core/components/app-form-elements/AppTextField.vue'
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
+import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 
 const {
   systemSetting,
   saveSystemSetting,
   fetchSystemSetting,
+  formErrors,
 } = useManageSystemSetting()
+
+const {
+  errors: dropzoneError,
+  handleFileRejected,
+  clearError,
+  clearAllErrors,
+} = useDropzoneValidation()
+
 
 const pinMode = ref(false)
 const selectedPinObject = ref(null)
@@ -38,7 +47,6 @@ const localForm = reactive({
   },
 })
 
-const formErrors = reactive({})
 const isAlertDialogVisible = ref(false)
 const bodyAlert = ref('')
 const titleAlert = ref('')
@@ -272,9 +280,8 @@ const onSubmit = async () => {
 }
 
 onMounted(async () => {
-  await fetchSystemSetting("DASHBOARD_SETTINGS")
+  await fetchSystemSetting({ isMinimal: false, key: "DASHBOARD_SETTINGS" })
   await nextTick()
-  console.log(systemSetting.value)
 
   if (systemSetting.value.entry) {
     Object.assign(localForm, {
@@ -334,9 +341,18 @@ onMounted(async () => {
             </p>
             <Vue3Dropzone
               v-model="localForm.model"
-              :max-file-size="500"
-              :multiple="false"
+              :max-file-size="250"
+              accept=".glb"
+              mode="edit"
+              @error="e => handleFileRejected('model_file' , e)"
+              @file-uploaded="clearError('model_file')"
             />
+            <p
+              v-if="formErrors.model_file || dropzoneError.model_file"
+              class="text-body-2 mt-2 text-error"
+            >
+              {{ formErrors.model_file || dropzoneError.model_file.message }}
+            </p>
           </VCol>
 
           <VCol
@@ -380,7 +396,9 @@ onMounted(async () => {
               <VCol cols="3">
                 <AppTextField
                   :model-value="localForm.pinObjectName"
-                  disabled
+                  :error="!!formErrors.pin_object_name"
+                  :error-messages="formErrors.pin_object_name || []"
+                  readonly
                   label="Selected Pin Object"
                 />
               </VCol>
@@ -388,21 +406,40 @@ onMounted(async () => {
           </VCol>
         </VRow>
 
-        <div class="d-flex justify-end mt-6 gap-4">
-          <VBtn
-            color="primary"
-            variant="outlined"
-            @click="pinMode = !pinMode"
-          >
-            {{ pinMode ? 'Cancel Pin Selection' : 'Select Pin Object' }}
-          </VBtn>
+        <div class="d-flex justify-space-between mt-6 gap-4">
+          <div class="d-flex flex-row gap-2">
+            <p class="text-overline my-auto">
+              Mode: {{ pinMode ? 'SELECTION' : 'VIEWING' }}
+            </p>
+            <VBtn
+              color="primary"
+              variant="outlined"
+              @click="pinMode = !pinMode"
+            >
+              {{ pinMode ? 'Cancel Pin Selection' : 'Select Pin Object' }}
+            </VBtn>
+          </div>
+          <div class="d-flex flex-row gap-2">
+            <VBtn
+              color="info"
+              variant="tonal"
+              to="/system-settings"
+            >
+              <VIcon
+                start
+                icon="tabler-arrow-left"
+              />
+              Back
+            </VBtn>
 
-          <VBtn
-            color="success"
-            @click="onSubmit"
-          >
-            Save Settings
-          </VBtn>
+
+            <VBtn
+              color="success"
+              @click="onSubmit"
+            >
+              Save Settings
+            </VBtn>
+          </div>
         </div>
       </VCardText>
     </VCard>
