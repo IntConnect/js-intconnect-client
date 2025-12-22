@@ -1,15 +1,14 @@
 <script setup>
-import AuthProvider from '@/views/pages/authentication/AuthProvider.vue'
+import AlertDialog from "@/components/general/AlertDialog.vue"
+import GeneralAlert from "@/components/general/GeneralAlert.vue"
+import { useManageAuthentication } from "@/composables/useManageAuthentication.js"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
-import authV2MaskLight from '@images/pages/misc-mask-light.png'
-import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import conveyorLoginIsometric from '@images/pages/conveyor-login-isometric.png'
+import authV2MaskDark from '@images/pages/misc-mask-dark.png'
+import authV2MaskLight from '@images/pages/misc-mask-light.png'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import { useManageAuthentication } from "@/composables/useManageAuthentication.js"
-import GeneralAlert from "@/components/general/GeneralAlert.vue"
-import AlertDialog from "@/components/general/AlertDialog.vue"
 
 definePage({
   meta: {
@@ -54,7 +53,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <a href="javascript:void(0)">
+  <a href="/">
     <div class="auth-logo d-flex align-center gap-x-3">
       <VNodeRenderer :nodes="themeConfig.app.logo" />
       <h1 class="auth-title">
