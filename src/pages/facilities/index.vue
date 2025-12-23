@@ -103,12 +103,13 @@ const handleDeleteFacility = async formData => {
 
   const result = await deleteFacility(selectedFacility.value.id, formData)
 
+  console.log(result)
   if (result.success) {
-    closeDeleteDialog()
     showAlertDialog.value = true
     alertBody.value = "Data has been deleted successfully."
+    closeDeleteDialog()
   } else {
-    console.error('Failed to delete user:', result.error)
+    console.error('Failed to delete facility:', result.error)
 
     // Optional: Show error notification
   }
@@ -293,7 +294,8 @@ onMounted(() => {
         key: 'reason',
         label: 'Reason',
         placeholder: 'Type your reason...',
-        type: 'text'
+        type: 'text',
+        formErrors: formErrors,
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"

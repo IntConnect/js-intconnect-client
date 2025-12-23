@@ -24,7 +24,6 @@ const closeDialog = () => emit("update:modelValue", false)
 
 const handleSubmit = () => {
   emit("submit", description.value)
-  closeDialog()
 }
 </script>
 
@@ -63,6 +62,8 @@ const handleSubmit = () => {
               <AppTextField
                 v-model="description"
                 :label="field.label"
+                :error="field.formErrors[field.key]"
+                :error-messages="field.formErrors[field.key]"
                 :placeholder="field.placeholder"
                 :type="field.type || 'text'"
               />

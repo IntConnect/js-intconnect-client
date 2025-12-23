@@ -2,7 +2,7 @@
 import AppTextField from '@core/components/app-form-elements/AppTextField.vue'
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -26,6 +26,7 @@ const {
   fetchFacility,
   saveFacility,
   actionLoading,
+  formErrors,
 } = useManageFacility()
 
 const {
@@ -66,7 +67,6 @@ let previewCamera = null
 let previewControls = null
 let previewModel = null
 
-const formErrors = reactive({})
 const isAlertDialogVisible = ref(false)
 const bodyAlert = ref('')
 const titleAlert = ref('')
@@ -415,7 +415,7 @@ const onSubmit = async () => {
     isAlertDialogVisible.value = true
     bodyAlert.value = "You will be redirected to facilities page"
     alertType.value = 'info'
-    titleAlert.value = "Success manage Facilities"
+    titleAlert.value = "Success manage facilities"
 
     setTimeout(() => {
       router.push('/facilities')
@@ -427,7 +427,7 @@ const onSubmit = async () => {
 
 onMounted(async () => {
   let facilityResult = await fetchFacility(id)
-  await fetchSystemSetting("DASHBOARD_SETTINGS")
+  await fetchSystemSetting({ isMinimal: false, key: "DASHBOARD_SETTINGS" })
   await nextTick()
 
   if (facilityResult.success) {
@@ -522,7 +522,7 @@ onBeforeUnmount(() => {
               <Vue3Dropzone
                 v-model="thumbnail"
                 v-model:previews="existingThumbnail"
-                :max-file-size="1"
+                :max-file-size="3"
                 accept="image/png, image/jpeg"
                 mode="edit"
                 @error="e => handleFileRejected('thumbnail' , e)"
@@ -530,7 +530,7 @@ onBeforeUnmount(() => {
               />
               <p
                 v-if="formErrors.thumbnail || dropzoneError.thumbnail"
-                class="text-body-2 mt-2 text-danger"
+                class="text-body-2 mt-2 text-error"
               >
                 {{ formErrors.thumbnail || dropzoneError.thumbnail.message }}
               </p>
@@ -538,7 +538,7 @@ onBeforeUnmount(() => {
 
             <VCol cols="6">
               <p class="text-body-2 mb-2">
-                Facility Position (Drag the object)
+                Facility Position (Drag The Object)
               </p>
               <div
                 ref="threeContainer"
@@ -579,7 +579,7 @@ onBeforeUnmount(() => {
               </p>
               <Vue3Dropzone
                 v-model="uploadedModel"
-                :max-file-size="500"
+                :max-file-size="250"
                 :multiple="false"
                 accept=".glb"
                 @error="e => handleFileRejected('model' , e)"
@@ -587,14 +587,14 @@ onBeforeUnmount(() => {
               />
               <p
                 v-if="formErrors.model || dropzoneError.model"
-                class="text-body-2 mt-2 text-danger"
+                class="text-body-2 mt-2 text-error"
               >
                 {{ formErrors.model || dropzoneError.model.message }}
               </p>
             </VCol>
             <VCol cols="6">
               <p class="text-body-2 mb-2">
-                3D Preview (Rotate to set camera)
+                3D Preview (Rotate to Set Camera)
               </p>
               <div
                 ref="threePreviewContainer"
@@ -631,12 +631,12 @@ onBeforeUnmount(() => {
           <!-- Actions -->
           <VCol cols="12">
             <div class="d-flex justify-end gap-3">
-              <VBtn
+              <VBtn 
+                to="/facilities"
                 color="error"
                 variant="tonal"
-                @click="router.push('/facilities')"
               >
-                Cancel
+                Back
               </VBtn>
               <VBtn
                 :loading="actionLoading"
