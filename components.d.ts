@@ -70,6 +70,7 @@ declare module 'vue' {
     Shortcuts: typeof import('./src/@core/components/Shortcuts.vue')['default']
     SpecialEdge: typeof import('./src/components/flow/SpecialEdge.vue')['default']
     SpecialNode: typeof import('./src/components/flow/SpecialNode.vue')['default']
+    StateCards: typeof import('./src/components/dashboard/operation/StateCards.vue')['default']
     SystemEfficiencyChart: typeof import('./src/components/dashboard/SystemEfficiencyChart.vue')['default']
     TablePagination: typeof import('./src/@core/components/TablePagination.vue')['default']
     TheCustomizer: typeof import('./src/@core/components/TheCustomizer.vue')['default']

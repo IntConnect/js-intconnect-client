@@ -3,11 +3,27 @@ export default [
     title: 'Home',
     to: { name: 'root' },
     icon: { icon: 'tabler-smart-home' },
+    
   },
+
+  {
+    title: 'Dashboard',
+    icon: { icon: 'tabler-dashboard' },
+    
+    children: [
+      {
+        title: 'Operation',
+        to: { name: 'dashboards-operation' },
+        icon: { icon: 'tabler-temperature-snow' },
+        requiredPermission: "BREAKDOWN_VIEW",
+      },
+    ],
+  },
+
   {
     title: 'Issue',
     icon: { icon: 'tabler-exclamation-circle' },
-    
+      
     children: [
       {
         title: 'Breakdown',
