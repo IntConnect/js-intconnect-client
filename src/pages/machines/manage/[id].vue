@@ -82,7 +82,7 @@ const localForm = reactive({
 
 // load facilities once
 onMounted(async () => {
-  await fetchFacilities()
+  await fetchFacilities({ isMinimal: false })
 
   const result = await fetchMachine(id)
 
