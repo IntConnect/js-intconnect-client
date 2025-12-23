@@ -152,7 +152,7 @@ export default [
         title: 'Check Sheet Document Template',
         to: { name: 'check-sheet-document-templates' },
         icon: { icon: 'tabler-checkup-list' },
-        requiredPermission: "CHECK_SHEET_TEMPLATE_VIEW",
+        requiredPermission: "CHECK_SHEET_DOCUMENT_TEMPLATE_VIEW",
       },
       {
         title: 'Check Sheet',

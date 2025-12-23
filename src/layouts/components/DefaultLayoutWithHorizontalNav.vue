@@ -33,15 +33,14 @@ const hasPermission = requiredPermission => {
 
 onMounted(async () => {
   rawJwt.value = useCookie('access_token').value
-  if (rawJwt.value === undefined || rawJwt.value !== "") {
-    
+  console.log(rawJwt.value)
+  if (rawJwt.value !== undefined && rawJwt.value !== "") {
     await fetchProfile()
     await nextTick()
     userPermissions.value = user.value.entry?.role?.permissions.map(permission => {
       return permission.code
     })
   }
-
 })
 
 const filteredNavItems = computed(() => {
