@@ -54,6 +54,7 @@ const positionZ = ref(0)
 const rotationX = ref(0)
 const rotationY = ref(0)
 const rotationZ = ref(0)
+const category = ref('Data')
 const isDisplay = ref(true)
 const isAutomatic = ref(true)
 const processedMachines = ref([])
@@ -66,11 +67,15 @@ const modelPath = ref('')
 const numberedSteps = [
   {
     title: 'Parameter Details',
-    subtitle: 'Setup Account Details',
+    subtitle: 'Basic Information',
   },
   {
     title: 'Parameter Positions',
-    subtitle: 'Add personal info',
+    subtitle: 'Parameter Placement in 3D',
+  },
+  {
+    title: 'Summary',
+    subtitle: 'Review Before Submit',
   },
 ]
 
@@ -626,6 +631,25 @@ watch([modelPath, () => scene], async () => {
                       required
                     />
                   </VCol>
+                  <VCol cols="12">
+                    <AppSelect
+                      v-model="machineId"
+                      :error="!!formErrors.machine_id"
+                      :error-messages="formErrors.machine_id"
+                      :items="[{
+                        title: 'Data',
+                        value: 'Data',
+                      }, {
+                        title: 'Status',
+                        value: 'Status',
+                      }, {
+                        title: 'Time',
+                        value: 'Time',
+                      }]"
+                      label="Category"
+                      placeholder="Select a Category"
+                    />
+                  </VCol>
 
                   <VCol cols="12">
                     <AppTextField
@@ -780,6 +804,167 @@ watch([modelPath, () => scene], async () => {
                         type="number"
                       />
                     </VCol>
+                  </VCol>
+                </VRow>
+              </VWindowItem>
+              <VWindowItem>
+                <VRow>
+                  <VCol cols="12">
+                    <h4 class="text-h5 mb-4">
+                      Summary
+                    </h4>
+                  </VCol>
+                  <VCol cols="12">
+                    <VAlert
+                      type="info"
+                      variant="tonal"
+                      class="mb-4"
+                    >
+                      Please review all information carefully before submitting.
+                    </VAlert>
+                  </VCol>
+
+                  <!-- Machine & MQTT -->
+                  <VCol cols="6">
+                    <AppTextField
+                      :model-value="processedMachines?.find(m => m.value === machineId)?.title"
+                      label="Machine"
+                      disabled
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField
+                      :model-value="processedMqttTopic?.find(t => t.value === mqttTopicId)?.title"
+                      label="MQTT Topic"
+                      disabled
+                    />
+                  </VCol>
+
+                  <!-- Basic Info -->
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model="name"
+                      label="Parameter Name"
+                      disabled
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model="code"
+                      label="Code"
+                      disabled
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model="unit"
+                      label="Unit"
+                      disabled
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model="category"
+                      label="Category"
+                      disabled
+                    />
+                  </VCol>
+
+                  <!-- Value Range -->
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model="minValue"
+                      label="Min Value"
+                      disabled
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model="maxValue"
+                      label="Max Value"
+                      disabled
+                    />
+                  </VCol>
+
+                  <!-- Flags -->
+                  <VCol cols="6">
+                    <AppTextField
+                      :model-value="isDisplay ? 'Active' : 'Inactive'"
+                      label="Is Display"
+                      disabled
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField
+                      :model-value="isAutomatic ? 'Automatic' : 'Manual'"
+                      label="Is Automatic"
+                      disabled
+                    />
+                  </VCol>
+
+                  <!-- Position -->
+                  <VCol cols="12">
+                    <VDivider class="my-3" />
+                    <h4 class="text-h6 mb-2">
+                      Position
+                    </h4>
+                  </VCol>
+
+                  <VCol cols="4">
+                    <AppTextField
+                      v-model="positionX"
+                      label="Position X"
+                      disabled
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField
+                      v-model="positionY"
+                      label="Position Y"
+                      disabled
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField
+                      v-model="positionZ"
+                      label="Position Z"
+                      disabled
+                    />
+                  </VCol>
+
+                  <!-- Rotation -->
+                  <VCol cols="12">
+                    <h4 class="text-h6 mt-4 mb-2">
+                      Rotation
+                    </h4>
+                  </VCol>
+
+                  <VCol cols="4">
+                    <AppTextField
+                      v-model="rotationX"
+                      label="Rotation X"
+                      disabled
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField
+                      v-model="rotationY"
+                      label="Rotation Y"
+                      disabled
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField
+                      v-model="rotationZ"
+                      label="Rotation Z"
+                      disabled
+                    />
                   </VCol>
                 </VRow>
               </VWindowItem>
