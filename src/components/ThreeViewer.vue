@@ -1,9 +1,9 @@
 <script setup>
 import * as THREE from 'three'
-import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 /* =========================
    PROPS
@@ -47,6 +47,7 @@ watch(
 watch(
   () => props.facilities,
   facilities => {
+    console.log(facilityGroup, facilities)
     if (!facilityGroup || !facilities?.entries) return
     renderFacilities(facilities.entries)
   },
@@ -117,9 +118,10 @@ function loadModel(config) {
 
     model.position.sub(center)
 
-    /* 🔴 AMBIL MARKER TEMPLATE */
-    markerTemplate = model.getObjectByName('Mesh')
+    console.log(config)
 
+    /* 🔴 AMBIL MARKER TEMPLATE */
+    markerTemplate = model.getObjectByName(config.pin_object_name)
 
     if (markerTemplate) {
       model.updateMatrixWorld(true)
@@ -168,6 +170,8 @@ function renderFacilities(entries) {
 
     /* 🔴 APPLY ROTASI ASLI */
     marker.quaternion.copy(markerWorldQuaternion)
+
+    console.log(facility)
 
     /* POSISI DARI DATABASE */
     marker.position.set(
