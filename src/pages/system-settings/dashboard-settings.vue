@@ -421,7 +421,7 @@ onMounted(async () => {
           </div>
           <div class="d-flex flex-row gap-2">
             <VBtn
-              color="info"
+              color="error"
               variant="tonal"
               to="/system-settings"
             >
