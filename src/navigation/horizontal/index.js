@@ -25,12 +25,7 @@ export default [
     icon: { icon: 'tabler-exclamation-circle' },
       
     children: [
-      {
-        title: 'Breakdown',
-        to: { name: 'breakdowns' },
-        icon: { icon: 'tabler-robot-off' },
-        requiredPermission: "BREAKDOWN_VIEW",
-      },
+     
       {
         title: 'Log Alarm',
         to: { name: 'breakdowns' },
