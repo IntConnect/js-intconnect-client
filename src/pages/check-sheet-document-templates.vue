@@ -1,13 +1,12 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
-import { useManageCheckSheetDocumentTemplate } from "@/composables/useManageCheckSheetDocumentTemplate.js"
 import ManageCheckSheetDocumentTemplateDrawer from "@/components/drawer/ManageCheckSheetDocumentTemplateDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import { useManageCheckSheetDocumentTemplate } from "@/composables/useManageCheckSheetDocumentTemplate.js"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { onMounted, ref, watch } from 'vue'
 
 // ==========================================
 // Composable
@@ -35,8 +34,10 @@ const {
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'Code', key: 'code', sortable: true },
-  { title: 'Document Version', key: 'document_version', sortable: true },
+  { title: 'No', key: 'no', sortable: true },
+  { title: 'Description', key: 'description', sortable: true },
+  { title: 'Category', key: 'category', sortable: true },
+  { title: 'Rotation', key: 'rotation', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 

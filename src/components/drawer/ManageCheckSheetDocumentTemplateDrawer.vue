@@ -1,10 +1,9 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
-import { useApi } from "@/composables/useApi"
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -39,12 +38,13 @@ const {
 const processedParameters = ref([])
 
 onMounted(async () => {
-  await fetchParameters({ isAutomatic: "false" })
+  await fetchParameters({})
   await nextTick()
-  processedParameters.value = parameters.value.entries?.map(parameter => ({
+  console.log(parameters)
+  processedParameters.value = parameters.value?.entries?.map(parameter => ({
     title: parameter.code,
     value: parameter.id,
-  }))
+  })) ?? []
 })
 
 
@@ -57,8 +57,15 @@ const refForm = ref()
 // Form fields
 const id = ref('')
 const name = ref('')
-const code = ref('')
-
+const no = ref('')
+const description = ref('')
+const category = ref('Inspection')
+const rotation = ref(1)
+const rotationType = ref('Day')
+const interval = ref(1)
+const revisionNumber = ref(0)
+const effectiveDate = ref('')
+ 
 const parameterIds = ref([])
 
 // ==========================================
@@ -99,9 +106,18 @@ const onSubmit = () => {
     const checksheetDocumentTemplateData = {
       id: id.value,
       name: name.value,
-      code: code.value,
+      no: no.value,
+      description: description.value,
+      category: category.value,
+      rotation: rotation.value,
+      rotation_type: rotationType.value,
+      interval: interval.value,
+      revision_number: revisionNumber.value,
+      effective_date: effectiveDate.value,
       parameter_ids: parameterIds.value,
     }
+
+    console.log(checksheetDocumentTemplateData)
 
     // Include id for update
     if (id.value) {
@@ -204,12 +220,112 @@ const handleDrawerModelValueUpdate = val => {
               </VCol>
               <VCol cols="12">
                 <AppTextField
-                  v-model="code"
-                  :error="!!props.formErrors.code"
-                  :error-messages="props.formErrors.code || []"
+                  v-model="no"
+                  :error="!!props.formErrors.no"
+                  :error-messages="props.formErrors.no || []"
                   :rules="[requiredValidator]"
-                  label="Code"
+                  label="No"
                   placeholder="SPX.001"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model="description"
+                  :error="!!props.formErrors.description"
+                  :error-messages="props.formErrors.description || []"
+                  :rules="[requiredValidator]"
+                  label="Description"
+                  placeholder="Type something..."
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppSelect
+                  v-model="category"
+                  :items="[{
+                             title: 'Inspection',
+                             value: 'Inspection'
+                           },{
+                             title: 'Lubrication', 
+                             value:'Lubrication'
+                           },{
+                             title: 'Cleaning', 
+                             value:'Cleaning'
+                           }
+                           ,{
+                             title: 'Standar Operating Procedure', 
+                             value:'Standar Operating Procedure'
+                           }]"
+                  :error="!!props.formErrors.category"
+                  :error-messages="props.formErrors.category || []"
+                  :rules="[requiredValidator]"
+                  label="Category"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model.number="rotation"
+                  :error="!!props.formErrors.rotation"
+                  :error-messages="props.formErrors.rotation || []"
+                  :rules="[requiredValidator]"
+                  label="Rotation"
+                  placeholder="0"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppSelect
+                  v-model="rotationType"
+                  :items="[{
+                    title: 'Day',
+                    value: 'Day'
+                  },{
+                    title: 'Week', 
+                    value:'Week'
+                  },{
+                    title: 'Month', 
+                    value:'Month'
+                  }]"
+                  :error="!!props.formErrors.rotationType"
+                  :error-messages="props.formErrors.rotationType || []"
+                  :rules="[requiredValidator]"
+                  label="Rotation Type"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model.number="interval"
+                  :error="!!props.formErrors.interval"
+                  :error-messages="props.formErrors.interval || []"
+                  :rules="[requiredValidator]"
+                  label="Interval"
+                  placeholder="0"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppTextField
+                  v-model.number="revisionNumber"
+                  :error="!!props.formErrors.revisionNumber"
+                  :error-messages="props.formErrors.revisionNumber || []"
+                  :rules="[requiredValidator]"
+                  label="Revision Number"
+                  placeholder="1"
+                />
+              </VCol>
+              <VCol cols="12">
+                <AppDateTimePicker
+                  id="effectiveDate"
+                  v-model="effectiveDate"
+                  style="width: full;"
+                  :config="{
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd M Y',     
+                  }"
+                  :error="!!props.formErrors.effectiveDate"
+                  :error-messages="props.formErrors.effectiveDate || []"
+                  label="Effective Date"
+                  :rules="[requiredValidator]"
+
+                  placeholder="Select date"
                 />
               </VCol>
               <VCol cols="12">
