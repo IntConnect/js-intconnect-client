@@ -1,19 +1,19 @@
 export default [
-  {
-    title: 'Home',
-    to: { name: 'root' },
-    icon: { icon: 'tabler-smart-home' },
-    
-  },
 
   {
-    title: 'Dashboard',
-    icon: { icon: 'tabler-dashboard' },
+    title: 'Home',
+    icon: { icon: 'tabler-smart-home' },
     
     children: [
       {
+        title: 'Executive',
+        to: { name: 'root' },
+        icon: { icon: 'tabler-dashboard' },
+    
+      },
+      {
         title: 'Operation',
-        to: { name: 'dashboards-operation' },
+        to: { name: 'dynamic-dashboard' },
         icon: { icon: 'tabler-temperature-snow' },
         requiredPermission: "BREAKDOWN_VIEW",
       },

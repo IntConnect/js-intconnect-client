@@ -398,6 +398,9 @@
     "useManageSystemSetting": true,
     "useDropzoneValidation": true,
     "useFetchTelemetry": true,
-    "usefetchTelemetry": true
+    "usefetchTelemetry": true,
+    "calculateAggregation": true,
+    "formatChartData": true,
+    "useManageDashboard": true
   }
 }
