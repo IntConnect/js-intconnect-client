@@ -61,7 +61,7 @@ export const useManageParameter = () => {
     }
   }
 
-  const fetchParameters = async ({ isAutomatic = "all" }) => {
+  const fetchParameters = async ({ isAutomatic = null }) => {
     clearErrors()
     actionLoading.value = true
 
