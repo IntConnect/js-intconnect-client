@@ -1,11 +1,11 @@
 import { useApi } from '@/composables/useApi'
 import { ref } from 'vue'
 
-export const useManageCheckSheetDocumentTemplate = () => {
+export const useManageCheckSheet = () => {
   // --------------------
   // State
   // --------------------
-  const checkSheetDocumentTemplates = ref([])
+  const checkSheets = ref([])
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -27,7 +27,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
   // Main API Methods
   // --------------------
 
-  const fetchChecksheetDocumentTemplatesPagination = async ({
+  const fetchCheckSheetsPagination = async ({
     page = 1,
     size = 10,
     query = '',
@@ -39,7 +39,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/check-sheet-document-templates/pagination', {
+        createUrl('/check-sheets/pagination', {
           query: { page, size, query, sort, order },
         }),
       )
@@ -50,7 +50,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
       if (!result.success) return result
       applyPaginationResponse(
         {
-          entries: checkSheetDocumentTemplates,
+          entries: checkSheets,
           totalItems,
           currentPage,
           pageSize,
@@ -65,20 +65,20 @@ export const useManageCheckSheetDocumentTemplate = () => {
     }
   }
 
-  const fetchChecksheetDocumentTemplates = async () => {
+  const fetchCheckSheet = async id => {
     clearErrors()
     actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/check-sheet-document-templates', {}),
+        createUrl('/check-sheets', {}),
       )
         .get()
         .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      checkSheetDocumentTemplates.value = response.value
+      checkSheets.value = response.value
       
       return {
         success: true,
@@ -90,13 +90,13 @@ export const useManageCheckSheetDocumentTemplate = () => {
     }
   }
 
-  const createChecksheetDocumentTemplate = async checkSheetDocumentTemplateData => {
+  const createCheckSheet = async checkSheetData => {
     actionLoading.value = true
     clearFormErrors()
 
     try {
-      const { data: response, error: apiError } = await useApi('/check-sheet-document-templates')
-        .post(checkSheetDocumentTemplateData)
+      const { data: response, error: apiError } = await useApi('/check-sheets')
+        .post(checkSheetData)
         .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
@@ -105,7 +105,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
 
       applyPaginationResponse(
         {
-          entries: checkSheetDocumentTemplates,
+          entries: checkSheets,
           totalItems,
           currentPage,
           pageSize,
@@ -122,7 +122,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
     }
   }
 
-  const updateChecksheetDocumentTemplate = async (checkSheetDocumentTemplateId, checkSheetDocumentTemplateData) => {
+  const updateCheckSheet = async (checkSheetId, checkSheetData) => {
     actionLoading.value = true
     clearFormErrors()
 
@@ -130,8 +130,8 @@ export const useManageCheckSheetDocumentTemplate = () => {
       const {
         data: response,
         error: apiError,
-      } = await useApi(`/check-sheet-document-templates/${checkSheetDocumentTemplateId}`)
-        .put(checkSheetDocumentTemplateData)
+      } = await useApi(`/check-sheets/${checkSheetId}`)
+        .put(checkSheetData)
         .json()
 
 
@@ -141,7 +141,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
 
       applyPaginationResponse(
         {
-          entries: checkSheetDocumentTemplates,
+          entries: checkSheets,
           totalItems,
           currentPage,
           pageSize,
@@ -158,7 +158,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
     }
   }
 
-  const deleteChecksheetDocumentTemplate = async (checkSheetDocumentTemplateId, reason = '') => {
+  const deleteCheckSheet = async (checkSheetId, reason = '') => {
     actionLoading.value = true
     clearFormErrors()
 
@@ -166,7 +166,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
       const {
         data: response,
         error: apiError,
-      } = await useApi(`/check-sheet-document-templates/${checkSheetDocumentTemplateId}`)
+      } = await useApi(`/check-sheets/${checkSheetId}`)
         .delete({ reason })
         .json()
 
@@ -175,7 +175,7 @@ export const useManageCheckSheetDocumentTemplate = () => {
 
       applyPaginationResponse(
         {
-          entries: checkSheetDocumentTemplates,
+          entries: checkSheets,
           totalItems,
           currentPage,
           pageSize,
@@ -192,18 +192,18 @@ export const useManageCheckSheetDocumentTemplate = () => {
     }
   }
 
-  const saveChecksheetDocumentTemplate = async checkSheetDocumentTemplateData => {
-    if (checkSheetDocumentTemplateData.id) {
-      const { id, ...payload } = checkSheetDocumentTemplateData
+  const saveCheckSheet = async checkSheetData => {
+    if (checkSheetData.id) {
+      const { id, ...payload } = checkSheetData
 
-      return updateChecksheetDocumentTemplate(id, payload)
+      return updateCheckSheet(id, payload)
     }
 
-    return createChecksheetDocumentTemplate(checkSheetDocumentTemplateData)
+    return createCheckSheet(checkSheetData)
   }
 
   return {
-    checkSheetDocumentTemplates,
+    checkSheets,
     totalItems,
     currentPage,
     pageSize,
@@ -212,12 +212,12 @@ export const useManageCheckSheetDocumentTemplate = () => {
     errorMessage,
     formErrors,
 
-    fetchChecksheetDocumentTemplatesPagination,
-    fetchChecksheetDocumentTemplates,
-    createChecksheetDocumentTemplate,
-    updateChecksheetDocumentTemplate,
-    deleteChecksheetDocumentTemplate,
-    saveChecksheetDocumentTemplate,
+    fetchCheckSheetsPagination,
+    fetchCheckSheet,
+    createCheckSheet,
+    updateCheckSheet,
+    deleteCheckSheet,
+    saveCheckSheet,
     clearFormErrors,
     clearErrors,
   }

@@ -260,6 +260,7 @@ declare global {
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
   const useManageAuthentication: typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']
   const useManageBreakdown: typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']
+  const useManageCheckSheet: typeof import('./src/composables/useManageCheckSheet.js')['useManageCheckSheet']
   const useManageCheckSheetDocumentTemplate: typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageCheckSheetDocumentTemplate']
   const useManageChecksheetDocumentTemplate: typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageChecksheetDocumentTemplate']
   const useManageDashboard: typeof import('./src/composables/useManageDashboard.js')['useManageDashboard']
@@ -654,6 +655,7 @@ declare module 'vue' {
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
     readonly useManageBreakdown: UnwrapRef<typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']>
+    readonly useManageCheckSheet: UnwrapRef<typeof import('./src/composables/useManageCheckSheet.js')['useManageCheckSheet']>
     readonly useManageCheckSheetDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageCheckSheetDocumentTemplate']>
     readonly useManageDashboard: UnwrapRef<typeof import('./src/composables/useManageDashboard.js')['useManageDashboard']>
     readonly useManageFacility: UnwrapRef<typeof import('./src/composables/useManageFacility.js')['useManageFacility']>

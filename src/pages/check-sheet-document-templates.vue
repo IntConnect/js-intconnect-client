@@ -12,7 +12,7 @@ import { onMounted, ref, watch } from 'vue'
 // Composable
 // ==========================================
 const {
-  checksheetDocumentTemplates,
+  checkSheetDocumentTemplates,
   loading,
   actionLoading,
   fetchChecksheetDocumentTemplatesPagination,
@@ -62,7 +62,7 @@ const alertMessage = ref('')
 // ==========================================
 
 /**
- * Load checksheetDocumentTemplate from API
+ * Load checkSheetDocumentTemplate from API
  */
 const loadChecksheetDocumentTemplates = async () => {
   await fetchChecksheetDocumentTemplatesPagination({
@@ -236,9 +236,9 @@ onMounted(() => {
 
       <!-- Data Table -->
       <VDataTable
-        :key="checksheetDocumentTemplates.length"
+        :key="checkSheetDocumentTemplates.length"
         :headers="TABLE_HEADERS"
-        :items="checksheetDocumentTemplates"
+        :items="checkSheetDocumentTemplates"
         :items-per-page="itemsPerPage"
         :loading="loading"
         class="text-no-wrap"
@@ -319,11 +319,11 @@ onMounted(() => {
     <!-- Add/Edit ChecksheetDocumentTemplate Drawer -->
     <ManageCheckSheetDocumentTemplateDrawer
       v-model:is-drawer-open="isManageChecksheetDocumentTemplateVisible"
-      :checksheet-document-template-data="selectedChecksheetDocumentTemplate"
+      :check-sheet-document-template-data="selectedChecksheetDocumentTemplate"
       :form-errors="formErrors"
       :loading="actionLoading"
       @close="closeManageChecksheetDocumentTemplateDrawer"
-      @checksheet-document-template-data="handleSaveChecksheetDocumentTemplate"
+      @check-sheet-document-template-data="handleSaveChecksheetDocumentTemplate"
     />
   </section>
   <AlertDialog

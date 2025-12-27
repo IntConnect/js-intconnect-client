@@ -1,8 +1,7 @@
 <script setup>
-import ManageCheckSheetDocumentTemplateDrawer from "@/components/drawer/ManageCheckSheetDocumentTemplateDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { useManageCheckSheetDocumentTemplate } from "@/composables/useManageCheckSheetDocumentTemplate.js"
+import { useManageCheckSheet } from "@/composables/useManageCheckSheet.js"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import TablePagination from "@core/components/TablePagination.vue"
@@ -12,12 +11,12 @@ import { onMounted, ref, watch } from 'vue'
 // Composable
 // ==========================================
 const {
-  checksheetDocumentTemplates,
+  checkSheets,
   loading,
   actionLoading,
-  fetchChecksheetDocumentTemplatesPagination,
-  saveChecksheetDocumentTemplate,
-  deleteChecksheetDocumentTemplate,
+  fetchCheckSheetsPagination,
+  saveCheckSheet,
+  deleteCheckSheet,
   totalItems,
   totalPages,
   error,
@@ -25,7 +24,7 @@ const {
   clearFormErrors,
   clearErrors,
   currentPage: page, pageSize: itemsPerPage,
-} = useManageCheckSheetDocumentTemplate()
+} = useManageCheckSheet()
 
 
 // ==========================================
@@ -50,9 +49,8 @@ const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 // UI States
-const isManageChecksheetDocumentTemplateVisible = ref(false)
 const showDeleteDialog = ref(false)
-const selectedChecksheetDocumentTemplate = ref(null)
+const selectedCheckSheet = ref(null)
 const showAlertDialog = ref(false)
 const alertMessage = ref('')
 
@@ -62,10 +60,10 @@ const alertMessage = ref('')
 // ==========================================
 
 /**
- * Load checksheetDocumentTemplate from API
+ * Load checksheet from API
  */
-const loadChecksheetDocumentTemplates = async () => {
-  await fetchChecksheetDocumentTemplatesPagination({
+const loadCheckSheets = async () => {
+  await fetchCheckSheetsPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -74,38 +72,13 @@ const loadChecksheetDocumentTemplates = async () => {
   })
 }
 
-/**
- * Open drawer for adding new reportDocumentTemplate
- */
-const openManageChecksheetDocumentTemplateDrawer = () => {
-  selectedChecksheetDocumentTemplate.value = null
-  clearFormErrors()
-  isManageChecksheetDocumentTemplateVisible.value = true
-}
 
-/**
- * Close add/edit drawer
- */
-const closeManageChecksheetDocumentTemplateDrawer = () => {
-  isManageChecksheetDocumentTemplateVisible.value = false
-  selectedChecksheetDocumentTemplate.value = null
-  clearFormErrors()
-}
-
-/**
- * Open drawer for editing reportDocumentTemplate
- */
-const handleEdit = reportDocumentTemplate => {
-  selectedChecksheetDocumentTemplate.value = { ...reportDocumentTemplate }
-  clearFormErrors()
-  isManageChecksheetDocumentTemplateVisible.value = true
-}
 
 /**
  * Open delete confirmation dialog
  */
-const openDeleteDialog = reportDocumentTemplate => {
-  selectedChecksheetDocumentTemplate.value = reportDocumentTemplate
+const openDeleteDialog = report => {
+  selectedCheckSheet.value = report
   showDeleteDialog.value = true
 }
 
@@ -114,44 +87,27 @@ const openDeleteDialog = reportDocumentTemplate => {
  */
 const closeDeleteDialog = () => {
   showDeleteDialog.value = false
-  selectedChecksheetDocumentTemplate.value = null
+  selectedCheckSheet.value = null
 }
 
-/**
- * Handle save reportDocumentTemplate (create or update)
- */
-const handleSaveChecksheetDocumentTemplate = async reportDocumentTemplateData => {
-
-  const result = await saveChecksheetDocumentTemplate(reportDocumentTemplateData)
-
-  if (result.success) {
-    closeManageChecksheetDocumentTemplateDrawer()
-    await nextTick()
-
-    showAlertDialog.value = true
-    alertMessage.value = 'Success manage Checksheet Document Template'
-  } else {
-    console.error('Failed to save reportDocumentTemplate:', result.error || result.errors)
-  }
-}
 
 /**
- * Handle delete reportDocumentTemplate
+ * Handle delete report
  */
-const handleDeleteChecksheetDocumentTemplate = async formData => {
-  if (!selectedChecksheetDocumentTemplate.value?.id) {
-    console.warn('No Checksheet Document Template selected for deletion')
+const handleDeleteCheckSheet = async formData => {
+  if (!selectedCheckSheet.value?.id) {
+    console.warn('No Check Sheet selected for deletion')
 
     return
   }
 
 
-  const result = await deleteChecksheetDocumentTemplate(selectedChecksheetDocumentTemplate.value.id, formData)
+  const result = await deleteCheckSheet(selectedCheckSheet.value.id, formData)
 
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete Checksheet Document Template'
+    alertMessage.value = 'Success delete Check Sheet'
 
   } else {
     console.error('Failed to delete user:', result.error)
@@ -167,17 +123,17 @@ const handleDeleteChecksheetDocumentTemplate = async formData => {
 // Reset to page 1 when search query changes
 watch(searchQuery, () => {
   page.value = 1
-  loadChecksheetDocumentTemplates()
+  loadCheckSheets()
 })
 
 
-watch([page, itemsPerPage], loadChecksheetDocumentTemplates)
+watch([page, itemsPerPage], loadCheckSheets)
 
 // ==========================================
 // Lifecycle
 // ==========================================
 onMounted(() => {
-  loadChecksheetDocumentTemplates()
+  loadCheckSheets()
 })
 </script>
 
@@ -185,7 +141,7 @@ onMounted(() => {
   <section>
     <VCol cols="12">
       <h4 class="text-h4 mb-1">
-        All Check Sheet Document Template
+        All Check Sheet
       </h4>
       <p class="text-body-1 mb-0">
         Access, review, and maintain all check sheet templates used across your facilities.
@@ -214,9 +170,9 @@ onMounted(() => {
           <VBtn
             :loading="actionLoading"
             color="primary"
-            @click="openManageChecksheetDocumentTemplateDrawer"
+            :to="{ name: 'check-sheets-manage-id', params: { id: 'new' } }"
           >
-            New Checksheet Document Template
+            New Check Sheet
           </VBtn>
         </div>
       </VCardText>
@@ -236,14 +192,14 @@ onMounted(() => {
 
       <!-- Data Table -->
       <VDataTable
-        :key="checksheetDocumentTemplates.length"
+        :key="checkSheets.length"
         :headers="TABLE_HEADERS"
-        :items="checksheetDocumentTemplates"
+        :items="checkSheets"
         :items-per-page="itemsPerPage"
         :loading="loading"
         class="text-no-wrap"
         hide-default-footer
-        no-data-text="No Checksheet Document Template found"
+        no-data-text="No Check Sheet found"
       >
         <!-- ID Column -->
         <template #item.id="{ index }">
@@ -312,18 +268,8 @@ onMounted(() => {
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
-      title="Delete Checksheet Document Template"
-      @submit="handleDeleteChecksheetDocumentTemplate"
-    />
-
-    <!-- Add/Edit ChecksheetDocumentTemplate Drawer -->
-    <ManageCheckSheetDocumentTemplateDrawer
-      v-model:is-drawer-open="isManageChecksheetDocumentTemplateVisible"
-      :checksheet-document-template-data="selectedChecksheetDocumentTemplate"
-      :form-errors="formErrors"
-      :loading="actionLoading"
-      @close="closeManageChecksheetDocumentTemplateDrawer"
-      @checksheet-document-template-data="handleSaveChecksheetDocumentTemplate"
+      title="Delete Check Sheet"
+      @submit="handleDeleteCheckSheet"
     />
   </section>
   <AlertDialog

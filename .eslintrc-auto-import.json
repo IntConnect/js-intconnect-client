@@ -401,6 +401,7 @@
     "usefetchTelemetry": true,
     "calculateAggregation": true,
     "formatChartData": true,
-    "useManageDashboard": true
+    "useManageDashboard": true,
+    "useManageCheckSheet": true
   }
 }
