@@ -14,7 +14,7 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  checksheetDocumentTemplateData: {
+  checkSheetDocumentTemplateData: {
     type: Object,
     default: () => ({}),
   },
@@ -26,7 +26,7 @@ const props = defineProps({
 
 const emit = defineEmits([
   'update:isDrawerOpen',
-  'checksheetDocumentTemplateData',
+  'checkSheetDocumentTemplateData',
   'close',
 ])
 
@@ -60,8 +60,7 @@ const name = ref('')
 const no = ref('')
 const description = ref('')
 const category = ref('Inspection')
-const rotation = ref(1)
-const rotationType = ref('Day')
+const intervalType = ref('Hours')
 const interval = ref(1)
 const revisionNumber = ref(0)
 const effectiveDate = ref('')
@@ -102,29 +101,29 @@ const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (!valid) return
 
-    // Prepare checksheetDocumentTemplate data
-    const checksheetDocumentTemplateData = {
+    // Prepare checkSheetDocumentTemplate data
+    const checkSheetDocumentTemplateData = {
       id: id.value,
       name: name.value,
       no: no.value,
       description: description.value,
       category: category.value,
-      rotation: rotation.value,
-      rotation_type: rotationType.value,
+      interval: interval.value,
+      interval_type: intervalType.value,
       interval: interval.value,
       revision_number: revisionNumber.value,
       effective_date: effectiveDate.value,
       parameter_ids: parameterIds.value,
     }
 
-    console.log(checksheetDocumentTemplateData)
+    console.log(checkSheetDocumentTemplateData)
 
     // Include id for update
     if (id.value) {
-      checksheetDocumentTemplateData.id = id.value
+      checkSheetDocumentTemplateData.id = id.value
     }
 
-    emit('checksheetDocumentTemplateData', checksheetDocumentTemplateData)
+    emit('checkSheetDocumentTemplateData', checkSheetDocumentTemplateData)
   })
 }
 
@@ -134,10 +133,10 @@ const onSubmit = () => {
 // ==========================================
 
 /**
- * Watch for checksheetDocumentTemplateData changes (for edit mode)
+ * Watch for checkSheetDocumentTemplateData changes (for edit mode)
  */
 watch(
-  () => props.checksheetDocumentTemplateData,
+  () => props.checkSheetDocumentTemplateData,
   val => {
     if (val && Object.keys(val).length) {
       id.value = val.id || ''
@@ -192,7 +191,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit Checksheet Document Template' : 'Create Checksheet Document Template'"
+      :title="isEditMode ? 'Edit checkSheet Document Template' : 'Create checkSheet Document Template'"
       @cancel="closeNavigationDrawer"
     />
 
@@ -261,50 +260,43 @@ const handleDrawerModelValueUpdate = val => {
                   label="Category"
                 />
               </VCol>
+             
               <VCol cols="12">
-                <AppTextField
-                  v-model.number="rotation"
-                  :error="!!props.formErrors.rotation"
-                  :error-messages="props.formErrors.rotation || []"
-                  :rules="[requiredValidator]"
-                  label="Rotation"
-                  placeholder="0"
-                />
+                <VRow>
+                  <VCol cols="6">
+                    <AppTextField
+                      v-model.number="interval"
+                      :error="!!props.formErrors.interval"
+                      :error-messages="props.formErrors.interval || []"
+                      :rules="[requiredValidator]"
+                      label="Interval"
+                      placeholder="0"
+                    />
+                  </VCol>
+                  <VCol cols="6">
+                    <AppSelect
+                      v-model="intervalType"
+                      :items="[{
+                        title: 'Hours',
+                        value: 'Hours'
+                      },{
+                        title: 'Minutes', 
+                        value:'Minutes'
+                      }]"
+                      :error="!!props.formErrors.interval_type"
+                      :error-messages="props.formErrors.interval_type || []"
+                      :rules="[requiredValidator]"
+                      label="Interval Type"
+                    />
+                  </VCol>
+                </VRow>
               </VCol>
-              <VCol cols="12">
-                <AppSelect
-                  v-model="rotationType"
-                  :items="[{
-                    title: 'Day',
-                    value: 'Day'
-                  },{
-                    title: 'Week', 
-                    value:'Week'
-                  },{
-                    title: 'Month', 
-                    value:'Month'
-                  }]"
-                  :error="!!props.formErrors.rotationType"
-                  :error-messages="props.formErrors.rotationType || []"
-                  :rules="[requiredValidator]"
-                  label="Rotation Type"
-                />
-              </VCol>
-              <VCol cols="12">
-                <AppTextField
-                  v-model.number="interval"
-                  :error="!!props.formErrors.interval"
-                  :error-messages="props.formErrors.interval || []"
-                  :rules="[requiredValidator]"
-                  label="Interval"
-                  placeholder="0"
-                />
-              </VCol>
+             
               <VCol cols="12">
                 <AppTextField
                   v-model.number="revisionNumber"
-                  :error="!!props.formErrors.revisionNumber"
-                  :error-messages="props.formErrors.revisionNumber || []"
+                  :error="!!props.formErrors.revision_number"
+                  :error-messages="props.formErrors.revision_number || []"
                   :rules="[requiredValidator]"
                   label="Revision Number"
                   placeholder="1"
@@ -320,8 +312,8 @@ const handleDrawerModelValueUpdate = val => {
                     altInput: true,
                     altFormat: 'd M Y',     
                   }"
-                  :error="!!props.formErrors.effectiveDate"
-                  :error-messages="props.formErrors.effectiveDate || []"
+                  :error="!!props.formErrors.effective_date"
+                  :error-messages="props.formErrors.effective_date || []"
                   label="Effective Date"
                   :rules="[requiredValidator]"
 

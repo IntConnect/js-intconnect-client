@@ -37,7 +37,8 @@ const TABLE_HEADERS = [
   { title: 'No', key: 'no', sortable: true },
   { title: 'Description', key: 'description', sortable: true },
   { title: 'Category', key: 'category', sortable: true },
-  { title: 'Rotation', key: 'rotation', sortable: true },
+  { title: 'Interval', key: 'interval', sortable: true },
+  { title: 'Interval Type', key: 'interval_type', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
