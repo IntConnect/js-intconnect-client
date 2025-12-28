@@ -33,7 +33,6 @@ const hasPermission = requiredPermission => {
 
 onMounted(async () => {
   rawJwt.value = useCookie('access_token').value
-  console.log(rawJwt.value)
   if (rawJwt.value !== undefined && rawJwt.value !== "") {
     await fetchProfile()
     await nextTick()

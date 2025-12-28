@@ -63,7 +63,6 @@ export const useManageFacility = () => {
   const fetchFacilities = async ({ isMinimal = false }) => {
     clearErrors()
     actionLoading.value = true
-    console.log(isMinimal)
     try {
       let urlEndpoint = '/facilities'
       if (isMinimal) {

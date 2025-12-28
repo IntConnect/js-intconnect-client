@@ -22,7 +22,6 @@ const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 const loadPermissions = async () => {
-  console.log(page, itemsPerPage, searchQuery, sortBy, sortOrder)
   await fetchPermissionsPagination({
     page: page.value,
     size: itemsPerPage.value,

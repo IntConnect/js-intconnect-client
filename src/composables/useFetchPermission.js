@@ -37,7 +37,6 @@ export const useFetchPermission = () => {
 
       const result = handleApiError(apiError, { errorMessage })
       if (!result.success) return result
-      console.log(permissions)
       applyPaginationResponse(
         {
           entries: permissions,

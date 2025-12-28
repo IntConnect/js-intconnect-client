@@ -47,7 +47,6 @@ watch(
 watch(
   () => props.facilities,
   facilities => {
-    console.log(facilityGroup, facilities)
     if (!facilityGroup || !facilities?.entries) return
     renderFacilities(facilities.entries)
   },
@@ -118,7 +117,6 @@ function loadModel(config) {
 
     model.position.sub(center)
 
-    console.log(config)
 
     /* 🔴 AMBIL MARKER TEMPLATE */
     markerTemplate = model.getObjectByName(config.pin_object_name)
@@ -171,7 +169,6 @@ function renderFacilities(entries) {
     /* 🔴 APPLY ROTASI ASLI */
     marker.quaternion.copy(markerWorldQuaternion)
 
-    console.log(facility)
 
     /* POSISI DARI DATABASE */
     marker.position.set(

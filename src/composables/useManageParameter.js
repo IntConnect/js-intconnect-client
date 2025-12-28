@@ -182,7 +182,6 @@ export const useManageParameter = () => {
   const manageParameterOperation = async (parameterId, parameterOperationData) => {
     actionLoading.value = true
     clearFormErrors()
-    console.log(parameterOperationData)
     
     try {
       const { data: response, error: apiError } = await useApi(`/parameters/operation/${parameterId}`)

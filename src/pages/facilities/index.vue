@@ -103,7 +103,6 @@ const handleDeleteFacility = async formData => {
 
   const result = await deleteFacility(selectedFacility.value.id, formData)
 
-  console.log(result)
   if (result.success) {
     showAlertDialog.value = true
     alertBody.value = "Data has been deleted successfully."
