@@ -1,28 +1,29 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import AppCardActions from "@core/components/cards/AppCardActions.vue"
-import { format } from 'date-fns'
 import { useFetchPermission } from '@/composables/useFetchPermission'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import { format } from 'date-fns'
+import { onMounted, ref, watch } from 'vue'
 
 const {
   permissions,
-  fetchPermissions,
+  fetchPermissionsPagination,
   totalItems,
   totalPages,
   loading,
   error,
+  currentPage: page, pageSize: itemsPerPage,
+
 } = useFetchPermission()
 
-const page = ref(1)
-const itemsPerPage = ref(10)
+
 const searchQuery = ref("")
 const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 const loadPermissions = async () => {
-  await fetchPermissions({
+  console.log(page, itemsPerPage, searchQuery, sortBy, sortOrder)
+  await fetchPermissionsPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -35,16 +36,14 @@ onMounted(() => {
   loadPermissions()
 })
 
-// Reset ke halaman 1 saat search
+// Reset to page 1 when search query changes
 watch(searchQuery, () => {
   page.value = 1
   loadPermissions()
 })
 
-// Load data saat page atau itemsPerPage berubah
-watch([page, itemsPerPage], () => {
-  loadPermissions()
-})
+
+watch([page, itemsPerPage], loadPermissions)
 
 // Header table
 const headers = [
@@ -66,21 +65,26 @@ const formatDate = dateString => {
 }
 </script>
 
+
 <template>
-  <VCard>
-    <AppCardActions
-      no-actions
-      title="Permissions"
-    >
+  <section>
+    <VCol cols="12">
+      <h4 class="text-h4 mb-1">
+        All Permissions
+      </h4>
+      <p class="text-body-1 mb-0">
+        Manage user access rights and permissions across system
+      </p>
+    </VCol>
+    <VCard>
       <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
           <AppSelect
+            v-model="itemsPerPage"
             :items="ITEMS_PER_PAGE_OPTIONS"
-            :model-value="itemsPerPage"
             style="inline-size: 5.5rem;"
-            @update:model-value="itemsPerPage = parseInt($event, 10)"
           />
         </div>
 
@@ -95,69 +99,56 @@ const formatDate = dateString => {
         </div>
       </VCardText>
 
-      <!-- Error State -->
+      <VDivider />
+
+      <!-- Error Alert -->
       <VAlert
         v-if="error"
-        class="mx-4"
+        class="mx-4 mt-4"
+        closable
         type="error"
+        @click:close="clearErrors"
       >
         {{ error }}
       </VAlert>
 
       <!-- Data Table -->
       <VDataTable
+        :key="permissions.length"
         :headers="headers"
         :items="permissions"
         :items-per-page="itemsPerPage"
         :loading="loading"
+        class="text-no-wrap"
         hide-default-footer
+        no-data-text="No Permissions found"
       >
+        <!-- ID Column -->
+        <template #item.id="{ index }">
+          {{ (page - 1) * itemsPerPage + index + 1 }}
+        </template>
+
+
         <!-- Created At Column -->
         <template #item.created_at="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            {{ formatDate(item.auditable_response?.created_at) }}
-          </div>
+          {{ format(new Date(item.auditable.created_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
 
         <!-- Updated At Column -->
         <template #item.updated_at="{ item }">
-          <div class="d-flex align-center gap-x-4">
-            {{ formatDate(item.auditable_response?.updated_at) }}
-          </div>
+          {{ format(new Date(item.auditable.updated_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
 
-        <!-- Description Column - Truncate long text -->
-        <template #item.description="{ item }">
-          <div
-            class="text-truncate"
-            style="max-width: 300px;"
-          >
-            {{ item.description }}
-          </div>
-        </template>
 
         <!-- Bottom Pagination -->
         <template #bottom>
-          <VCardText class="pt-2">
-            <div class="d-flex flex-wrap justify-space-between gap-4 align-center">
-              <!-- Pagination Info -->
-              <div class="text-body-2">
-                Showing {{ ((page - 1) * itemsPerPage) + 1 }}
-                to {{ Math.min(page * itemsPerPage, totalItems) }}
-                of {{ totalItems }} entries
-              </div>
-
-              <!-- Pagination Controls -->
-              <VPagination
-                v-model="page"
-                :disabled="loading"
-                :length="totalPages"
-                :total-visible="5"
-              />
-            </div>
-          </VCardText>
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalItems"
+          />
         </template>
       </VDataTable>
-    </AppCardActions>
-  </VCard>
+    </VCard>
+  </section>
 </template>

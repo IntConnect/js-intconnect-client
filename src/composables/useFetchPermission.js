@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useFetchPermission = () => {
   // --------------------
@@ -37,7 +37,7 @@ export const useFetchPermission = () => {
 
       const result = handleApiError(apiError, { errorMessage })
       if (!result.success) return result
-
+      console.log(permissions)
       applyPaginationResponse(
         {
           entries: permissions,
