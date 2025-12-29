@@ -3,21 +3,22 @@ export default [
   {
     title: 'Home',
     icon: { icon: 'tabler-smart-home' },
+    to: { name: 'root' },
     
-    children: [
-      {
-        title: 'Executive',
-        to: { name: 'root' },
-        icon: { icon: 'tabler-dashboard' },
+    // children: [
+    //   {
+    //     title: 'Executive',
+    //     to: { name: 'root' },
+    //     icon: { icon: 'tabler-dashboard' },
     
-      },
-      {
-        title: 'Operation',
-        to: { name: 'dynamic-dashboard' },
-        icon: { icon: 'tabler-temperature-snow' },
-        requiredPermission: "BREAKDOWN_VIEW",
-      },
-    ],
+    //   },
+    //   {
+    //     title: 'Operation',
+    //     to: { name: 'dynamic-dashboard' },
+    //     icon: { icon: 'tabler-temperature-snow' },
+    //     requiredPermission: "BREAKDOWN_VIEW",
+    //   },
+    // ],
   },
 
   {
