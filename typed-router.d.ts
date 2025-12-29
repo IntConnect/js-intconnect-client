@@ -25,6 +25,7 @@ declare module 'vue-router/auto-routes' {
     'breakdowns-manage-id': RouteRecordInfo<'breakdowns-manage-id', '/breakdowns/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'check-sheet-document-templates': RouteRecordInfo<'check-sheet-document-templates', '/check-sheet-document-templates', Record<never, never>, Record<never, never>>,
     'check-sheets': RouteRecordInfo<'check-sheets', '/check-sheets', Record<never, never>, Record<never, never>>,
+    'check-sheets-approval-id': RouteRecordInfo<'check-sheets-approval-id', '/check-sheets/approval/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'check-sheets-manage-id': RouteRecordInfo<'check-sheets-manage-id', '/check-sheets/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'dashboards-operation': RouteRecordInfo<'dashboards-operation', '/dashboards/operation', Record<never, never>, Record<never, never>>,
     'database-connections': RouteRecordInfo<'database-connections', '/database-connections', Record<never, never>, Record<never, never>>,

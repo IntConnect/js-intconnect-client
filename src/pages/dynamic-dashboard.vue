@@ -7,19 +7,224 @@ import VueApexCharts from 'vue3-apexcharts'
 const props = defineProps({
   machineId: {
     type: [String, Number],
-    required: true,
+    default: 1,
   },
 })
 
-// Composables (adjust to your actual composables)
-const { 
-  dashboardConfig, 
-  fetchDashboardConfig, 
-  saveDashboardConfig,
-  updateDashboardConfig, 
-} = useManageDashboard()
+// Dummy parameters data with baseline information
+const parameters = ref([
+  { 
+    id: 1, 
+    name: 'Temperature Inlet', 
+    unit: '°C', 
+    code: 'TEMP_IN',
+    is_watch: true,
+    baseline: {
+      type: 'range', // range, threshold, limit
+      normal: { min: -0.5, max: 0.5 },
+      warning: { min: -1, max: 1 },
+      alarm: { min: -Infinity, max: -1, label: '> ±1°C in 15 min' },
+    },
+  },
+  { 
+    id: 2, 
+    name: 'Temperature Outlet', 
+    unit: '°C', 
+    code: 'TEMP_OUT',
+    is_watch: true,
+    baseline: {
+      type: 'range',
+      good: { min: 4, max: 6 },
+      warning: { min: 6, max: Infinity, label: '> 6°C' },
+    },
+  },
+  { 
+    id: 3, 
+    name: 'Pressure', 
+    unit: 'Bar', 
+    code: 'PRESSURE',
+    is_watch: true,
+    baseline: {
+      type: 'threshold',
+      good: { min: 5.5, label: '> 5.5' },
+      warning: { min: 4.5, max: 5.5, label: '4.5 - 5.5' },
+      alarm: { max: 4.5, label: '< 4.5' },
+    },
+  },
+  { 
+    id: 4, 
+    name: 'Flow Rate', 
+    unit: 'L/min', 
+    code: 'FLOW',
+    is_watch: true,
+    baseline: {
+      type: 'threshold',
+      normal: { min: 2.0, max: 3.5 },
+      warning: { min: 3.5, max: 4.2 },
+      alarm: { min: 4.2, max: Infinity },
+    },
+  },
+  { 
+    id: 5, 
+    name: 'Power Consumption', 
+    unit: 'kW', 
+    code: 'POWER',
+    is_watch: true,
+    baseline: {
+      type: 'limit',
+      limit: 1000,
+      period: 'month',
+      label: '1000 kW/month',
+    },
+  },
+  { 
+    id: 6, 
+    name: 'Vibration', 
+    unit: 'mm/s', 
+    code: 'VIBRATION',
+    is_watch: true,
+    baseline: {
+      type: 'threshold',
+      normal: { max: 85 },
+      warning: { min: 85, max: 95 },
+      alarm: { min: 95, max: Infinity },
+    },
+  },
+  { 
+    id: 7, 
+    name: 'Humidity', 
+    unit: '%', 
+    code: 'HUMIDITY',
+    is_watch: false,
+    baseline: null,
+  },
+  { 
+    id: 8, 
+    name: 'Speed', 
+    unit: 'RPM', 
+    code: 'SPEED',
+    is_watch: false,
+    baseline: null,
+  },
+  {
+    id: 9,
+    name: 'Energy Cost',
+    unit: 'IDR',
+    code: 'COST',
+    is_watch: true,
+    baseline: {
+      type: 'limit',
+      limit: 30000000,
+      period: 'month',
+      label: 'Rp 30.000.000/month',
+    },
+  },
+  {
+    id: 10,
+    name: 'Bearing Temperature',
+    unit: '°C',
+    code: 'BEARING_TEMP',
+    is_watch: true,
+    baseline: {
+      type: 'threshold',
+      normal: { min: 15, max: 35 },
+      warning: { min: 35, max: 45 },
+      alarm: { min: 45, max: Infinity },
+    },
+  },
+])
 
-const { parameters, fetchParameters } = useManageParameter()
+// Helper function to get parameter status based on value and baseline
+const getParameterStatus = (value, baseline) => {
+  if (!baseline) return { status: 'normal', color: '#94a3b8', label: 'No Baseline' }
+
+  if (baseline.type === 'limit') {
+    // For limit type (accumulated values)
+    const percentage = (value / baseline.limit) * 100
+    if (percentage < 70) return { status: 'good', color: '#10b981', label: 'Normal', percentage }
+    if (percentage < 90) return { status: 'warning', color: '#f59e0b', label: 'Warning', percentage }
+    
+    return { status: 'alarm', color: '#ef4444', label: 'Critical', percentage }
+  }
+
+  if (baseline.type === 'threshold') {
+    // Check alarm first
+    if (baseline.alarm) {
+      if (baseline.alarm.min !== undefined && value >= baseline.alarm.min) {
+        return { status: 'alarm', color: '#ef4444', label: 'Alarm' }
+      }
+      if (baseline.alarm.max !== undefined && value <= baseline.alarm.max) {
+        return { status: 'alarm', color: '#ef4444', label: 'Alarm' }
+      }
+    }
+
+    // Check warning
+    if (baseline.warning) {
+      if (baseline.warning.min !== undefined && baseline.warning.max !== undefined) {
+        if (value >= baseline.warning.min && value <= baseline.warning.max) {
+          return { status: 'warning', color: '#f59e0b', label: 'Warning' }
+        }
+      } else if (baseline.warning.min !== undefined && value >= baseline.warning.min) {
+        return { status: 'warning', color: '#f59e0b', label: 'Warning' }
+      } else if (baseline.warning.max !== undefined && value <= baseline.warning.max) {
+        return { status: 'warning', color: '#f59e0b', label: 'Warning' }
+      }
+    }
+
+    // Check good/normal
+    if (baseline.good) {
+      if (baseline.good.min !== undefined && baseline.good.max !== undefined) {
+        if (value >= baseline.good.min && value <= baseline.good.max) {
+          return { status: 'good', color: '#10b981', label: 'Good' }
+        }
+      } else if (baseline.good.min !== undefined && value >= baseline.good.min) {
+        return { status: 'good', color: '#10b981', label: 'Good' }
+      }
+    }
+
+    if (baseline.normal) {
+      if (baseline.normal.min !== undefined && baseline.normal.max !== undefined) {
+        if (value >= baseline.normal.min && value <= baseline.normal.max) {
+          return { status: 'normal', color: '#10b981', label: 'Normal' }
+        }
+      }
+    }
+
+    return { status: 'unknown', color: '#94a3b8', label: 'Unknown' }
+  }
+
+  if (baseline.type === 'range') {
+    // Similar to threshold but with different naming
+    if (baseline.alarm) {
+      const absValue = Math.abs(value)
+      if (baseline.alarm.max !== undefined && absValue >= Math.abs(baseline.alarm.max)) {
+        return { status: 'alarm', color: '#ef4444', label: 'Alarm' }
+      }
+    }
+
+    if (baseline.warning) {
+      const absValue = Math.abs(value)
+      if (baseline.warning.min !== undefined && baseline.warning.max !== undefined) {
+        if (absValue >= Math.abs(baseline.warning.min) && absValue <= Math.abs(baseline.warning.max)) {
+          return { status: 'warning', color: '#f59e0b', label: 'Warning' }
+        }
+      }
+    }
+
+    if (baseline.normal || baseline.good) {
+      const target = baseline.normal || baseline.good
+      if (target.min !== undefined && target.max !== undefined) {
+        if (value >= target.min && value <= target.max) {
+          return { status: 'normal', color: '#10b981', label: 'Normal' }
+        }
+      }
+    }
+
+    return { status: 'warning', color: '#f59e0b', label: 'Out of Range' }
+  }
+
+  return { status: 'normal', color: '#94a3b8', label: 'N/A' }
+}
 
 // State
 const isEditing = ref(false)
@@ -147,8 +352,30 @@ const colorPresets = [
   { value: '#6366f1', label: 'Indigo' },
 ]
 
-// Layout
+// Layout - use localStorage for persistence
+const STORAGE_KEY = `dashboard_layout_machine_${props.machineId}`
 const layout = ref([])
+
+// Load from localStorage on mount
+const loadFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      layout.value = JSON.parse(saved)
+    }
+  } catch (error) {
+    console.error('Failed to load from storage:', error)
+  }
+}
+
+// Save to localStorage
+const saveToStorage = () => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout.value))
+  } catch (error) {
+    console.error('Failed to save to storage:', error)
+  }
+}
 
 // Computed
 const availableParameters = computed(() => {
@@ -158,24 +385,96 @@ const availableParameters = computed(() => {
 const isAddMode = computed(() => !selectedWidget.value)
 
 // Initialize
-onMounted(async () => {
-  await fetchParameters({ isMinimal: true })
-  await loadDashboardConfig()
+onMounted(() => {
+  loadFromStorage()
+  
+  // Load default layout if empty
+  if (layout.value.length === 0) {
+    loadDefaultLayout()
+  }
 })
 
-// Load dashboard config
-const loadDashboardConfig = async () => {
-  try {
-    await fetchDashboardConfig({ 
-      machineId: props.machineId, 
-    })
-    
-    if (dashboardConfig.value?.layout) {
-      layout.value = dashboardConfig.value.layout
-    }
-  } catch (error) {
-    console.error('Failed to load dashboard:', error)
-  }
+// Load default layout with example widgets
+const loadDefaultLayout = () => {
+  layout.value = [
+    {
+      i: 'widget_1',
+      x: 0,
+      y: 0,
+      w: 6,
+      h: 5,
+      type: 'line',
+      title: 'Temperature Monitoring',
+      dataSourceIds: [1, 2],
+      interval: 5,
+      color: '#3b82f6',
+      colors: ['#3b82f6', '#10b981'],
+      showLegend: true,
+      showGrid: true,
+      enableAnimation: true,
+      yAxisLabel: 'Temperature (°C)',
+      xAxisLabel: 'Time',
+      aggregation: 'avg',
+    },
+    {
+      i: 'widget_2',
+      x: 6,
+      y: 0,
+      w: 6,
+      h: 5,
+      type: 'area',
+      title: 'Power Consumption',
+      dataSourceIds: [5],
+      interval: 5,
+      color: '#8b5cf6',
+      colors: ['#8b5cf6'],
+      showLegend: true,
+      showGrid: true,
+      enableAnimation: true,
+      yAxisLabel: 'Power (kW)',
+      xAxisLabel: 'Time',
+      aggregation: 'avg',
+    },
+    {
+      i: 'widget_3',
+      x: 0,
+      y: 5,
+      w: 4,
+      h: 4,
+      type: 'gauge',
+      title: 'Current Pressure',
+      dataSourceIds: [3],
+      interval: 1,
+      color: '#f59e0b',
+      colors: ['#f59e0b'],
+      showLegend: false,
+      showGrid: false,
+      enableAnimation: true,
+      yAxisLabel: '',
+      xAxisLabel: '',
+      aggregation: 'last',
+    },
+    {
+      i: 'widget_4',
+      x: 4,
+      y: 5,
+      w: 8,
+      h: 4,
+      type: 'metric',
+      title: 'Key Metrics',
+      dataSourceIds: [1, 3, 4, 5],
+      interval: 5,
+      color: '#3b82f6',
+      colors: ['#3b82f6'],
+      showLegend: false,
+      showGrid: false,
+      enableAnimation: true,
+      yAxisLabel: '',
+      xAxisLabel: '',
+      aggregation: 'last',
+    },
+  ]
+  saveToStorage()
 }
 
 // Get chart options based on type and widget config
@@ -614,7 +913,7 @@ const getChartOptions = widget => {
   }
 }
 
-// Generate dummy data for chart (you'll replace this with actual API data)
+// Generate dummy data for chart (simulated real-time data)
 const generateChartData = widget => {
   if (!widget.dataSourceIds || widget.dataSourceIds.length === 0) {
     return []
@@ -624,14 +923,25 @@ const generateChartData = widget => {
   if (widget.type === 'metric') {
     return widget.dataSourceIds.map(paramId => {
       const param = availableParameters.value.find(p => p.id === paramId)
+      const baseValue = 50 + Math.random() * 50
+      const change = (Math.random() * 20 - 10)
+      
+      // Get status based on baseline
+      const status = param?.baseline ? getParameterStatus(baseValue, param.baseline) : null
       
       return {
         id: paramId,
         name: param?.name || `Parameter ${paramId}`,
-        value: Math.random() * 100,
+        value: baseValue,
         unit: param?.unit || '',
-        change: (Math.random() * 20 - 10).toFixed(1),
-        trend: Math.random() > 0.5 ? 'up' : 'down',
+        change: change.toFixed(1),
+        trend: change >= 0 ? 'up' : 'down',
+        min: baseValue * 0.8,
+        max: baseValue * 1.2,
+        avg: baseValue,
+        isWatch: param?.is_watch || false,
+        baseline: param?.baseline || null,
+        status: status,
       }
     })
   }
@@ -640,23 +950,24 @@ const generateChartData = widget => {
   if (widget.type === 'gauge') {
     const paramId = widget.dataSourceIds[0]
     const param = availableParameters.value.find(p => p.id === paramId)
+    const value = 45 + Math.random() * 30
     
     return [{
-      series: [Math.random() * 100],
+      series: [value],
       label: param?.name || `Parameter ${paramId}`,
     }]
   }
 
   // For pie/donut
   if (widget.type === 'pie' || widget.type === 'donut') {
-    return widget.dataSourceIds.map(paramId => Math.random() * 100)
+    return widget.dataSourceIds.map(() => 50 + Math.random() * 50)
   }
 
   // For radar
   if (widget.type === 'radar') {
     return [{
       name: 'Current',
-      data: widget.dataSourceIds.map(() => Math.random() * 100),
+      data: widget.dataSourceIds.map(() => 50 + Math.random() * 50),
     }]
   }
 
@@ -669,7 +980,7 @@ const generateChartData = widget => {
         name: param?.name || `Parameter ${paramId}`,
         data: Array.from({ length: 10 }, (_, i) => ({
           x: `T${i}`,
-          y: Math.random() * 100,
+          y: 50 + Math.random() * 50,
         })),
       }
     })
@@ -677,20 +988,23 @@ const generateChartData = widget => {
 
   // For time-series charts (line, area, bar, column, scatter)
   const now = Date.now()
-  const pointsPerHour = 60 / widget.interval // e.g., 12 points for 5-min interval
-  const totalPoints = 24 * pointsPerHour // 24 hours of data
+  const pointsPerHour = 60 / widget.interval
+  const totalPoints = 24 * pointsPerHour
 
   return widget.dataSourceIds.map(paramId => {
     const param = availableParameters.value.find(p => p.id === paramId)
     const data = []
+    const baseValue = 50 + (paramId * 5)
     
     for (let i = totalPoints; i >= 0; i--) {
       const timestamp = now - (i * widget.interval * 60 * 1000)
-      const value = 50 + Math.random() * 30 + Math.sin(i / 10) * 20
+      const noise = Math.random() * 10 - 5
+      const trend = Math.sin((totalPoints - i) / 50) * 15
+      const value = baseValue + noise + trend
       
       data.push({
         x: timestamp,
-        y: parseFloat(value.toFixed(2)),
+        y: parseFloat(Math.max(0, value).toFixed(2)),
       })
     }
 
@@ -783,13 +1097,9 @@ const handleRemoveWidget = widgetId => {
 }
 
 // Handle save dashboard
-const handleSaveDashboard = async () => {
+const handleSaveDashboard = () => {
   try {
-    await saveDashboardConfig({
-      machineId: props.machineId,
-      layout: layout.value,
-    })
-    
+    saveToStorage()
     alert('Dashboard saved successfully!')
     isEditing.value = false
   } catch (error) {
@@ -832,12 +1142,13 @@ const handleImport = event => {
       const data = JSON.parse(e.target?.result)
       if (data.layout && Array.isArray(data.layout)) {
         layout.value = data.layout
+        saveToStorage()
         alert('Dashboard imported successfully!')
       } else {
         alert('Invalid dashboard file')
       }
     } catch (error) {
-      alert('Failed to import dashboard')
+      alert('Failed to import dashboard: Invalid JSON format')
     }
   }
   reader.readAsText(file)
@@ -848,25 +1159,31 @@ const handleImport = event => {
 const handleReset = () => {
   if (confirm('Are you sure you want to reset the dashboard? This will remove all widgets.')) {
     layout.value = []
+    saveToStorage()
   }
 }
 
 // Handle layout update
 const handleLayoutUpdate = newLayout => {
   layout.value = newLayout
+  saveToStorage()
 }
 
-// Real-time data update (simulate)
+// Real-time data update (simulate with more realistic intervals)
 let dataInterval = null
+
 onMounted(() => {
+  // Simulate real-time data updates every 30 seconds
   dataInterval = setInterval(() => {
-    // Trigger re-render for charts
+    // Force re-render to show new dummy data
     layout.value = [...layout.value]
-  }, 30000) // Update every 30 seconds
+  }, 30000)
 })
 
 onUnmounted(() => {
-  if (dataInterval) clearInterval(dataInterval)
+  if (dataInterval) {
+    clearInterval(dataInterval)
+  }
 })
 </script>
 
@@ -1060,8 +1377,46 @@ onUnmounted(() => {
                     v-bind="props"
                     size="small"
                   >
+                    <VIcon
+                      v-if="item.raw.is_watch"
+                      icon="tabler-eye"
+                      size="14"
+                      start
+                    />
                     {{ item.title }}
                   </VChip>
+                </template>
+                <template #item="{ item, props }">
+                  <VListItem
+                    v-bind="props"
+                    :title="item.raw.name"
+                  >
+                    <template #prepend>
+                      <VAvatar
+                        :color="item.raw.is_watch ? 'primary' : 'secondary'"
+                        size="32"
+                        variant="tonal"
+                      >
+                        <VIcon
+                          :icon="item.raw.is_watch ? 'tabler-eye' : 'tabler-binary-tree-2'"
+                          size="18"
+                        />
+                      </VAvatar>
+                    </template>
+                    <template #subtitle>
+                      <span class="text-caption">
+                        {{ item.raw.code }} • {{ item.raw.unit }}
+                        <VChip
+                          v-if="item.raw.baseline"
+                          size="x-small"
+                          color="success"
+                          class="ms-2"
+                        >
+                          Has Baseline
+                        </VChip>
+                      </span>
+                    </template>
+                  </VListItem>
                 </template>
               </VSelect>
             </VCol>
@@ -1444,8 +1799,8 @@ onUnmounted(() => {
         :row-height="30"
         :is-draggable="isEditing"
         :is-resizable="isEditing"
-        vertical-compact
-        use-css-transforms
+        :vertical-compact="true"
+        :use-css-transforms="true"
         :margin="[16, 16]"
         @layout-updated="handleLayoutUpdate"
       >
@@ -1523,37 +1878,102 @@ onUnmounted(() => {
                   v-for="metric in generateChartData(widget)"
                   :key="metric.id"
                   class="metric-card"
-                  :style="{ 
-                    background: `linear-gradient(135deg, ${widget.color} 0%, ${widget.color}dd 100%)` 
-                  }"
+                  :class="{ 'has-baseline': metric.baseline, 'is-watch': metric.isWatch }"
                 >
-                  <VCardText class="text-white">
-                    <div class="text-caption font-weight-medium opacity-90 mb-2">
-                      {{ metric.name }}
-                    </div>
-                    <div class="d-flex align-center justify-space-between">
-                      <div>
-                        <div class="text-h4 font-weight-bold">
-                          {{ metric.value.toFixed(1) }}
-                        </div>
-                        <div class="text-caption">
-                          {{ metric.unit }}
-                        </div>
-                      </div>
-                      <VChip
-                        :color="metric.trend === 'up' ? 'success' : 'error'"
-                        size="small"
-                        variant="elevated"
+                  <!-- Card Background with Status Color -->
+                  <div
+                    class="metric-card-bg"
+                    :style="{ 
+                      background: metric.status 
+                        ? `linear-gradient(135deg, ${metric.status.color} 0%, ${metric.status.color}dd 100%)` 
+                        : `linear-gradient(135deg, ${widget.color} 0%, ${widget.color}dd 100%)` 
+                    }"
+                  >
+                    <VCardText class="text-white position-relative">
+                      <!-- Watch Badge -->
+                      <div
+                        v-if="metric.isWatch"
+                        class="watch-badge"
                       >
                         <VIcon
-                          :icon="metric.trend === 'up' ? 'tabler-arrow-up' : 'tabler-arrow-down'"
-                          start
-                          size="14"
+                          icon="tabler-eye"
+                          size="12"
                         />
-                        {{ Math.abs(metric.change) }}%
-                      </VChip>
-                    </div>
-                  </VCardText>
+                      </div>
+
+                      <!-- Parameter Name -->
+                      <div class="text-caption font-weight-medium opacity-90 mb-2">
+                        {{ metric.name }}
+                      </div>
+
+                      <!-- Main Value -->
+                      <div class="d-flex align-center justify-space-between mb-2">
+                        <div>
+                          <div class="text-h4 font-weight-bold">
+                            {{ metric.value.toFixed(1) }}
+                          </div>
+                          <div class="text-caption">
+                            {{ metric.unit }}
+                          </div>
+                        </div>
+                        <VChip
+                          :color="metric.trend === 'up' ? 'success' : 'error'"
+                          size="small"
+                          variant="elevated"
+                        >
+                          <VIcon
+                            :icon="metric.trend === 'up' ? 'tabler-arrow-up' : 'tabler-arrow-down'"
+                            start
+                            size="14"
+                          />
+                          {{ Math.abs(metric.change) }}%
+                        </VChip>
+                      </div>
+
+                      <!-- Status Indicator -->
+                      <div
+                        v-if="metric.status"
+                        class="status-indicator mt-3"
+                      >
+                        <div class="d-flex align-center justify-space-between">
+                          <VChip
+                            size="x-small"
+                            variant="flat"
+                            class="text-white font-weight-bold"
+                            :style="{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }"
+                          >
+                            {{ metric.status.label }}
+                          </VChip>
+                          
+                          <!-- For limit type, show percentage -->
+                          <div
+                            v-if="metric.baseline?.type === 'limit' && metric.status.percentage"
+                            class="text-xs font-weight-medium"
+                          >
+                            {{ metric.status.percentage.toFixed(1) }}%
+                          </div>
+                        </div>
+
+                        <!-- Baseline Info -->
+                        <div class="baseline-info mt-2 text-xs opacity-80">
+                          <VIcon
+                            icon="tabler-info-circle"
+                            size="12"
+                            class="me-1"
+                          />
+                          <span v-if="metric.baseline?.type === 'threshold' && metric.baseline.normal">
+                            Normal: {{ metric.baseline.normal.min }}{{ metric.unit }} - {{ metric.baseline.normal.max }}{{ metric.unit }}
+                          </span>
+                          <span v-else-if="metric.baseline?.type === 'limit'">
+                            Limit: {{ metric.baseline.label }}
+                          </span>
+                          <span v-else-if="metric.baseline?.type === 'range' && metric.baseline.normal">
+                            Normal: ±{{ metric.baseline.normal.max }}{{ metric.unit }}
+                          </span>
+                        </div>
+                      </div>
+                    </VCardText>
+                  </div>
                 </VCard>
               </div>
 
@@ -1688,11 +2108,60 @@ onUnmounted(() => {
   border: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
   
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   }
+
+  &.is-watch {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  &.has-baseline {
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+.metric-card-bg {
+  width: 100%;
+  height: 100%;
+}
+
+.watch-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.status-indicator {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.baseline-info {
+  display: flex;
+  align-items: center;
+  line-height: 1.4;
 }
 
 .gauge-wrapper {

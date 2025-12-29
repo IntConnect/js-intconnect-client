@@ -136,12 +136,20 @@ const onSubmit = () => {
 watch(
   () => props.checkSheetDocumentTemplateData,
   val => {
+    console.log(val)
     if (val && Object.keys(val).length) {
+      
       id.value = val.id || ''
       name.value = val.name || ''
-      code.value = val.code || ''
+      no.value = val.no || ''
+      description.value = val.description || ''
+      category.value = val.category || ''
+      interval.value = val.interval || ''
+      intervalType.value = val.interval_type || ''
+      revisionNumber.value = val.revision_number || ''
+      effectiveDate.value = val.effective_date || ''
       parameterIds.value = val.parameters.map(parameter => {
-        return parameter.id
+        return parameter.parameter_id
       })
     }
   },
@@ -189,7 +197,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit checkSheet Document Template' : 'Create checkSheet Document Template'"
+      :title="isEditMode ? 'Edit Check Sheet Document Template' : 'Create Check Sheet Document Template'"
       @cancel="closeNavigationDrawer"
     />
 

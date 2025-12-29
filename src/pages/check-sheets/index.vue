@@ -5,6 +5,7 @@ import { useManageCheckSheet } from "@/composables/useManageCheckSheet.js"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import TablePagination from "@core/components/TablePagination.vue"
+import { format } from 'date-fns'
 import { onMounted, ref, watch } from 'vue'
 
 // ==========================================
@@ -32,11 +33,12 @@ const {
 // ==========================================
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
-  { title: 'Name', key: 'name', sortable: true },
-  { title: 'No', key: 'no', sortable: true },
-  { title: 'Description', key: 'description', sortable: true },
-  { title: 'Category', key: 'category', sortable: true },
-  { title: 'Rotation', key: 'rotation', sortable: true },
+  { title: 'Document Name', key: 'name', sortable: true },
+  { title: 'Document No', key: 'no', sortable: true },
+  { title: 'Reported By', key: 'reported_by', sortable: true },
+  { title: 'Date', key: 'timestamp', sortable: true },
+  { title: 'Status', key: 'status' },
+  { title: 'Note', key: 'note' },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
@@ -72,6 +74,21 @@ const loadCheckSheets = async () => {
   })
 }
 
+watch( checkSheets.value, val => {
+  console.log(val)
+})
+
+const resolveColorStatus = status => {
+  switch (status) {
+  case "Draft":
+    return "secondary"
+  case "Approved":
+    return "success"
+  case "Rejected":
+    return "error"
+    break
+  }
+}
 
 
 /**
@@ -206,25 +223,59 @@ onMounted(() => {
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
 
-        <!-- Role Column -->
-        <template #item.role="{ item }">
-          <VChip
-            color="primary"
-            size="small"
-          >
-            {{ item.role?.name || 'N/A' }}
-          </VChip>
+        <template #item.name="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            {{ item.check_sheet_document_template.name }}
+          </div>
         </template>
 
+        <template #item.no="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            {{ item.check_sheet_document_template.no }}
+          </div>
+        </template>
+
+        <template #item.status="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            <VChip
+              label
+              :color="resolveColorStatus(item.status)"
+            >
+              {{ item.status }}
+            </VChip>
+          </div>
+        </template>
+
+        <!-- Created At Column -->
+        <template #item.timestamp="{ item }">
+          {{ format(new Date(item.timestamp), 'dd MMM yyyy HH:mm:ss') }}
+        </template>
+        <template #item.reported_by="{ item }">
+          <div class="d-flex align-center gap-x-4">
+            {{ item.reported_by_user.name }}
+          </div>
+        </template>
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
+            <VBtn
+              color="success"
+              icon
+              size="small"
+              variant="text"
+              :to="{ name: 'check-sheets-approval-id', params: { id: item.id } }"
+            >
+              <VIcon
+                icon="tabler-check"
+                size="20"
+              />
+            </VBtn>
             <VBtn
               color="info"
               icon
               size="small"
               variant="text"
-              @click="handleEdit(item)"
+              :to="{ name: 'check-sheets-manage-id', params: { id: item.id } }"
             >
               <VIcon
                 icon="tabler-pencil"

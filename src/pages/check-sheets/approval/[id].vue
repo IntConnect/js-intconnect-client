@@ -24,6 +24,7 @@ const {
   formErrors,
   fetchCheckSheet,
   createCheckSheet,
+  approvalCheckSheet,
 } = useManageCheckSheet()
 
 const processedCheckSheetDocumentTemplates = ref([])
@@ -40,6 +41,64 @@ const selectedCheckSheetDocumentTemplateParameter = ref([])
 const groupedCheckSheetValues = ref({})
 const status = ref("Draft")
 const note = ref("")
+
+const showApproveDialog = ref(false)
+const showRejectDialog = ref(false)
+
+const openApproveDialog = () => {
+  showApproveDialog.value = true
+}
+
+const openRejectDialog = () => {
+  showRejectDialog.value = true
+}
+
+const handleApprove = async data => {
+  console.log('Approve with note:', data.note)
+  let approvalPayload =  {
+    check_sheet_id: id,
+    note: data.note,
+    decision: true,
+  }
+  const actionResult = await approvalCheckSheet(approvalPayload)
+
+  if (actionResult.success) {
+    showApproveDialog.value = false
+    isAlertDialogVisible.value = true
+    bodyAlert.value = "You will be redirected to Check Sheet page"
+    alertType.value = 'info'
+    titleAlert.value = "Success approve Check Sheet"
+
+    setTimeout(() => {
+      router.push('/check-sheets')
+    }, 2000) 
+  }else{
+    console.error(formErrors)
+  }
+}
+
+const handleReject = async data => {
+  console.log('Approve with note:', data.note)
+  let approvalPayload =  {
+    check_sheet_id: id,
+    note: data.note,
+    decision: false,
+  }
+  const actionResult = await approvalCheckSheet(approvalPayload)
+  if (actionResult.success) {
+    showApproveDialog.value = false
+    isAlertDialogVisible.value = true
+    bodyAlert.value = "You will be redirected to Check Sheet page"
+    alertType.value = 'info'
+    titleAlert.value = "Success rejected Check Sheet"
+
+    setTimeout(() => {
+      router.push('/check-sheets')
+    }, 2000) 
+  }else{
+    console.error(formErrors)
+  }
+}
 
 const isAlertDialogVisible = ref(false)
 const bodyAlert = ref('')
@@ -65,43 +124,7 @@ watch(() => checkSheetDocumentTemplateId.value, val => {
 })
 
 
-/* =========================
-   SUBMIT / PAYLOAD
-========================= */
-const onSubmit = async () => {
-  formErrors.value = {}
 
-  const resultParsing = Object.entries(checkSheetValues.value).map(([key, value]) => ({
-    check_sheet_document_template_parameter_id: value["check_sheet_document_template_parameter_id"],
-    value: String(value.value),
-    timestamp: value.timestamp,
-  }))
-
-  console.log(resultParsing)
-
-
-  const payload = {
-    check_sheet_document_template_id: checkSheetDocumentTemplateId.value,
-    check_sheet_values: resultParsing,
-  }
-
-
-  const result = await createCheckSheet(payload)
-  if (result.success) {
-    isAlertDialogVisible.value = true
-    bodyAlert.value = "You will be redirected to Check Sheet page"
-    alertType.value = 'info'
-    titleAlert.value = "Success manage Check Sheet"
-
-    setTimeout(() => {
-      router.push('/check-sheets')
-    }, 2000)
-  } else {
-    console.error('submit failed', result)
-    refForm.value?.resetValidation()
-
-  }
-}
 
 onMounted(async () => {
   let checkSheetResult = await fetchCheckSheet(id)
@@ -150,7 +173,6 @@ onMounted(async () => {
         <VForm
           ref="refForm"
           v-model="isFormValid"
-          @submit.prevent="onSubmit"
         >
           <VRow>
             <VCol cols="4">
@@ -174,7 +196,7 @@ onMounted(async () => {
               <AppTextField
                 v-model="note"
                 label="Note"
-                placeholder="Insert short note"
+                disabled
               />
             </VCol>
           </VRow>
@@ -222,6 +244,7 @@ onMounted(async () => {
                         :model-value="checkSheetValues[`${time}-${param.id}`]?.value || ''"
                         placeholder="Masukkan nilai"
                         density="compact"
+                        disabled
                         @update:model-value="val => {
                           checkSheetValues[`${time}-${param.id}`] = {
                             value: val,
@@ -237,24 +260,36 @@ onMounted(async () => {
             </VCol>
           </VRow>
 
-          <!-- Actions -->
+         
           <VRow>
             <VCol cols="12">
-              <div class="d-flex justify-end gap-3 mt-4">
-                <VBtn 
-                  to="/check-sheet-document-templates"
-                  color="error"
-                  variant="tonal"
-                >
-                  Back
-                </VBtn>
-                <VBtn
-                  :loading="actionLoading"
-                  color="primary"
-                  type="submit"
-                >
-                  {{ isEditMode ? 'Update' : 'Create' }}
-                </VBtn>
+              <div class="d-flex flex-row justify-space-between">
+                <div class="d-flex justify-start gap-3 mt-4">
+                  <VBtn
+                    :loading="actionLoading"
+                    color="success"
+                    prepend-icon="tabler-check"
+                    @click="openApproveDialog"
+                  >
+                    Approve
+                  </VBtn>
+                  <VBtn 
+                    color="error"
+                    prepend-icon="tabler-x"
+                    @click="openRejectDialog"
+                  >
+                    Reject
+                  </VBtn>
+                </div>
+                <div class="d-flex justify-end gap-3 mt-4">
+                  <VBtn 
+                    to="/check-sheets"
+                    color="secondary"
+                    variant="tonal"
+                  >
+                    Back
+                  </VBtn>
+                </div>
               </div>
             </VCol>
           </VRow>
@@ -268,6 +303,21 @@ onMounted(async () => {
     :title-alert="titleAlert"
     :type="alertType"
     @update:is-dialog-visible="isAlertDialogVisible = $event"
+  />
+
+
+  <!-- Approve Dialog -->
+  <ApprovalDialog
+    v-model="showApproveDialog"
+    action="approve"
+    @submit="handleApprove"
+  />
+
+  <!-- Reject Dialog -->
+  <ApprovalDialog
+    v-model="showRejectDialog"
+    action="reject"
+    @submit="handleReject"
   />
 </template>
 

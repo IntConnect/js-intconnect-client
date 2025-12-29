@@ -54,14 +54,6 @@ const headers = [
   { title: 'Created At', key: 'created_at', sortable: true },
   { title: 'Updated At', key: 'updated_at', sortable: true },
 ]
-
-const formatDate = dateString => {
-  try {
-    return format(new Date(dateString), 'dd MMM yyyy HH:mm:ss')
-  } catch {
-    return '-'
-  }
-}
 </script>
 
 

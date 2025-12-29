@@ -6,6 +6,7 @@ export const useManageCheckSheet = () => {
   // State
   // --------------------
   const checkSheets = ref([])
+  const checkSheet = ref({})
   const totalItems = ref(0)
   const currentPage = ref(1)
   const pageSize = ref(10)
@@ -48,6 +49,7 @@ export const useManageCheckSheet = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
+      console.log(response)
       applyPaginationResponse(
         {
           entries: checkSheets,
@@ -71,14 +73,14 @@ export const useManageCheckSheet = () => {
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/check-sheets', {}),
+        createUrl(`/check-sheets/${id}`, {}),
       )
         .get()
         .json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      checkSheets.value = response.value
+      checkSheet.value = response.value
       
       return {
         success: true,
@@ -103,16 +105,27 @@ export const useManageCheckSheet = () => {
       if (!result.success) return result
 
 
-      applyPaginationResponse(
-        {
-          entries: checkSheets,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
+     
+
+      return { success: true }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
+  const approvalCheckSheet = async approvalPayload => {
+    actionLoading.value = true
+    clearFormErrors()
+
+    try {
+      const { data: response, error: apiError } = await useApi(`/check-sheets/approval/${approvalPayload.check_sheet_id}`)
+        .post(approvalPayload)
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result     
 
       return { success: true }
     } catch (_) {
@@ -204,6 +217,7 @@ export const useManageCheckSheet = () => {
 
   return {
     checkSheets,
+    checkSheet,
     totalItems,
     currentPage,
     pageSize,
@@ -215,6 +229,7 @@ export const useManageCheckSheet = () => {
     fetchCheckSheetsPagination,
     fetchCheckSheet,
     createCheckSheet,
+    approvalCheckSheet,
     updateCheckSheet,
     deleteCheckSheet,
     saveCheckSheet,
