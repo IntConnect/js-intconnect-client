@@ -182,11 +182,9 @@ const getParameterStatus = (value, baseline) => {
       }
     }
 
-    if (baseline.normal) {
-      if (baseline.normal.min !== undefined && baseline.normal.max !== undefined) {
-        if (value >= baseline.normal.min && value <= baseline.normal.max) {
-          return { status: 'normal', color: '#10b981', label: 'Normal' }
-        }
+    if (baseline.normal.min !== undefined && baseline.normal.max !== undefined) {
+      if (value >= baseline.normal.min && value <= baseline.normal.max) {
+        return { status: 'normal', color: '#10b981', label: 'Normal' }
       }
     }
 

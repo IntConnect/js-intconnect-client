@@ -1,42 +1,36 @@
-<script>
-export default {
-  name: 'GlassmorphismCard',
-  data() {
-    return {
-      machines: [
-        { 
-          id: 1, 
-          name: 'Machine A-01', 
-          status: 'on',
-          totalRuntime: '1,245h 30m',
-          runningTimes: [
-            { id: 1, name: 'Compressor 1', value: '142h 35m', icon: 'tabler-circle-1', color: '#10b981' },
-            { id: 2, name: 'Compressor 2', value: '98h 12m', icon: 'tabler-circle-2', color: '#14b8a6' },
-            { id: 3, name: 'Compressor 3', value: '215h 48m', icon: 'tabler-circle-3', color: '#06b6d4' },
-            { id: 4, name: 'Compressor 4', value: '87h 23m', icon: 'tabler-circle-4', color: '#0ea5e9' },
-            { id: 5, name: 'Compressor 5', value: '156h 05m', icon: 'tabler-circle-5', color: '#8b5cf6' },
-          ],
-          hover: false, 
-        },
-      ],
-    }
-  },
-  methods: {
-    toggleStatus(id) {
-      const machine = this.machines.find(m => m.id === id)
-      if (machine) {
-        machine.status = machine.status === 'on' ? 'off' : 'on'
+<script setup>
+const props = defineProps({
+  machine: {
+    type: Object,
+    default: () => {
+      return {
+        id: 1, 
+        name: 'Machine A-01', 
+        status: 'on',
+        totalRuntime: '1,245h 30m',
+        hover: false, 
       }
+
     },
+    required: false,
   },
-}
+  runningTimes: {
+    type: Array,
+    required: false,
+    default: () => [
+      { id: 1, name: 'Compressor 1', value: '142h 35m', icon: 'tabler-circle-1', color: '#10b981' },
+      { id: 2, name: 'Compressor 2', value: '98h 12m', icon: 'tabler-circle-2', color: '#14b8a6' },
+      { id: 3, name: 'Compressor 3', value: '215h 48m', icon: 'tabler-circle-3', color: '#06b6d4' },
+      { id: 4, name: 'Compressor 4', value: '87h 23m', icon: 'tabler-circle-4', color: '#0ea5e9' },
+      { id: 5, name: 'Compressor 5', value: '156h 05m', icon: 'tabler-circle-5', color: '#8b5cf6' },
+    ],
+  },
+})
 </script>
 
 <template>
   <VRow>
     <VCol
-      v-for="machine in machines"
-      :key="machine.id"
       cols="12"
       md="12"
       lg="12"
@@ -44,40 +38,40 @@ export default {
       <VCard
         class="glass-card pa-5 transition-all"
         :class="[
-          machine.status === 'on' ? 'glass-card-on' : 'glass-card-off'
+          props.machine.status === 'on' ? 'glass-card-on' : 'glass-card-off'
         ]"
         elevation="24"
-        @mouseenter="machine.hover = true"
-        @mouseleave="machine.hover = false"
+        @mouseenter="props.machine.hover = true"
+        @mouseleave="props.machine.hover = false"
       >
         <!-- Header Section -->
         <div class="d-flex justify-space-between align-start mb-4">
           <div class="flex-grow-1">
             <div class="d-flex align-center gap-3 mb-2">
               <h3 class="text-h5 font-weight-bold text-white mb-0">
-                {{ machine.name }}
+                {{ props.machine.name }}
               </h3>
               <VChip
                 class="px-3 chip-status"
                 :class="[
-                  machine.status === 'on' ? 'chip-online' : 'chip-offline'
+                  props.machine.status === 'on' ? 'chip-online' : 'chip-offline'
                 ]"
                 size="small"
                 label
               >
                 <VIcon
-                  :class="machine.status === 'on' ? 'pulse-animation' : ''"
+                  :class="props.machine.status === 'on' ? 'pulse-animation' : ''"
                   size="small"
                   start
                   icon="tabler-wifi"
                 />
-                {{ machine.status === 'on' ? 'Connected' : 'Disconnected' }}
+                {{ props.machine.status === 'on' ? 'Connected' : 'Disconnected' }}
               </VChip>
             </div>
             
             <!-- Total Runtime Display -->
             <div 
-              v-if="machine.status === 'on'"
+              v-if="props.machine.status === 'on'"
               class="runtime-badge"
             >
               <VIcon
@@ -87,7 +81,7 @@ export default {
               />
               <span class="text-caption text-grey-lighten-1 ms-1">Total Runtime:</span>
               <span class="text-subtitle-2 font-weight-bold text-cyan ms-1">
-                {{ machine.totalRuntime }}
+                {{ props.machine.totalRuntime }}
               </span>
             </div>
           </div>
@@ -95,7 +89,7 @@ export default {
           <VAvatar
             class="icon-avatar"
             :class="[
-              machine.status === 'on' ? 'avatar-on' : 'avatar-off'
+              props.machine.status === 'on' ? 'avatar-on' : 'avatar-off'
             ]"
             size="48"
           >
@@ -108,7 +102,7 @@ export default {
 
         <!-- Status Info Section with Horizontal Scrollable -->
         <div
-          v-if="machine.status === 'on'"
+          v-if="props.machine.status === 'on'"
           class="mt-5"
         >
           <div class="d-flex align-center justify-space-between mb-3">
@@ -130,7 +124,7 @@ export default {
           <div class="scrollable-container">
             <div class="running-time-grid">
               <VCard
-                v-for="item in machine.runningTimes"
+                v-for="item in runningTimes"
                 :key="item.id"
                 class="running-time-card pa-4"
                 elevation="0"

@@ -9,7 +9,7 @@ import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
    PROPS
 ========================= */
 const props = defineProps({
-  modelConfiguration: Object,
+  machine: Object,
   facilities: Object,
 })
 
@@ -35,7 +35,7 @@ let animationId = null
    WATCHERS
 ========================= */
 watch(
-  () => props.modelConfiguration,
+  () => props.machine,
   async cfg => {
     if (!cfg?.entry) return
     await nextTick()

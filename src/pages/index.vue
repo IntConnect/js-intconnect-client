@@ -1,25 +1,8 @@
 <script setup>
 import LoadChillerWidget from "@/components/dashboard/LoadChillerWidget.vue"
-import ThreeViewer from "@/components/dashboard/ThreeViewer.vue"
 import StateCards from "@/components/dashboard/operation/StateCards.vue"
 import mqtt from 'mqtt'
 
-const {
-  systemSetting,
-  fetchSystemSetting,
-} = useManageSystemSetting()
-
-const {
-  facilities,
-  fetchFacilities,
-} = useManageFacility()
-
-
-const selectedMachineIds = ref([])
-const selectedParameterIds = ref([])
-const parameterId = ref([])
-const interval = ref(0)
-const formErrors = ref({})
 
 
 const {
@@ -171,7 +154,6 @@ function handleMqttMessage(data) {
       const rawValue = dataValues[paramCode]
       const value = Array.isArray(rawValue) ? rawValue[0] : rawValue
 
-      console.log(paramCode)
       mqttData[paramCode] = {
         name: parameter.name,
         code: paramCode,
@@ -236,6 +218,7 @@ watch(mqttData, () => {
   if (deltaData.length > MAX_POINTS) {
     deltaData.splice(0, deltaData.length - MAX_POINTS)
   }
+
 })
 
 
@@ -293,32 +276,51 @@ function getParameterStatus(paramCode) {
   return 'normal'
 }
 
-// Computed parameters dengan real-time data
-const parametersWithData = computed(() => {
-  if (!processedMachine.value?.mqtt_topic?.parameters) return []
-
-  return processedMachine.value.mqtt_topic.parameters.map(parameter => {
-    const realtimeData = mqttData[parameter.code]
-
-    return {
-      id: parameter.id,
-      name: parameter.name,
-      code: parameter.code,
-      value: realtimeData?.value,
-      unit: parameter.unit || '',
-      status: getParameterStatus(parameter.code),
-      formattedValue: getFormattedValue(parameter.code),
-      timestamp: realtimeData?.timestamp,
-      hasData: !!realtimeData,
-      description: parameter.description,
-    }
-  })
+const modelConfigurationReady = computed(() => {
+  return Boolean(processedMachine.value) 
 })
 
 const processedMachine = computed(() => {
   if (!machine?.value?.entry) return null
   
   return machine.value.entry
+})
+
+const machineState = computed(() => {
+  if (!machine?.value?.entry) return null
+ 
+  return {
+    id: processedMachine.value.id, 
+    name: processedMachine.value.name, 
+    status: 'on',
+    totalRuntime: '1,245h 30m',
+  }
+})
+
+const runningTimes = computed(() => {
+
+  const allowedKeys = [
+    '1_Comp1RunningTime',
+    '1_Comp2RunningTime',
+    '1_Comp1OperatingState',
+    '1_Comp2OperatingState',
+    '1_Compressor1_Load',
+    '1_Compressor2_Load',
+  ]
+
+  return  Object.entries(mqttData)
+    .filter(([key]) => allowedKeys.includes(key))
+    .map(([key, data]) => {
+      return {
+        code: data.code,
+        name: data.name,
+        status: Boolean(data.value),
+        value: data.value,
+        icon: 'tabler-temperature', color: '#10b981',
+      }
+    })
+
+  
 })
 
 onMounted(async () => {
@@ -343,70 +345,58 @@ const presRasioComp1 = computed(mqttData => {
 const presRasioComp2 = computed(mqttData => {
   return  String(getValue('1_Comp2DischargePressure') - getValue('1_Comp2SuctionPressure'))
 })
-
-const modelConfigurationReady = computed(() => {
-  return Boolean(systemSetting.value) && Boolean(facilities.value)
-})
-
-onMounted(async () => {
-  fetchSystemSetting({ isMinimal: true, key: "DASHBOARD_SETTINGS" })
-  await fetchFacilities({ isMinimal: true })
-  await nextTick()
-})
 </script>
 
 <template>
   <div>
-    <VRow class="match-height">
-      <!-- 3D Viewer -->
+    <VRow
+      class="match-height"
+      style="min-height: 520px"
+    >
+      <!-- LEFT -->
       <VCol
-        class="d-flex"
         cols="12"
         lg="6"
         md="6"
+        class="d-flex flex-column"
       >
-        <ThreeViewer
+        <ThreeModelViewer
           v-if="modelConfigurationReady"
-          :facilities="facilities"
-          :model-configuration="systemSetting"
           class="flex-grow-1"
+          :model-path="processedMachine?.model_path"
         />
       </VCol>
 
+      <!-- RIGHT -->
       <VCol
         cols="6"
         md="6"
         sm="6"
+        class="d-flex flex-column"
       >
-        <VRow class="match-height">
+        <VRow class="match-height flex-grow-1">
           <VCol
             cols="12"
-            md="12"
-            sm="12"
             class="py-3"
           >
-            <StateCards />
+            <StateCards
+              v-if="machineState !== null"
+              :machine="machineState"
+              :running-times="runningTimes"
+            />
           </VCol>
+
           <VCol
             cols="12"
-            md="12"
-            sm="12"
             class="py-3"
           >
             <VRow>
-              <VCol
-                cols="6"
-                md="6"
-                sm="6"
-              >
-                <GaugeChartWidget :cop-value="isNaN (getValue('1_Chiller_COP')) ? 0 : getValue('1_Chiller_COP')" />
+              <VCol cols="6">
+                <GaugeChartWidget :cop-value="isNaN(getValue('1_Chiller_COP')) ? 0 : getValue('1_Chiller_COP')" />
               </VCol>
-              <VCol
-                cols="6"
-                md="6"
-                sm="6"
-              >
-                <LoadChillerWidget 
+
+              <VCol cols="6">
+                <LoadChillerWidget
                   title="Load Chiller"
                   subtitle="Load chiller"
                   badge="Good"
@@ -421,6 +411,7 @@ onMounted(async () => {
         </VRow>
       </VCol>
     </VRow>
+
     <VRow class="match-height">
       <VCol
         cols="3"

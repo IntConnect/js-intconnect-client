@@ -77,7 +77,6 @@ const onSubmit = async () => {
     timestamp: value.timestamp,
   }))
 
-  console.log(resultParsing)
 
 
   const payload = {
@@ -119,7 +118,6 @@ onMounted(async () => {
   }
   if (checkSheetResult.success) {
     isEditMode.value = true
-    console.log(checkSheet)
     checkSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
     checkSheetValues.value = checkSheet.value["check_sheet_values"].reduce((acc, item) => {
       acc[`${item["timestamp"]}-${item["check_sheet_document_template_parameter_id"]}`] = {
@@ -130,7 +128,7 @@ onMounted(async () => {
       
       return acc
     }, {})
-    console.log(checkSheetValues)
+    (checkSheetValues)
   } else {
     id = null
   }

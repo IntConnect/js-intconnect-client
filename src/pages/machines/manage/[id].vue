@@ -7,12 +7,12 @@ import "@jaxtheprime/vue3-dropzone/dist/style.css"
 import * as THREE from 'three'
 import { computed, onMounted, reactive, ref } from 'vue'
 
-import { useManageFacility } from "@/composables/useManageFacility.js"
-import { useManageMachine } from "@/composables/useManageMachine.js"
-import { extractFilename } from "@core/utils/helpers.js"
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { useManageFacility } from "@/composables/useManageFacility"
+import { useManageMachine } from "@/composables/useManageMachine"
+import { extractFilename } from "@core/utils/helpers"
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 const numberedSteps = [
   {
