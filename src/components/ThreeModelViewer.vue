@@ -1,4 +1,5 @@
 <script setup>
+import { useStaticFile } from '@/composables/useStaticFile'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
@@ -75,7 +76,7 @@ function init() {
 function loadModel() {
   const loader = new GLTFLoader()
 
-  loader.load(props.modelPath, gltf => {
+  loader.load(useStaticFile( props.modelPath), gltf => {
     model = gltf.scene
 
     const box = new THREE.Box3().setFromObject(model)

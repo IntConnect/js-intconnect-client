@@ -25,8 +25,6 @@ const copMax = 8.0 // Maximum COP value
 
 // Calculate percentage for gauge
 const copPercentage = computed(() => {
-  console.log(Number (props.copValue / copMax) * 100)
-  
   return  Number (props.copValue / copMax) * 100
 
 })
