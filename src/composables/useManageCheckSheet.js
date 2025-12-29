@@ -49,7 +49,6 @@ export const useManageCheckSheet = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      console.log(response)
       applyPaginationResponse(
         {
           entries: checkSheets,

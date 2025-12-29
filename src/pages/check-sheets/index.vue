@@ -74,9 +74,6 @@ const loadCheckSheets = async () => {
   })
 }
 
-watch( checkSheets.value, val => {
-  console.log(val)
-})
 
 const resolveColorStatus = status => {
   switch (status) {

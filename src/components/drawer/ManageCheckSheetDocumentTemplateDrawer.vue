@@ -136,7 +136,6 @@ const onSubmit = () => {
 watch(
   () => props.checkSheetDocumentTemplateData,
   val => {
-    console.log(val)
     if (val && Object.keys(val).length) {
       
       id.value = val.id || ''

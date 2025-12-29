@@ -54,7 +54,6 @@ const openRejectDialog = () => {
 }
 
 const handleApprove = async data => {
-  console.log('Approve with note:', data.note)
   let approvalPayload =  {
     check_sheet_id: id,
     note: data.note,
@@ -78,7 +77,6 @@ const handleApprove = async data => {
 }
 
 const handleReject = async data => {
-  console.log('Approve with note:', data.note)
   let approvalPayload =  {
     check_sheet_id: id,
     note: data.note,
@@ -142,7 +140,6 @@ onMounted(async () => {
   }
   if (checkSheetResult.success) {
     isEditMode.value = true
-    console.log(checkSheet)
     checkSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
     checkSheetValues.value = checkSheet.value["check_sheet_values"].reduce((acc, item) => {
       acc[`${item["timestamp"]}-${item["check_sheet_document_template_parameter_id"]}`] = {
@@ -153,7 +150,6 @@ onMounted(async () => {
       
       return acc
     }, {})
-    console.log(checkSheetValues)
   } else {
     id = null
   }
