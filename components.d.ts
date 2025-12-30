@@ -62,6 +62,7 @@ declare module 'vue' {
     PowerChart: typeof import('./src/components/dashboard/PowerChart.vue')['default']
     ProductDescriptionEditor: typeof import('./src/@core/components/ProductDescriptionEditor.vue')['default']
     ProductionChart: typeof import('./src/components/dashboard/ProductionChart.vue')['default']
+    RawBarChart: typeof import('./src/components/dashboard/RawBarChart.vue')['default']
     RealtimeStats: typeof import('./src/components/dashboard/RealtimeStats.vue')['default']
     RoleCards: typeof import('./src/components/user/RoleCards.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

@@ -1,11 +1,11 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
 import AlertDialog from "@/components/general/AlertDialog.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { format } from "date-fns"
+import { ref } from 'vue'
 
 // ==========================================
 // Composable
@@ -193,33 +193,43 @@ const closeDeleteDialog = () => {
             <!-- Actions Column -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-2">
-                <RouterLink :to="{ name: 'machines-manage-id', params: { id: item.id } }">
-                  <VBtn
-                    color="success"
-                    icon
-                    size="small"
-                    variant="text"
-                  >
-                    <VIcon
-                      icon="tabler-eye"
-                      size="20"
-                    />
-                  </VBtn>
-                </RouterLink>
-                <RouterLink :to="{ name: 'machines-manage-id', params: { id: item.id } }">
-                  <VBtn
-                    color="info"
-                    icon
-                    size="small"
-                    variant="text"
-                    @click="handleEdit(item)"
-                  >
-                    <VIcon
-                      icon="tabler-pencil"
-                      size="20"
-                    />
-                  </VBtn>
-                </RouterLink>
+                <VBtn
+                  color="success"
+                  icon
+                  size="small"
+                  variant="text"
+                  :to="{ name: 'machines-manage-id', params: { id: item.id } }"
+                >
+                  <VIcon
+                    icon="tabler-eye"
+                    size="20"
+                  />
+                </VBtn>
+                <VBtn
+                  color="success"
+                  icon
+                  size="small"
+                  variant="text"
+                  :to="{ name: 'machines-dashboard-id', params: { id: item.id } }"
+                >
+                  <VIcon
+                    icon="tabler-dashboard"
+                    size="20"
+                  />
+                </VBtn>
+                <VBtn
+                  color="info"
+                  icon
+                  size="small"
+                  variant="text"
+                  :to="{ name: 'machines-manage-id', params: { id: item.id } }"
+                  @click="handleEdit(item)"
+                >
+                  <VIcon
+                    icon="tabler-pencil"
+                    size="20"
+                  />
+                </VBtn>
                 <VBtn
                   color="error"
                   icon

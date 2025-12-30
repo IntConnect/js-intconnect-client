@@ -482,38 +482,24 @@ const presRasioComp2 = computed(mqttData => {
         lg="6"
         md="6"
       >
-        <VCard class="fill-height">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>COP vs CHILLED WATER</VCardTitle>
-            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
-          </VCardItem>
-
-          <VCardText>
-            <EnergyLineChart
-              :realtime-data="coefficientWithChilledWater"
-              :x-categories="xCategories"
-            />
-          </VCardText>
-        </VCard>
+        <EnergyLineChart
+          :realtime-data="coefficientWithChilledWater"
+          :x-categories="xCategories"
+          title="COP vs Chilled Water"
+          subtitle="Performance insights based on COP and energy usage"
+        />
       </VCol>
       <VCol
         cols="12"
         lg="6"
         md="6"
       >
-        <VCard class="fill-height">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>COP vs ENERGY</VCardTitle>
-            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
-          </VCardItem>
-
-          <VCardText>
-            <EnergyLineChart 
-              :realtime-data="coefficientWithEnergy"
-              :x-categories="xCategories"
-            />
-          </VCardText>
-        </VCard>
+        <EnergyLineChart
+          :realtime-data="coefficientWithChilledWater"
+          :x-categories="xCategories"
+          title="COP vs Chilled Water"
+          subtitle="Performance insights based on COP and energy usage"
+        />
       </VCol>
     </VRow>
   </div>

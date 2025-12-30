@@ -39,6 +39,7 @@ declare module 'vue-router/auto-routes' {
     'generate-reports': RouteRecordInfo<'generate-reports', '/generate-reports', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'machines': RouteRecordInfo<'machines', '/machines', Record<never, never>, Record<never, never>>,
+    'machines-dashboard-id': RouteRecordInfo<'machines-dashboard-id', '/machines/dashboard/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'machines-manage-id': RouteRecordInfo<'machines-manage-id', '/machines/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'machines-show-id': RouteRecordInfo<'machines-show-id', '/machines/show/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'modbus-server': RouteRecordInfo<'modbus-server', '/modbus-server', Record<never, never>, Record<never, never>>,

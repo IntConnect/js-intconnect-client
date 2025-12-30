@@ -17,6 +17,22 @@ const props = defineProps({
   },
 })
 
+const route = useRoute()
+const router = useRouter()
+const id = route.params.id
+
+const {
+  machine,
+  fetchMachine,
+} = useManageMachine()
+
+const processedMachine = computed(() => {
+  if(!machine?.value?.entry) return null 
+  console.log(machine.value)
+  
+  return machine.value.entry
+})
+
 // Parameters data
 const parameters = ref([
   { id: 1, name: 'Temperature Inlet', unit: '°C', code: 'TEMP_IN', is_watch: true },
@@ -35,7 +51,6 @@ const parameters = ref([
 const showAddWidget = ref(false)
 const showEditWidget = ref(false)
 const selectedWidget = ref(null)
-const fileInput = ref(null)
 
 // Widget form
 const widgetForm = ref({
@@ -141,7 +156,7 @@ const loadDefaultLayout = () => {
       x: 0,
       y: 0,
       w: 6,
-      h: 5,
+      h: 10,
       type: 'line',
       title: 'Temperature Monitoring',
       subtitle: 'Real-time temperature data',
@@ -150,48 +165,7 @@ const loadDefaultLayout = () => {
       color: '#10b981',
       colors: ['#10b981', '#06b6d4'],
     },
-    {
-      i: 'widget_2',
-      x: 6,
-      y: 0,
-      w: 6,
-      h: 5,
-      type: 'bar',
-      title: 'Power Analysis',
-      subtitle: 'Energy consumption comparison',
-      dataSourceIds: [5],
-      interval: 5,
-      color: '#8b5cf6',
-      colors: ['#8b5cf6'],
-    },
-    {
-      i: 'widget_3',
-      x: 0,
-      y: 5,
-      w: 4,
-      h: 4,
-      type: 'gauge',
-      title: 'Current Pressure',
-      subtitle: 'System pressure level',
-      dataSourceIds: [3],
-      interval: 1,
-      color: '#f59e0b',
-      colors: ['#f59e0b'],
-    },
-    {
-      i: 'widget_4',
-      x: 4,
-      y: 5,
-      w: 8,
-      h: 4,
-      type: 'metric',
-      title: 'Key Metrics',
-      subtitle: 'Overview of critical parameters',
-      dataSourceIds: [1, 3, 4, 5],
-      interval: 5,
-      color: '#3b82f6',
-      colors: ['#3b82f6'],
-    },
+  
   ]
   saveToStorage()
 }
@@ -286,59 +260,156 @@ const handleLayoutUpdate = newLayout => {
   layout.value = newLayout
   saveToStorage()
 }
+
+onMounted(async () => {
+  let actionResult = await fetchMachine(id)
+  await nextTick()
+  console.log(actionResult)
+  if (actionResult.success) {
+    
+  }
+ 
+})
 </script>
 
 <template>
-  <div class="dashboard-manager">
-    <!-- Toolbar -->
-    <VCard class="toolbar-card mb-6">
-      <VCardText>
-        <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-          <div>
-            <h2 class="text-h4 font-weight-bold text-white mb-1">
-              Dashboard Manager
-            </h2>
-            <p class="text-body-2 text-grey-lighten-1">
-              <VIcon
-                icon="tabler-device-analytics"
-                size="16"
-                class="me-1"
-              />
-              Machine ID: {{ machineId }} • Configure your monitoring charts
-            </p>
-          </div>
+  <div>
+    <VCol
+      cols="12"
+      md="12"
+      sm="12"
+    >
+      <VCard class="mb-6">
+        <VCardText>
+          <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+            <div>
+              <h2 class="text-h4 font-weight-bold text-white mb-1">
+                Dashboard Manager
+              </h2>
+              <p class="text-body-2 text-grey-lighten-1">
+                <VIcon
+                  icon="tabler-device-analytics"
+                  size="16"
+                  class="me-1"
+                />
+                Machine {{ processedMachine?.name }} • Configure your monitoring charts
+              </p>
+            </div>
 
-          <div class="d-flex align-center gap-3 flex-wrap">
-            <VBtn
-              color="success"
-              variant="elevated"
-              @click="handleOpenDialog"
-            >
-              <VIcon
-                icon="tabler-plus"
-                start
-              />
-              Add Chart
-            </VBtn>
+            <div class="d-flex align-center gap-3 flex-wrap">
+              <VBtn
+                color="success"
+                variant="elevated"
+                @click="handleOpenDialog"
+              >
+                <VIcon
+                  icon="tabler-plus"
+                  start
+                />
+                Add Chart
+              </VBtn>
 
            
          
-            <VBtn
+              <VBtn
+                variant="tonal"
+                color="warning"
+                @click="handleReset"
+              >
+                <VIcon
+                  icon="tabler-refresh"
+                  start
+                />
+                Reset
+              </VBtn>
+            </div>
+          </div>
+        </VCardText>
+      </VCard>
+    </VCol>
+
+    <VCol
+      cols="12"
+      md="12"
+      sm="12"
+      class="pa-0"
+    >
+      <div
+        v-if="layout.length > 0"
+        class="pa-0"
+      >
+        <GridLayout
+          v-model:layout="layout"
+          :col-num="12"
+          :row-height="30"
+          is-draggable
+          is-resizable
+          vertical-compact
+          use-css-transforms
+          :margin="[16, 16]"  
+          :container-padding="[0, 0]"
+          @layout-updated="handleLayoutUpdate"
+        >
+          <GridItem
+            v-for="widget in layout"
+            :key="widget.i"
+            :x="widget.x"
+            :y="widget.y"
+            :w="widget.w"
+            :h="widget.h"
+            :i="widget.i"
+            class="grid-item-wrapper"
+          >
+            <EnergyLineChart
+              v-if="widget.type === 'line'"
+              :title="widget.title"
+              :subtitle="widget.subtitle"
+              :realtime-data="chartData"
+              :x-categories="xCategories"
+              class="chart-container"
+            />
+          </GridItem>
+        </GridLayout>
+      </div>
+      <VCard
+        v-else
+        class="empty-state-card text-center py-16"
+      >
+        <VCardText>
+          <div class="mb-4">
+            <VAvatar
+              color="success"
               variant="tonal"
-              color="warning"
-              @click="handleReset"
+              size="120"
             >
               <VIcon
-                icon="tabler-refresh"
-                start
+                icon="tabler-chart-dots"
+                size="64"
               />
-              Reset
-            </VBtn>
+            </VAvatar>
           </div>
-        </div>
-      </VCardText>
-    </VCard>
-
+          <h3 class="text-h4 font-weight-bold mb-2">
+            No Charts Configured
+          </h3>
+          <p class="text-body-1 text-grey mb-6">
+            Start building your dashboard by adding your first monitoring chart
+          </p>
+          <VBtn
+            color="success"
+            size="x-large"
+            @click="handleOpenDialog"
+          >
+            <VIcon
+              icon="tabler-plus"
+              start
+            />
+            Add First Chart
+          </VBtn>
+        </VCardText>
+      </VCard>
+    </VCol>
+    <!-- Empty State -->
+   
     <!-- Add/Edit Widget Dialog -->
     <VDialog
       v-model="showAddWidget"
@@ -576,14 +647,12 @@ const handleLayoutUpdate = newLayout => {
         <VCardActions class="pa-6 justify-end gap-2">
           <VBtn
             variant="outlined"
-            size="large"
             @click="showAddWidget = false"
           >
             Cancel
           </VBtn>
           <VBtn
             color="success"
-            size="large"
             @click="handleSaveWidget"
           >
             <VIcon
@@ -802,129 +871,31 @@ const handleLayoutUpdate = newLayout => {
         </VCardActions>
       </VCard>
     </VDialog>
-
-    <!-- Dashboard Grid -->
-    <div v-if="layout.length > 0">
-      <GridLayout
-        v-model:layout="layout"
-        :col-num="12"
-        :row-height="30"
-        is-draggable
-        is-resizable
-        vertical-compact
-        use-css-transforms
-        :margin="[16, 16]"
-        @layout-updated="handleLayoutUpdate"
-      >
-        <GridItem
-          v-for="widget in layout"
-          :key="widget.i"
-          :x="widget.x"
-          :y="widget.y"
-          :w="widget.w"
-          :h="widget.h"
-          :i="widget.i"
-          class="grid-item-wrapper"
-        >
-          <VCard class="h-100 widget-preview-card">
-            <VCardText class="pa-4">
-              <div class="d-flex align-center justify-space-between mb-3">
-                <div class="d-flex align-center gap-2">
-                  <VIcon
-                    :icon="chartTypes.find(t => t.value === widget.type)?.icon"
-                    :color="chartTypes.find(t => t.value === widget.type)?.color"
-                    size="20"
-                  />
-                  <div>
-                    <div class="text-subtitle-2 font-weight-bold">
-                      {{ widget.title }}
-                    </div>
-                    <div class="text-caption text-grey">
-                      {{ widget.subtitle }}
-                    </div>
-                  </div>
-                </div>
-
-                <div class="d-flex gap-1">
-                  <VBtn
-                    icon
-                    size="small"
-                    variant="text"
-                    @click="handleOpenDialog(widget)"
-                  >
-                    <VIcon
-                      icon="tabler-edit"
-                      size="18"
-                    />
-                  </VBtn>
-                  <VBtn
-                    icon
-                    size="small"
-                    variant="text"
-                    color="error"
-                    @click="handleRemoveWidget(widget.i)"
-                  >
-                    <VIcon
-                      icon="tabler-trash"
-                      size="18"
-                    />
-                  </VBtn>
-                </div>
-              </div>
-
-              <VDivider class="mb-3" />
-
-
-              <!-- Here you would render the actual chart component -->
-              <EnergyLineChart
-                v-if="widget.type === 'line'"
-                :title="widget.title"
-                :subtitle="widget.subtitle"
-                :realtime-data="chartData"
-                :x-categories="xCategories"
-              />
-            </VCardText>
-          </VCard>
-        </GridItem>
-      </GridLayout>
-    </div>
-
-    <!-- Empty State -->
-    <VCard
-      v-else
-      class="empty-state-card text-center py-16"
-    >
-      <VCardText>
-        <div class="mb-4">
-          <VAvatar
-            color="success"
-            variant="tonal"
-            size="120"
-          >
-            <VIcon
-              icon="tabler-chart-dots"
-              size="64"
-            />
-          </VAvatar>
-        </div>
-        <h3 class="text-h4 font-weight-bold mb-2">
-          No Charts Configured
-        </h3>
-        <p class="text-body-1 text-grey mb-6">
-          Start building your dashboard by adding your first monitoring chart
-        </p>
-        <VBtn
-          color="success"
-          size="x-large"
-          @click="handleOpenDialog"
-        >
-          <VIcon
-            icon="tabler-plus"
-            start
-          />
-          Add First Chart
-        </VBtn>
-      </VCardText>
-    </vcard>
   </div>
 </template>
+
+<style scoped>
+    .chart-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.chart-type-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-type-card.active {
+  border: 2px solid rgb(var(--v-theme-success));
+}
+
+.grid-item-wrapper {
+  height: 100%;
+}
+
+.chart-container {
+  height: 100%;
+  width: 100%;
+}
+</style>

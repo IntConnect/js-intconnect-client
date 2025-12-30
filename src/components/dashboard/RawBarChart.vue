@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
-  realtimeData: {
+  chartData: {
     type: Array,
     required: true,
   },
@@ -13,11 +13,15 @@ const props = defineProps({
   },
   title: {
     type: String,
-    default: 'Realtime Monitor',
+    default: 'Bar Chart',
   },
   subtitle: {
     type: String,
-    default: 'Live data visualization',
+    default: 'Data visualization',
+  },
+  colors: {
+    type: Array,
+    default: () => ['#10b981', '#06b6d4', '#8b5cf6'],
   },
 })
 
@@ -37,7 +41,7 @@ const vuetifyTheme = useTheme()
 const chartOptions = computed(() => {
   const categories = props.xCategories
   
-  return getLineChartSimpleConfig(categories)
+  return getBarChartConfig(categories)
 })
 
 watch(
@@ -55,7 +59,7 @@ watch(
 )
 
 watch(
-  () => props.realtimeData,
+  () => props.chartData,
   series => {
     if (!chartRef.value) return
 
@@ -70,7 +74,7 @@ watch(
   { deep: true },
 )
 
-const getLineChartSimpleConfig = categories => {
+const getBarChartConfig = categories => {
   const {
     themeSecondaryTextColor,
     themeDisabledTextColor,
@@ -80,30 +84,52 @@ const getLineChartSimpleConfig = categories => {
 
   return {
     chart: {
+      type: 'bar',
       parentHeightOffset: 0,
-      zoom: { enabled: false },
       toolbar: { show: false },
       animations: {
         enabled: true,
-        easing: 'linear',
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150,
+        },
         dynamicAnimation: {
-          speed: 300,
+          enabled: true,
+          speed: 350,
         },
       },
     },
-    colors: ['#10b981', '#06b6d4'],
-    stroke: {
-      curve: 'smooth',
-      width: 3,
+    colors: props.colors,
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        borderRadius: 8,
+        borderRadiusApplication: 'end',
+        dataLabels: {
+          position: 'top',
+        },
+      },
     },
-    dataLabels: { enabled: false },
-    markers: {
-      size: 0,
-      strokeWidth: 2,
-      strokeOpacity: 1,
-      strokeColors: '#fff',
-      hover: {
-        size: 6,
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['transparent'],
+    },
+    legend: {
+      show: true,
+      position: 'top',
+      horizontalAlign: 'left',
+      labels: {
+        colors: themeSecondaryTextColor,
+      },
+      markers: {
+        radius: 4,
       },
     },
     grid: {
@@ -111,9 +137,18 @@ const getLineChartSimpleConfig = categories => {
       borderColor: 'rgba(255, 255, 255, 0.1)',
       strokeDashArray: 4,
     },
-    legend: {
+    xaxis: {
+      categories: categories,
+      axisBorder: { show: false },
+      axisTicks: { 
+        show: true,
+        color: 'rgba(255, 255, 255, 0.1)',
+      },
       labels: {
-        colors: themeSecondaryTextColor,
+        style: {
+          colors: Array(20).fill(themeSecondaryTextColor),
+          fontSize: '0.8125rem',
+        },
       },
     },
     yaxis: {
@@ -124,22 +159,27 @@ const getLineChartSimpleConfig = categories => {
         },
       },
     },
-    xaxis: {
-      categories: categories,
-      axisBorder: { show: false },
-      axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
-      labels: {
-        style: {
-          colors: Array(20).fill(themeSecondaryTextColor),
-          fontSize: '0.8125rem',
-        },
-      },
-      crosshairs: {
-        stroke: { color: 'rgba(255, 255, 255, 0.1)' },
+    fill: {
+      opacity: 1,
+      type: 'gradient',
+      gradient: {
+        shade: 'dark',
+        type: 'vertical',
+        shadeIntensity: 0.5,
+        gradientToColors: props.colors.map(color => color + '80'),
+        inverseColors: false,
+        opacityFrom: 1,
+        opacityTo: 0.8,
+        stops: [0, 100],
       },
     },
     tooltip: {
       theme: 'dark',
+      y: {
+        formatter: function (val) {
+          return val
+        },
+      },
     },
   }
 }
@@ -152,22 +192,22 @@ const getLineChartSimpleConfig = categories => {
         <div class="d-flex align-center gap-2">
           <div class="chart-icon-wrapper">
             <VIcon
-              icon="tabler-chart-line"
-              size="30"
+              icon="tabler-chart-bar"
+              size="20"
               class="chart-icon"
             />
           </div>
           <div>
-            <h5 class="text-h5 text-white font-weight-bold mb-0">
+            <h6 class="text-h6 text-white font-weight-bold mb-0">
               {{ title }}
-            </h5>
+            </h6>
             <span class="text-caption text-grey-lighten-1">{{ subtitle }}</span>
           </div>
         </div>
 
         <div class="d-flex align-center gap-1">
           <div class="status-dot-live" />
-          <span class="text-caption text-success font-weight-medium">Realtime</span>
+          <span class="text-caption text-success font-weight-medium">Live</span>
         </div>
       </div>
     </VCardText>
@@ -177,9 +217,9 @@ const getLineChartSimpleConfig = categories => {
         <VueApexCharts
           ref="chartRef"
           :options="chartOptions"
-          :series="realtimeData"
+          :series="chartData"
           height="400"
-          type="line"
+          type="bar"
         />
       </div>
     </VCardText>
@@ -203,8 +243,8 @@ const getLineChartSimpleConfig = categories => {
 }
 
 .chart-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
   border: 1px solid rgba(16, 185, 129, 0.3);
@@ -215,7 +255,6 @@ const getLineChartSimpleConfig = categories => {
 
 .chart-icon {
   color: #10b981;
-  width: 36px;
 }
 
 .chart-container {
