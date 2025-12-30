@@ -256,6 +256,7 @@ onMounted(() => {
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
             <VBtn
+              v-if="item.status !== 'Approved' && item.status !== 'Rejected'" 
               color="success"
               icon
               size="small"

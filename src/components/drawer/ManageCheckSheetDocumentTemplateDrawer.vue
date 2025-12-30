@@ -305,6 +305,7 @@ const handleDrawerModelValueUpdate = val => {
                   :rules="[requiredValidator]"
                   label="Revision Number"
                   placeholder="1"
+                  :disabled="isEditMode"
                 />
               </VCol>
               <VCol cols="12">
