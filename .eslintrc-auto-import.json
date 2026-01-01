@@ -402,6 +402,8 @@
     "calculateAggregation": true,
     "formatChartData": true,
     "useManageDashboard": true,
-    "useManageCheckSheet": true
+    "useManageCheckSheet": true,
+    "useMqttConnection": true,
+    "useManageDashboardWidget": true
   }
 }

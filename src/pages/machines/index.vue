@@ -206,7 +206,7 @@ const closeDeleteDialog = () => {
                   />
                 </VBtn>
                 <VBtn
-                  color="success"
+                  color="warning"
                   icon
                   size="small"
                   variant="text"

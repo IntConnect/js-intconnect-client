@@ -1,16 +1,16 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
   realtimeData: {
     type: Array,
     required: true,
+    default: () => {
+      return []
+    },
   },
-  xCategories: {
-    type: Array,
-    required: true,
-  },
+  
   title: {
     type: String,
     default: 'Realtime Monitor',
@@ -34,43 +34,16 @@ const colorVariables = themeColors => {
 
 const vuetifyTheme = useTheme()
 
-const chartOptions = computed(() => {
-  const categories = props.xCategories
-  
-  return getLineChartSimpleConfig(categories)
+
+
+const chartSeries = computed(() => {
+  return props.realtimeData.map(s => ({
+    ...s,
+    data: [...s.data],
+  }))
 })
 
-watch(
-  () => props.xCategories,
-  categories => {
-    if (!chartRef.value || !categories.length) return
-
-    chartRef.value.updateOptions({
-      xaxis: {
-        categories: [...categories],
-      },
-    }, false, false)
-  },
-  { deep: true },
-)
-
-watch(
-  () => props.realtimeData,
-  series => {
-    if (!chartRef.value) return
-
-    chartRef.value.updateSeries(
-      series.map(s => ({
-        ...s,
-        data: [...s.data],
-      })),
-      true,
-    )
-  },
-  { deep: true },
-)
-
-const getLineChartSimpleConfig = categories => {
+const getLineChartSimpleConfig = () => {
   const {
     themeSecondaryTextColor,
     themeDisabledTextColor,
@@ -125,7 +98,6 @@ const getLineChartSimpleConfig = categories => {
       },
     },
     xaxis: {
-      categories: categories,
       axisBorder: { show: false },
       axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
       labels: {
@@ -176,8 +148,8 @@ const getLineChartSimpleConfig = categories => {
       <div class="chart-container">
         <VueApexCharts
           ref="chartRef"
-          :options="chartOptions"
-          :series="realtimeData"
+          :options="getLineChartSimpleConfig()"
+          :series="chartSeries"
           height="400"
           type="line"
         />

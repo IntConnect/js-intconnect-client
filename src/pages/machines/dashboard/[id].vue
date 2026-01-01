@@ -1,21 +1,25 @@
 <script setup>
-import EnergyLineChart from '@/components/dashboard/EnergyLineChart.vue'
+import UnmanageableAreaOverlay from '@/components/general/UnmanageableAreaOverlay.vue'
 import { GridItem, GridLayout } from 'grid-layout-plus'
 import { computed, onMounted, ref } from 'vue'
 
-// Import chart components (assume these are the glass design components)
-// import GaugeChartGlass from '@/components/charts/GaugeChartGlass.vue'
-// import LineChartGlass from '@/components/charts/LineChartGlass.vue'
-// import BarChartGlass from '@/components/charts/BarChartGlass.vue'
-// import MetricCardGlass from '@/components/charts/MetricCardGlass.vue'
+import EnergyLineChart from '@/components/dashboard/operation/EnergyLineChart.vue'
+import GaugeChartWidget from '@/components/dashboard/operation/GaugeChartWidget.vue'
+import RealtimeTable from '@/components/dashboard/operation/RealtimeTable.vue'
+import StatsCard from '@/components/dashboard/operation/StatsCard.vue'
+import { useManageDashboardWidget } from '@/composables/useManageDashboardWidget'
 
-// Props
-const props = defineProps({
-  machineId: {
-    type: [String, Number],
-    default: 1,
-  },
-})
+const {
+  saveDashboardWidget,
+} = useManageDashboardWidget()
+
+
+const chartComponentMap = {
+  gauge: GaugeChartWidget,
+  line: EnergyLineChart,
+  metric: StatsCard,
+}
+
 
 const route = useRoute()
 const router = useRouter()
@@ -26,6 +30,46 @@ const {
   fetchMachine,
 } = useManageMachine()
 
+const {
+  mqttData,
+  mqttStatus,
+  isConnected,
+  connectMQTT,
+  disconnectMQTT,
+  getValue,
+  getFormattedValue,
+  filterParametersByKeys,
+  calculateDelta,
+} = useMqttConnection()
+
+onMounted(async () => {
+  await fetchMachine(1)
+
+  // if (processedMachine.value) {
+  //   connectMQTT(processedMachine.value)
+  // }
+})
+
+// Disconnect on unmount
+onUnmounted(() => {
+  disconnectMQTT()
+})
+
+// Get values
+const cop = computed(() => getValue('1_Chiller_COP'))
+
+const deltaT = computed(() => 
+  calculateDelta('1_Entering_Chilled_Water_Temp', '1_Leaving_Chilled_Water_Temp'),
+)
+
+// Filter running times
+const runningTimes = computed(() => {
+  return filterParametersByKeys([
+    '1_Comp1RunningTime',
+    '1_Comp2RunningTime',
+  ])
+})
+
 const processedMachine = computed(() => {
   if(!machine?.value?.entry) return null 
   console.log(machine.value)
@@ -33,19 +77,14 @@ const processedMachine = computed(() => {
   return machine.value.entry
 })
 
-// Parameters data
-const parameters = ref([
-  { id: 1, name: 'Temperature Inlet', unit: '°C', code: 'TEMP_IN', is_watch: true },
-  { id: 2, name: 'Temperature Outlet', unit: '°C', code: 'TEMP_OUT', is_watch: true },
-  { id: 3, name: 'Pressure', unit: 'Bar', code: 'PRESSURE', is_watch: true },
-  { id: 4, name: 'Flow Rate', unit: 'L/min', code: 'FLOW', is_watch: true },
-  { id: 5, name: 'Power Consumption', unit: 'kW', code: 'POWER', is_watch: true },
-  { id: 6, name: 'Vibration', unit: 'mm/s', code: 'VIBRATION', is_watch: true },
-  { id: 7, name: 'Humidity', unit: '%', code: 'HUMIDITY', is_watch: false },
-  { id: 8, name: 'Speed', unit: 'RPM', code: 'SPEED', is_watch: false },
-  { id: 9, name: 'Energy Cost', unit: 'IDR', code: 'COST', is_watch: true },
-  { id: 10, name: 'Bearing Temperature', unit: '°C', code: 'BEARING_TEMP', is_watch: true },
-])
+
+
+const parameters = computed(() => {
+  if(processedMachine.value == null) return []
+  console.log(processedMachine.value)
+  
+  return processedMachine.value['mqtt_topic'].parameters
+})
 
 // State
 const showAddWidget = ref(false)
@@ -58,11 +97,9 @@ const widgetForm = ref({
   title: '',
   subtitle: '',
   dataSourceIds: [],
-  interval: 5,
   w: 6,
   h: 5,
   color: '#10b981',
-  colors: [],
 })
 
 // Chart types (simplified to 4 types only)
@@ -109,8 +146,12 @@ const colorPresets = [
   { value: '#6366f1', label: 'Indigo' },
 ]
 
+const getParameterById = id => {
+  return availableParameters.value?.find(p => p.id === id)
+}
+
 // Layout - use localStorage for persistence
-const STORAGE_KEY = `dashboard_layout_machine_${props.machineId}`
+const STORAGE_KEY = `dashboard_layout_machine_${id}`
 const layout = ref([])
 
 // Load from localStorage on mount
@@ -126,7 +167,7 @@ const loadFromStorage = () => {
 }
 
 // Save to localStorage
-const saveToStorage = () => {
+const saveIntoStorage = () => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(layout.value))
   } catch (error) {
@@ -150,28 +191,13 @@ onMounted(() => {
 
 // Load default layout
 const loadDefaultLayout = () => {
-  layout.value = [
-    {
-      i: 'widget_1',
-      x: 0,
-      y: 0,
-      w: 6,
-      h: 10,
-      type: 'line',
-      title: 'Temperature Monitoring',
-      subtitle: 'Real-time temperature data',
-      dataSourceIds: [1, 2],
-      interval: 5,
-      color: '#10b981',
-      colors: ['#10b981', '#06b6d4'],
-    },
-  
-  ]
-  saveToStorage()
+  layout.value = []
+  saveIntoStorage()
 }
 
 // Handle add/edit widget
 const handleOpenDialog = (widget = null) => {
+  console.log(widget)
   if (widget) {
     selectedWidget.value = widget
     widgetForm.value = { ...widget }
@@ -183,11 +209,9 @@ const handleOpenDialog = (widget = null) => {
       title: '',
       subtitle: '',
       dataSourceIds: [],
-      interval: 5,
       w: 6,
       h: 5,
       color: '#10b981',
-      colors: [],
     }
     showAddWidget.value = true
   }
@@ -206,19 +230,15 @@ const handleSaveWidget = () => {
     return
   }
 
-  // Auto-generate colors based on selected parameters
-  const autoColors = widgetForm.value.dataSourceIds.map((_, idx) => 
-    colorPresets[idx % colorPresets.length].value,
-  )
-
   if (isAddMode.value) {
     const newWidget = {
       ...widgetForm.value,
       i: `widget_${Date.now()}`,
       x: (layout.value.length * 6) % 12,
       y: Math.floor(layout.value.length / 2) * 5,
-      colors: autoColors,
     }
+
+    console.log(newWidget)
 
     layout.value.push(newWidget)
   } else {
@@ -227,12 +247,13 @@ const handleSaveWidget = () => {
       layout.value[index] = {
         ...layout.value[index],
         ...widgetForm.value,
-        colors: autoColors,
       }
     }
   }
 
-  saveToStorage()
+  saveIntoStorage()
+
+ 
   showAddWidget.value = false
   showEditWidget.value = false
   selectedWidget.value = null
@@ -242,11 +263,59 @@ const handleSaveWidget = () => {
 const handleRemoveWidget = widgetId => {
   if (confirm('Are you sure you want to remove this widget?')) {
     layout.value = layout.value.filter(w => w.i !== widgetId)
-    saveToStorage()
+    saveIntoStorage()
   }
 }
 
 
+const handleStoreWidget = () => {
+  const serializeDashboard = () => {
+    return {
+      machine_id: id,
+      dashboard_widgets: layout.value.map(widget => ({
+        code: widget.i,
+        layout: {
+          x: widget.x,
+          y: widget.y,
+          w: widget.w,
+          h: widget.h,
+        },
+        config: {
+          type: widget.type,
+          title: widget.title,
+          subtitle: widget.subtitle,
+          dataSourceIds: widget.dataSourceIds,
+          color: widget.color,
+        },
+      })),
+    }
+  }
+
+  saveDashboardWidget(serializeDashboard())
+
+}
+
+const machineState = computed(() => {
+  if (!machine?.value?.entry) return null
+ 
+  return {
+    id: processedMachine.value.id, 
+    name: processedMachine.value.name, 
+    status: 'on',
+    totalRuntime: '1,245h 30m',
+  }
+})
+
+const modelConfigurationReady = computed(() => {
+  return Boolean(processedMachine.value) 
+})
+
+const isDataReady = computed(() => {
+  return (
+    processedMachine.value !== null &&
+    availableParameters.value.length > 0
+  )
+})
 
 // Handle reset
 const handleReset = () => {
@@ -258,7 +327,7 @@ const handleReset = () => {
 // Handle layout update
 const handleLayoutUpdate = newLayout => {
   layout.value = newLayout
-  saveToStorage()
+  saveIntoStorage()
 }
 
 onMounted(async () => {
@@ -268,66 +337,157 @@ onMounted(async () => {
   if (actionResult.success) {
     
   }
- 
 })
+
+const chartPropsMap = {
+  line: widget => ({
+    title: widget.title,
+    series: widget.series,
+    'realtime-data': widget.dataSourceIds.map(dataSourceId => {
+      console.log(dataSourceId)
+      let parameterVal = getParameterById(dataSourceId)
+      console.log(parameterVal)
+      
+      return {
+        name: parameterVal?.name,
+        data: [],
+      }
+    }),
+  }),
+  metric: widget => ({
+    title: widget.title,
+    subtitle: widget.subtitle,
+    badge: "",
+    value: "100",
+    icon: "tabler-snowflake",
+    percentage: "10",
+    unit: "N/A",
+  }),
+  
+}
 </script>
 
 <template>
   <div>
-    <VCol
-      cols="12"
-      md="12"
-      sm="12"
-    >
-      <VCard class="mb-6">
-        <VCardText>
-          <div class="d-flex align-center justify-space-between flex-wrap gap-4">
-            <div>
-              <h2 class="text-h4 font-weight-bold text-white mb-1">
-                Dashboard Manager
-              </h2>
-              <p class="text-body-2 text-grey-lighten-1">
-                <VIcon
-                  icon="tabler-device-analytics"
-                  size="16"
-                  class="me-1"
-                />
-                Machine {{ processedMachine?.name }} • Configure your monitoring charts
-              </p>
-            </div>
+    <VRow>
+      <VCol
+        cols="12"
+        md="12"
+        sm="12"
+      >
+        <VCard class="mb-6">
+          <VCardText>
+            <div class="d-flex align-center justify-space-between flex-wrap gap-4">
+              <div>
+                <h2 class="text-h4 font-weight-bold text-white mb-1">
+                  Dashboard Manager
+                </h2>
+                <p class="text-body-2 text-grey-lighten-1">
+                  <VIcon
+                    icon="tabler-device-analytics"
+                    size="20"
+                    class="me-1"
+                  />
+                  Machine {{ processedMachine?.name }} • Configure your monitoring charts
+                </p>
+              </div>
 
-            <div class="d-flex align-center gap-3 flex-wrap">
-              <VBtn
-                color="success"
-                variant="elevated"
-                @click="handleOpenDialog"
-              >
-                <VIcon
-                  icon="tabler-plus"
-                  start
-                />
-                Add Chart
-              </VBtn>
+              <div class="d-flex align-center gap-3 flex-wrap">
+                <VBtn
+                  color="success"
+                  @click="handleStoreWidget"
+                >
+                  <VIcon
+                    icon="tabler-device-floppy"
+                    start
+                  />
+                  Store Chart
+                </VBtn>
+
+                <VBtn
+                  color="info"
+                  @click="handleOpenDialog(null)"
+                >
+                  <VIcon
+                    icon="tabler-plus"
+                    start
+                  />
+                  Add Chart
+                </VBtn>
 
            
          
-              <VBtn
-                variant="tonal"
-                color="warning"
-                @click="handleReset"
-              >
-                <VIcon
-                  icon="tabler-refresh"
-                  start
-                />
-                Reset
-              </VBtn>
+                <VBtn
+                  variant="tonal"
+                  color="warning"
+                  @click="handleReset"
+                >
+                  <VIcon
+                    icon="tabler-refresh"
+                    start
+                  />
+                  Reset
+                </VBtn>
+              </div>
             </div>
-          </div>
-        </VCardText>
-      </VCard>
-    </VCol>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+    <VRow
+      style="min-height: 520px"
+      class="match-height"
+    >
+      <!-- LEFT -->
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+        class="d-flex flex-column"
+      >
+        <UnmanageableAreaOverlay message="3D Model Viewer">
+          <ThreeModelViewer
+            v-if="modelConfigurationReady"
+            class="flex-grow-1"
+            :model-path="processedMachine?.model_path"
+          />
+        </UnmanageableAreaOverlay>
+      </VCol>
+      <!-- RIGHT -->
+      <VCol
+        cols="6"
+        md="6"
+        sm="6"
+        class="d-flex flex-column"
+      >
+        <VRow class="match-height flex-grow-1">
+          <VCol
+            cols="12"
+            class="py-3"
+          >
+            <StateCards
+              v-if="machineState !== null"
+              :machine="machineState"
+              :running-times="runningTimes"
+            />
+          </VCol>
 
+          <VCol
+            cols="12"
+            class="py-3"
+          >
+            <VRow>
+              <VCol cols="12">
+                <UnmanageableAreaOverlay message="Realtime Data Table">
+                  <RealtimeTable />
+                </UnmanageableAreaOverlay>
+              </VCol>
+            </VRow>
+          </VCol>
+        </VRow>
+      </VCol>
+    </VRow>
+  
     <VCol
       cols="12"
       md="12"
@@ -360,20 +520,77 @@ onMounted(async () => {
             :i="widget.i"
             class="grid-item-wrapper"
           >
-            <EnergyLineChart
-              v-if="widget.type === 'line'"
-              :title="widget.title"
-              :subtitle="widget.subtitle"
-              :realtime-data="chartData"
-              :x-categories="xCategories"
-              class="chart-container"
-            />
+            <VCard class="h-100 widget-preview-card">
+              <VCardText class="pa-4">
+                <div class="d-flex align-center justify-space-between mb-3">
+                  <div class="d-flex  align-center gap-2">
+                    <VIcon
+                      :icon="chartTypes.find(t => t.value === widget.type)?.icon"
+                      :color="chartTypes.find(t => t.value === widget.type)?.color"
+                      size="25"
+                    />
+                    <div class="d-flex flex-row gap-3 align-center">
+                      <div class="text-subtitle-2 font-weight-bold">
+                        {{ widget.title }}
+                      </div>
+                     
+                      <div class="text-body-2 text-grey">
+                        {{ chartTypes.find(t => t.value === widget.type)?.label }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-flex gap-1">
+                    <VBtn
+                      icon
+                      size="small"
+                      variant="text"
+                      @click="handleOpenDialog(widget)"
+                    >
+                      <VIcon
+                        icon="tabler-edit"
+                        size="18"
+                      />
+                    </VBtn>
+                    <VBtn
+                      icon
+                      size="small"
+                      variant="text"
+                      color="error"
+                      @click="handleRemoveWidget(widget.i)"
+                    >
+                      <VIcon
+                        icon="tabler-trash"
+                        size="18"
+                      />
+                    </VBtn>
+                  </div>
+                </div>
+
+                <VDivider class="mb-3" />
+
+                <div class="preview-content text-center">
+                  <component
+                    :is="chartComponentMap[widget.type]"
+                    v-if="isDataReady"
+                    v-bind="chartPropsMap[widget.type](widget)"
+                  />
+
+                  <div
+                    v-else
+                    class="text-caption text-grey"
+                  >
+                    Loading data...
+                  </div>
+                </div>
+              </VCardText>
+            </VCard>
           </GridItem>
         </GridLayout>
       </div>
       <VCard
         v-else
-        class="empty-state-card text-center py-16"
+        class="empty-state-card text-center py-16 mt-5"
       >
         <VCardText>
           <div class="mb-4">
@@ -396,8 +613,7 @@ onMounted(async () => {
           </p>
           <VBtn
             color="success"
-            size="x-large"
-            @click="handleOpenDialog"
+            @click="handleOpenDialog(null)"
           >
             <VIcon
               icon="tabler-plus"
@@ -465,7 +681,10 @@ onMounted(async () => {
                   :key="type.value"
                   class="chart-type-card"
                   :class="{ 'active': widgetForm.type === type.value }"
-                  @click="widgetForm.type = type.value"
+                  @click="() => {
+                    widgetForm.type = type.value
+                    widgetForm.dataSourceIds = []
+                  }"
                 >
                   <VCardText class="text-center pa-4">
                     <VAvatar
@@ -496,7 +715,7 @@ onMounted(async () => {
                 v-model="widgetForm.title"
                 label="Chart Title"
                 placeholder="e.g., Temperature Monitoring"
-                prepend-inner-icon="tabler-text"
+                prepend-inner-icon="tabler-text-size"
                 variant="outlined"
               />
             </VCol>
@@ -506,7 +725,7 @@ onMounted(async () => {
                 v-model="widgetForm.subtitle"
                 label="Chart Subtitle"
                 placeholder="e.g., Real-time temperature data"
-                prepend-inner-icon="tabler-text-size"
+                prepend-inner-icon="tabler-text-caption"
                 variant="outlined"
               />
             </VCol>
@@ -520,9 +739,10 @@ onMounted(async () => {
                 item-value="id"
                 label="Select Parameters"
                 placeholder="Choose parameters to monitor"
-                multiple
-                chips
-                closable-chips
+                :multiple="widgetForm.type !== 'metric' && widgetForm.type !== 'gauge'"
+                :chips="widgetForm.type !== 'metric' && widgetForm.type !== 'gauge'"
+                :closable-chips="widgetForm.type !== 'metric' && widgetForm.type !== 'gauge'"
+                
                 prepend-inner-icon="tabler-binary-tree-2"
                 variant="outlined"
               >
@@ -568,25 +788,10 @@ onMounted(async () => {
               </VSelect>
             </VCol>
 
-            <!-- Chart Settings -->
-            <VCol
-              cols="12"
-              md="4"
-            >
-              <VTextField
-                v-model.number="widgetForm.interval"
-                label="Update Interval"
-                suffix="minutes"
-                type="number"
-                min="1"
-                prepend-inner-icon="tabler-clock"
-                variant="outlined"
-              />
-            </VCol>
-
+          
             <VCol
               cols="6"
-              md="4"
+              md="6"
             >
               <VTextField
                 v-model.number="widgetForm.w"
@@ -602,7 +807,7 @@ onMounted(async () => {
 
             <VCol
               cols="6"
-              md="4"
+              md="6"
             >
               <VTextField
                 v-model.number="widgetForm.h"
@@ -615,30 +820,6 @@ onMounted(async () => {
                 variant="outlined"
               />
             </VCol>
-
-            <!-- Color Selection -->
-            <VCol cols="12">
-              <div class="text-subtitle-2 font-weight-medium mb-3">
-                Primary Color
-              </div>
-              <div class="d-flex flex-wrap gap-2">
-                <div
-                  v-for="color in colorPresets"
-                  :key="color.value"
-                  class="color-picker"
-                  :class="{ 'active': widgetForm.color === color.value }"
-                  :style="{ backgroundColor: color.value }"
-                  @click="widgetForm.color = color.value"
-                >
-                  <VIcon
-                    v-if="widgetForm.color === color.value"
-                    icon="tabler-check"
-                    color="white"
-                    size="20"
-                  />
-                </div>
-              </div>
-            </VCol>
           </VRow>
         </VCardText>
 
@@ -646,19 +827,17 @@ onMounted(async () => {
 
         <VCardActions class="pa-6 justify-end gap-2">
           <VBtn
-            variant="outlined"
+            variant="tonal"
+            color="error"
             @click="showAddWidget = false"
           >
             Cancel
           </VBtn>
           <VBtn
+            variant="flat"
             color="success"
             @click="handleSaveWidget"
           >
-            <VIcon
-              icon="tabler-check"
-              start
-            />
             Add Chart
           </VBtn>
         </VCardActions>
@@ -757,7 +936,7 @@ onMounted(async () => {
               <VTextField
                 v-model="widgetForm.subtitle"
                 label="Chart Subtitle"
-                prepend-inner-icon="tabler-text-size"
+                prepend-inner-icon="tabler-text-caption"
                 variant="outlined"
               />
             </VCol>
@@ -777,20 +956,7 @@ onMounted(async () => {
               />
             </VCol>
 
-            <VCol
-              cols="12"
-              md="4"
-            >
-              <VTextField
-                v-model.number="widgetForm.interval"
-                label="Update Interval"
-                suffix="minutes"
-                type="number"
-                min="1"
-                prepend-inner-icon="tabler-clock"
-                variant="outlined"
-              />
-            </VCol>
+          
 
             <VCol
               cols="6"
@@ -821,29 +987,6 @@ onMounted(async () => {
                 variant="outlined"
               />
             </VCol>
-
-            <VCol cols="12">
-              <div class="text-subtitle-2 font-weight-medium mb-3">
-                Primary Color
-              </div>
-              <div class="d-flex flex-wrap gap-2">
-                <div
-                  v-for="color in colorPresets"
-                  :key="color.value"
-                  class="color-picker"
-                  :class="{ 'active': widgetForm.color === color.value }"
-                  :style="{ backgroundColor: color.value }"
-                  @click="widgetForm.color = color.value"
-                >
-                  <VIcon
-                    v-if="widgetForm.color === color.value"
-                    icon="tabler-check"
-                    color="white"
-                    size="20"
-                  />
-                </div>
-              </div>
-            </VCol>
           </VRow>
         </VCardText>
 
@@ -852,14 +995,13 @@ onMounted(async () => {
         <VCardActions class="pa-6 justify-end gap-2">
           <VBtn
             variant="outlined"
-            size="large"
+            color="error"
             @click="showEditWidget = false"
           >
             Cancel
           </VBtn>
           <VBtn
             color="warning"
-            size="large"
             @click="handleSaveWidget"
           >
             <VIcon
@@ -875,7 +1017,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-    .chart-type-grid {
+.chart-type-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;

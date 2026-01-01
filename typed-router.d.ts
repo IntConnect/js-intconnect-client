@@ -37,6 +37,7 @@ declare module 'vue-router/auto-routes' {
     'facilities-show-id': RouteRecordInfo<'facilities-show-id', '/facilities/show/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'faq': RouteRecordInfo<'faq', '/faq', Record<never, never>, Record<never, never>>,
     'generate-reports': RouteRecordInfo<'generate-reports', '/generate-reports', Record<never, never>, Record<never, never>>,
+    'index-past': RouteRecordInfo<'index-past', '/index_past', Record<never, never>, Record<never, never>>,
     'login': RouteRecordInfo<'login', '/login', Record<never, never>, Record<never, never>>,
     'machines': RouteRecordInfo<'machines', '/machines', Record<never, never>, Record<never, never>>,
     'machines-dashboard-id': RouteRecordInfo<'machines-dashboard-id', '/machines/dashboard/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,

@@ -264,6 +264,7 @@ declare global {
   const useManageCheckSheetDocumentTemplate: typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageCheckSheetDocumentTemplate']
   const useManageChecksheetDocumentTemplate: typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageChecksheetDocumentTemplate']
   const useManageDashboard: typeof import('./src/composables/useManageDashboard.js')['useManageDashboard']
+  const useManageDashboardWidget: typeof import('./src/composables/useManageDashboardWidget.js')['useManageDashboardWidget']
   const useManageFacilitie: typeof import('./src/composables/useManageFacility.js')['useManageFacilitie']
   const useManageFacility: typeof import('./src/composables/useManageFacility.js')['useManageFacility']
   const useManageMachine: typeof import('./src/composables/useManageMachine.js')['useManageMachine']
@@ -290,6 +291,7 @@ declare global {
   const useMouse: typeof import('@vueuse/core')['useMouse']
   const useMouseInElement: typeof import('@vueuse/core')['useMouseInElement']
   const useMousePressed: typeof import('@vueuse/core')['useMousePressed']
+  const useMqttConnection: typeof import('./src/composables/useMqttConnection.js')['useMqttConnection']
   const useMutationObserver: typeof import('@vueuse/core')['useMutationObserver']
   const useNavigatorLanguage: typeof import('@vueuse/core')['useNavigatorLanguage']
   const useNetwork: typeof import('@vueuse/core')['useNetwork']
@@ -414,7 +416,6 @@ declare module 'vue' {
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly avatarText: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['avatarText']>
     readonly betweenValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['betweenValidator']>
-    readonly calculateAggregation: UnwrapRef<typeof import('./src/composables/useManageDashboard.js')['calculateAggregation']>
     readonly colorVariables: UnwrapRef<typeof import('./src/utils/constants.js')['colorVariables']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly computedAsync: UnwrapRef<typeof import('@vueuse/core')['computedAsync']>
@@ -449,7 +450,6 @@ declare module 'vue' {
     readonly emailValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['emailValidator']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly extractFilename: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['extractFilename']>
-    readonly formatChartData: UnwrapRef<typeof import('./src/composables/useManageDashboard.js')['formatChartData']>
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDate']>
     readonly formatDateToMonthShort: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDateToMonthShort']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
@@ -657,7 +657,7 @@ declare module 'vue' {
     readonly useManageBreakdown: UnwrapRef<typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']>
     readonly useManageCheckSheet: UnwrapRef<typeof import('./src/composables/useManageCheckSheet.js')['useManageCheckSheet']>
     readonly useManageCheckSheetDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageCheckSheetDocumentTemplate']>
-    readonly useManageDashboard: UnwrapRef<typeof import('./src/composables/useManageDashboard.js')['useManageDashboard']>
+    readonly useManageDashboardWidget: UnwrapRef<typeof import('./src/composables/useManageDashboardWidget.js')['useManageDashboardWidget']>
     readonly useManageFacility: UnwrapRef<typeof import('./src/composables/useManageFacility.js')['useManageFacility']>
     readonly useManageMachine: UnwrapRef<typeof import('./src/composables/useManageMachine.js')['useManageMachine']>
     readonly useManageModbusServer: UnwrapRef<typeof import('./src/composables/useManageModbusServer.js')['useManageModbusServer']>
@@ -682,6 +682,7 @@ declare module 'vue' {
     readonly useMouse: UnwrapRef<typeof import('@vueuse/core')['useMouse']>
     readonly useMouseInElement: UnwrapRef<typeof import('@vueuse/core')['useMouseInElement']>
     readonly useMousePressed: UnwrapRef<typeof import('@vueuse/core')['useMousePressed']>
+    readonly useMqttConnection: UnwrapRef<typeof import('./src/composables/useMqttConnection.js')['useMqttConnection']>
     readonly useMutationObserver: UnwrapRef<typeof import('@vueuse/core')['useMutationObserver']>
     readonly useNavigatorLanguage: UnwrapRef<typeof import('@vueuse/core')['useNavigatorLanguage']>
     readonly useNetwork: UnwrapRef<typeof import('@vueuse/core')['useNetwork']>
