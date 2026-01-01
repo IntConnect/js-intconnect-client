@@ -259,7 +259,7 @@ const gridMinHeight = computed(() => {
       >
         <ThreeModelViewer
           v-if="modelConfigurationReady"
-          class="flex-grow-1"
+          class="flex-grow-1 h-full"
           :model-path="processedMachine?.model_path"
         />
       </VCol>
