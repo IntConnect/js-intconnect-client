@@ -1,8 +1,9 @@
 <script setup>
+import { useManageMachine } from "@/composables/useManageMachine"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 const props = defineProps({
@@ -31,21 +32,20 @@ const emit = defineEmits([
 ])
 
 const {
-  parameters,
-  fetchParameters,
-} = useManageParameter()
+  machines,
+  fetchMachines,
+} = useManageMachine()
 
-const processedParameters = ref([])
+const processedMachines = computed(() => {
+  const list = machines.value['entries']
 
-onMounted(async () => {
-  await fetchParameters({})
-  await nextTick()
-  processedParameters.value = parameters.value?.entries?.map(parameter => ({
-    title: parameter.code,
-    value: parameter.id,
-  })) ?? []
+  if (!Array.isArray(list)) return []
+
+  return list.map(machine => ({
+    title: machine.code,
+    value: machine.id,
+  }))
 })
-
 
 // ==========================================
 // Form State
@@ -55,16 +55,17 @@ const refForm = ref()
 
 // Form fields
 const id = ref('')
+const machineId = ref('')
 const name = ref('')
 const no = ref('')
 const description = ref('')
 const category = ref('Inspection')
-const intervalType = ref('Hours')
 const interval = ref(1)
+const intervalType = ref('Hours')
+const rotationType = ref("Daily")
 const revisionNumber = ref(0)
 const effectiveDate = ref('')
  
-const parameterIds = ref([])
 
 // ==========================================
 // Computed
@@ -103,16 +104,17 @@ const onSubmit = () => {
     // Prepare checkSheetDocumentTemplate data
     const checkSheetDocumentTemplateData = {
       id: id.value,
+      machine_id: machineId.value,
       name: name.value,
       no: no.value,
       description: description.value,
       category: category.value,
       interval: interval.value,
       interval_type: intervalType.value,
+      rotation_type: rotationType.value,
       interval: interval.value,
       revision_number: revisionNumber.value,
       effective_date: effectiveDate.value,
-      parameter_ids: parameterIds.value,
     }
 
 
@@ -137,19 +139,19 @@ watch(
   () => props.checkSheetDocumentTemplateData,
   val => {
     if (val && Object.keys(val).length) {
-      
+      console.log(val)
       id.value = val.id || ''
+      machineId.value = val.machine_id
       name.value = val.name || ''
       no.value = val.no || ''
       description.value = val.description || ''
       category.value = val.category || ''
       interval.value = val.interval || ''
       intervalType.value = val.interval_type || ''
+      rotationType.value = val.rotation_type || ''
       revisionNumber.value = val.revision_number || ''
       effectiveDate.value = val.effective_date || ''
-      parameterIds.value = val.parameters.map(parameter => {
-        return parameter.parameter_id
-      })
+     
     }
   },
   { immediate: true, deep: true },
@@ -183,6 +185,11 @@ const handleDrawerModelValueUpdate = val => {
     })
   }
 }
+
+onMounted(async () => {
+  await fetchMachines()
+ 
+})
 </script>
 
 <template>
@@ -212,6 +219,17 @@ const handleDrawerModelValueUpdate = val => {
             @submit.prevent="onSubmit"
           >
             <VRow>
+              <VCol cols="12">
+                <AppSelect
+                  v-model.number="machineId"
+                  :items="processedMachines"
+                  :error="!!props.formErrors.machineId"
+                  :error-messages="props.formErrors.machineId || []"
+                  :rules="[requiredValidator]"
+                  label="Machine"
+                />
+              </VCol>
+             
               <VCol cols="12">
                 <AppTextField
                   v-model="name"
@@ -298,6 +316,26 @@ const handleDrawerModelValueUpdate = val => {
               </VCol>
              
               <VCol cols="12">
+                <AppSelect
+                  v-model="rotationType"
+                  :items="[{
+                             title: 'Daily',
+                             value: 'Daily'
+                           },{
+                             title: 'Weekly', 
+                             value:'Weekly'
+                           },
+                           {
+                             title: 'Monthly', 
+                             value:'Monthly'
+                           }]"
+                  :error="!!props.formErrors.rotationType"
+                  :error-messages="props.formErrors.rotationType || []"
+                  :rules="[requiredValidator]"
+                  label="Rotation Type"
+                />
+              </VCol>
+              <VCol cols="12">
                 <AppTextField
                   v-model.number="revisionNumber"
                   :error="!!props.formErrors.revision_number"
@@ -326,20 +364,7 @@ const handleDrawerModelValueUpdate = val => {
                   placeholder="Select date"
                 />
               </VCol>
-              <VCol cols="12">
-                <AppSelect
-                  v-model="parameterIds"
-                  :error="!!props.formErrors.parameter_ids"
-                  :error-messages="props.formErrors.parameter_ids || []"
-                  :items="processedParameters"
-                  :rules="[requiredValidator]"
-                  chips
-                  closable-chips
-                  label="Parameter"
-                  multiple
-                  placeholder="Select parameter"
-                />
-              </VCol>
+             
               <!-- Actions -->
               <VCol cols="12">
                 <VBtn
