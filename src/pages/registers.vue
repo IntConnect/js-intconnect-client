@@ -35,9 +35,11 @@ const {
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
   { title: 'Machine', key: 'machine', sortable: true },
-  { title: 'Mqtt Broker', key: 'mqtt_broker', sortable: true },
+  { title: 'Modbus Server', key: 'modbus_server', sortable: true },
+  { title: 'Memory Location', key: 'memory_location', sortable: true },
   { title: 'Name', key: 'name', sortable: true },
-  { title: 'QoS', key: 'qos', sortable: false },
+  { title: 'Description', key: 'description', sortable: true },
+  { title: 'Data Type', key: 'data_type', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
 
@@ -259,9 +261,9 @@ onMounted(async () => {
           </div>
         </template>
 
-        <template #item.mqtt_broker="{ item }">
+        <template #item.modbus_server="{ item }">
           <div class="d-flex align-center gap-x-4">
-            {{ item.mqtt_broker.host_name }}
+            {{ item.modbus_server.ip_address }}
           </div>
         </template>
 
@@ -313,7 +315,8 @@ onMounted(async () => {
         key: 'reason',
         label: 'Reason',
         placeholder: 'Type your reason...',
-        type: 'text'
+        type: 'text',
+        formErrors: formErrors
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"

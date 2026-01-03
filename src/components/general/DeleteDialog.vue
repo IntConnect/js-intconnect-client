@@ -31,7 +31,6 @@ const handleSubmit = () => {
   <VDialog
     :width="$vuetify.display.smAndDown ? 'auto' : 500"
     :model-value="props.modelValue"
-    @update:model-value="val => emit('update:modelValue', val)"
   >
     <DialogCloseBtn @click="closeDialog" />
 

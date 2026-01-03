@@ -89,9 +89,11 @@ const onSubmit = () => {
     // Prepare register data
     const registerData = {
       machine_id: machineId.value,
-      mqtt_broker_id: ModbusServerId.value,
+      modbus_server_id: modbusServerId.value,
+      memory_location: memoryLocation.value,
       name: name.value,
-      qos: qos.value,
+      description: description.value,
+      data_type: dataType.value,
     }
 
     // Include id for update
@@ -117,9 +119,12 @@ watch(
     if (val && Object.keys(val).length) {
       id.value = val.id || ''
       machineId.value = val['machine_id']
-      modbusServerId.value = val['mqtt_broker_id']
+      modbusServerId.value = val['modbus_server_id']
+      memoryLocation.value = val.memory_location
       name.value = val.name
-      qos.value = val.qos
+      description.value = val.name
+      dataType.value = val['data_type']
+
     }
   },
   { immediate: true, deep: true },
@@ -133,7 +138,7 @@ watch(
         title: machine.name,
         value: machine.id,
       }))
-      processedModbusServers.value = val.entry.mqtt_brokers?.map(modbusServer => ({
+      processedModbusServers.value = val.entry.modbus_servers?.map(modbusServer => ({
         title: modbusServer.ip_address,
         value: modbusServer.id,
       }))
