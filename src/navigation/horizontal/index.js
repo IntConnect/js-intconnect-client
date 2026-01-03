@@ -73,6 +73,12 @@ export default [
         icon: { icon: 'tabler-binary-tree-2' },
         requiredPermission: "PARAMETER_VIEW",
       },
+      {
+        title: 'Register',
+        to: { name: 'registers' },
+        icon: { icon: 'tabler-circuit-resistor' },
+        requiredPermission: "PARAMETER_VIEW",
+      },
     ],
   },
   {

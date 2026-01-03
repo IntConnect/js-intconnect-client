@@ -404,6 +404,8 @@
     "useManageDashboard": true,
     "useManageCheckSheet": true,
     "useMqttConnection": true,
-    "useManageDashboardWidget": true
+    "useManageDashboardWidget": true,
+    "useManageRegistere": true,
+    "useManageRegister": true
   }
 }

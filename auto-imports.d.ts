@@ -273,6 +273,8 @@ declare global {
   const useManageMqttBroker: typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']
   const useManageMqttTopic: typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']
   const useManageParameter: typeof import('./src/composables/useManageParameter.js')['useManageParameter']
+  const useManageRegister: typeof import('./src/composables/useManageRegister.js')['useManageRegister']
+  const useManageRegistere: typeof import('./src/composables/useManageRegister.js')['useManageRegistere']
   const useManageReportDocumentTemplate: typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']
   const useManageRole: typeof import('./src/composables/useManageRole.js')['useManageRole']
   const useManageSmtpServer: typeof import('./src/composables/useManageSmtpServer.js')['useManageSmtpServer']
@@ -664,6 +666,7 @@ declare module 'vue' {
     readonly useManageMqttBroker: UnwrapRef<typeof import('./src/composables/useManageMqttBroker.js')['useManageMqttBroker']>
     readonly useManageMqttTopic: UnwrapRef<typeof import('./src/composables/useManageMqttTopic.js')['useManageMqttTopic']>
     readonly useManageParameter: UnwrapRef<typeof import('./src/composables/useManageParameter.js')['useManageParameter']>
+    readonly useManageRegister: UnwrapRef<typeof import('./src/composables/useManageRegister.js')['useManageRegister']>
     readonly useManageReportDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>
     readonly useManageSmtpServer: UnwrapRef<typeof import('./src/composables/useManageSmtpServer.js')['useManageSmtpServer']>
