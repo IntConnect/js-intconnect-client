@@ -9,7 +9,7 @@ import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
    PROPS
 ========================= */
 const props = defineProps({
-  machine: Object,
+  modelConfiguration: Object,
   facilities: Object,
 })
 
@@ -35,10 +35,11 @@ let animationId = null
    WATCHERS
 ========================= */
 watch(
-  () => props.machine,
+  () => props.modelConfiguration,
   async cfg => {
     if (!cfg?.entry) return
     await nextTick()
+    console.log(cfg)
     initScene(cfg.entry.value)
   },
   { immediate: true },
@@ -57,6 +58,7 @@ watch(
    INIT SCENE
 ========================= */
 function initScene(config) {
+  console.log(config)
   destroyScene()
 
   scene = new THREE.Scene()

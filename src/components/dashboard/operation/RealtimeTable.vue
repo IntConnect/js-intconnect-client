@@ -1,9 +1,16 @@
 <script setup>
 const props = defineProps({
+  realtimeData: {
+    type: Array,
+    default: () => [],
+  },
+  lastUpdate: {
+    type: String, 
+    default: "",
+  },
   machineData: {
     type: Object,
     default: () => ({
-      name: 'Machine A-01',
       isOnline: true,
       lastUpdate: '2026-01-01T10:30:00',
       data: [
@@ -88,7 +95,7 @@ const formatDateTime = dateString => {
                 <span class="text-caption text-grey-lighten-1">
                   Last update: 
                   <span class="font-weight-medium text-white ms-1">
-                    {{ formatDateTime(machineData.lastUpdate) }}
+                    {{ formatDateTime(props.lastUpdate) }}
                   </span>
                 </span>
                 <VChip
@@ -119,7 +126,7 @@ const formatDateTime = dateString => {
         <div class="horizontal-scroll-container">
           <div class="data-grid">
             <VCard
-              v-for="item in machineData.data"
+              v-for="item in realtimeData"
               :key="item.id"
               class="data-card pa-4"
               elevation="0"

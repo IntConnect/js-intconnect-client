@@ -11,13 +11,11 @@ const {
   saveDashboardWidget,
 } = useManageDashboardWidget()
 
-
 const chartComponentMap = {
   gauge: GaugeChartWidget,
   line: EnergyLineChart,
   metric: StatsCard,
 }
-
 
 const route = useRoute()
 const router = useRouter()
@@ -38,6 +36,10 @@ const {
   getFormattedValue,
   filterParametersByKeys,
   calculateDelta,
+  getParameterById,
+  getValueByParameterId,
+  getFormattedValueById,
+  lastUpdate,
 } = useMqttConnection()
 
 onMounted(async () => {
@@ -61,27 +63,37 @@ const runningTimes = computed(() => {
   ])
 })
 
+const realtimeData = ref([])
+
+watch(
+  mqttData,
+  newVal => {
+    console.log('MQTT DATA:', newVal)
+    let newData = []
+    Object.entries(mqttData).forEach(([key, value]) => {
+      newData.push({
+        id: value.id, 
+        parameter: value.name,
+        value: value.value,
+        unit: value.unit,
+      })
+    })
+    realtimeData.value = newData
+  },
+  { deep: true },
+)
+
 const processedMachine = computed(() => {
   if(!machine?.value?.entry) return null 
-  console.log(machine.value)
   
   return machine.value.entry
 })
 
-
-
 const parameters = computed(() => {
   if(processedMachine.value == null) return []
-  console.log(processedMachine.value)
   
   return processedMachine.value['mqtt_topic'].parameters
 })
-
-
-
-const getParameterById = id => {
-  return availableParameters.value?.find(p => p.id === id)
-}
 
 const layout = computed(() => {
   const data = processedMachine.value?.widgets?.map(row => ({
@@ -101,10 +113,8 @@ const layout = computed(() => {
   return data
 })
 
-
 // Computed
 const availableParameters = computed(() => parameters.value || [])
-
 
 const machineState = computed(() => {
   if (!machine?.value?.entry) return null
@@ -128,41 +138,6 @@ const isDataReady = computed(() => {
   )
 })
 
-
-
-// Chart types (simplified to 4 types only)
-const chartTypes = [
-  { 
-    value: 'line', 
-    label: 'Line Chart', 
-    icon: 'tabler-chart-line',
-    color: 'success',
-    description: 'Show trends over time',
-  },
-  { 
-    value: 'bar', 
-    label: 'Bar Chart', 
-    icon: 'tabler-chart-bar',
-    color: 'info',
-    description: 'Compare discrete values',
-  },
-  { 
-    value: 'gauge', 
-    label: 'Gauge Chart', 
-    icon: 'tabler-gauge',
-    color: 'warning',
-    description: 'Show current value',
-  },
-  { 
-    value: 'metric', 
-    label: 'Metric Card', 
-    icon: 'tabler-numbers',
-    color: 'primary',
-    description: 'Display key numbers',
-  },
-]
-
-
 onMounted(async () => {
   let actionResult = await fetchMachine(id)
   await nextTick()
@@ -172,30 +147,62 @@ onMounted(async () => {
   }
 })
 
-const chartPropsMap = {
-  line: widget => ({
-    title: widget.title,
-    series: widget.series,
-    'realtime-data': widget.dataSourceIds.map(dataSourceId => {
-      let parameterVal = getParameterById(dataSourceId)
+// Helper untuk generate props per widget - DIBUAT COMPUTED
+const getWidgetProps = computed(() => {
+  // Force reactivity dengan mengakses mqttData
+  const mqttSnapshot = { ...mqttData }
+  
+  return widget => {
+    if (widget.type === 'line') {
+      return {
+        title: widget.title,
+        series: widget.series,
+        'realtime-data': widget.dataSourceIds.map(dataSourceId => {
+          let parameterVal = getParameterById(dataSourceId)
+          
+          return {
+            name: parameterVal?.name,
+            data: [],
+          }
+        }),
+      }
+    }
+    
+    if (widget.type === 'metric') {
+      const dataSourceId = widget.dataSourceIds[0]
+      const formattedValue = getFormattedValueById(dataSourceId)
+      const parameter = getParameterById(dataSourceId)
+
+      console.log('Metric update:', dataSourceId, formattedValue, parameter)
       
       return {
-        name: parameterVal?.name,
-        data: [],
+        title: widget.title,
+        subtitle: parameter?.name || widget.subtitle,
+        badge: "",
+        value: formattedValue.value || '-',
+        icon: widget.icon || "tabler-snowflake",
+        percentage: "10",
+        unit: formattedValue.unit || '',
       }
-    }),
-  }),
-  metric: widget => ({
-    title: widget.title,
-    subtitle: widget.subtitle,
-    badge: "",
-    value: "100",
-    icon: "tabler-snowflake",
-    percentage: "10",
-    unit: "N/A",
-  }),
-  
-}
+    }
+
+    if (widget.type === 'gauge') {
+      const dataSourceId = widget.dataSourceIds[0]
+      const formattedValue = getFormattedValueById(dataSourceId)
+      const parameter = getParameterById(dataSourceId)
+      
+      return {
+        title: widget.title,
+        value: formattedValue.value || 0,
+        unit: formattedValue.unit || '',
+        min: widget.min || 0,
+        max: widget.max || 100,
+      }
+    }
+    
+    return {}
+  }
+})
 
 const gridMinHeight = computed(() => {
   if (!layout.value || layout.value.length === 0) return 'auto'
@@ -230,7 +237,7 @@ const gridMinHeight = computed(() => {
             <div class="d-flex align-center justify-space-between flex-wrap gap-4">
               <div>
                 <h2 class="text-h4 font-weight-bold text-white mb-1">
-                  Dashboard Manager
+                  Dashboard {{ processedMachine?.name }}
                 </h2>
                 <p class="text-body-2 text-grey-lighten-1">
                   <VIcon
@@ -238,7 +245,7 @@ const gridMinHeight = computed(() => {
                     size="20"
                     class="me-1"
                   />
-                  Machine {{ processedMachine?.name }} • Configure your monitoring charts
+                  Machine  • Configure your monitoring charts
                 </p>
               </div>
             </div>
@@ -259,7 +266,7 @@ const gridMinHeight = computed(() => {
       >
         <ThreeModelViewer
           v-if="modelConfigurationReady"
-          class="flex-grow-1 h-full"
+          class="flex-grow-1"
           :model-path="processedMachine?.model_path"
         />
       </VCol>
@@ -288,7 +295,10 @@ const gridMinHeight = computed(() => {
           >
             <VRow>
               <VCol cols="12">
-                <RealtimeTable />
+                <RealtimeTable
+                  :realtime-data="realtimeData"
+                  :last-update="lastUpdate"
+                />
               </VCol>
             </VRow>
           </VCol>
@@ -305,21 +315,18 @@ const gridMinHeight = computed(() => {
       >
         <div
           v-if="layout.length > 0"
-          :style="{ minHeight: gridMinHeight + 'px' }"
+          :style="{ minHeight: gridMinHeight }"
         >
           <GridLayout
             v-model:layout="layout"
             :col-num="12"
             :row-height="30"
-            :is-resizable="true"
-            :is-draggable="true"
+            :is-resizable="false"
+            :is-draggable="false"
             vertical-compact
             use-css-transforms
             :margin="[16, 16]"  
             :container-padding="[0, 0]"
-            @layout-updated="(newLayout) => {
-              console.log(newLayout)
-            }"
           >
             <GridItem
               v-for="widget in layout"
@@ -334,8 +341,8 @@ const gridMinHeight = computed(() => {
               <div class="preview-content text-center">
                 <component
                   :is="chartComponentMap[widget.type]"
-                  v-if="isDataReady"
-                  v-bind="chartPropsMap[widget.type](widget)"
+                  v-if="isDataReady && chartComponentMap[widget.type]"
+                  v-bind="getWidgetProps(widget)"
                 />
 
                 <div

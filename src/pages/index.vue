@@ -146,6 +146,8 @@ const formErrors = ref({})
 
 
 const modelConfigurationReady = computed(() => {
+  console.log(Boolean(systemSetting.value) && Boolean(facilities.value))
+  
   return Boolean(systemSetting.value) && Boolean(facilities.value)
 })
 

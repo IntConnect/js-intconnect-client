@@ -10,6 +10,7 @@ export function useMqttConnection() {
   const lastUpdate = ref(null)
   const mqttClient = ref(null)
   const mqttStatus = ref('disconnected')
+  const parametersList = ref([]) // Tambahkan ini
 
   // ==========================================
   // COMPUTED
@@ -30,6 +31,8 @@ export function useMqttConnection() {
 
     const broker = machineConfig.mqtt_topic.mqtt_broker
     const topic = machineConfig.mqtt_topic.name
+
+    parametersList.value = machineConfig['mqtt_topic']['parameters'] || []
 
     if (!broker.host_name || !broker.ws_port) {
       console.error('Invalid broker configuration')
@@ -171,6 +174,34 @@ export function useMqttConnection() {
   // ==========================================
   // GETTERS
   // ==========================================
+  const getParameterById =parameterId => {
+    console.log(parametersList)
+    
+    return parametersList.value?.find(p => p.id === parameterId)
+  }
+
+  const getValueByParameterId = parameterId => {
+  // Cari parameter berdasarkan ID
+    const parameter = getParameterById(parameterId)
+    if (!parameter) return null
+  
+    // Gunakan code parameter untuk mengambil data dari mqttData
+    const mqttValue = mqttData[parameter.code]
+  
+    return mqttValue || null
+  }
+
+  // Fungsi helper untuk format nilai dengan unit
+  const getFormattedValueById = parameterId => {
+    const mqttValue = getValueByParameterId(parameterId)
+    if (!mqttValue) return { value: '-', unit: '' }
+  
+    return {
+      value: mqttValue.value,
+      unit: mqttValue.unit || '',
+    }
+  }
+
   function getValue(paramCode) {
     const param = mqttData[paramCode]
     if (!param) return null
@@ -325,6 +356,10 @@ export function useMqttConnection() {
     getRawValue,
     getParameter,
     getAllParameters,
+    getParameterById,
+    getValueByParameterId,
+    getFormattedValueById,
+
 
     // Status
     getParameterStatus,
