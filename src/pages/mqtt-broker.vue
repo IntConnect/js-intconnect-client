@@ -1,14 +1,13 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
-import { useManageMqttBroker } from "@/composables/useManageMqttBroker"
 import ManageMqttBrokerDrawer from "@/components/drawer/ManageMqttBrokerDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
-
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import { useManageMqttBroker } from "@/composables/useManageMqttBroker"
+import { ActionSuccess, SuccessManage } from "@/utils/constants"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { onMounted, ref, watch } from 'vue'
 // ==========================================
 // Composable
 // ==========================================
@@ -56,6 +55,7 @@ const showDeleteDialog = ref(false)
 const selectedMqttBroker = ref(null)
 const showAlertDialog = ref(false)
 const alertMessage = ref('')
+const alertBody = ref('')
 
 
 // ==========================================
@@ -130,7 +130,8 @@ const handleSaveMqttBroker = async mqttBrokerData => {
     await nextTick()
 
     showAlertDialog.value = true
-    alertMessage.value = 'Success manage MQTT Broker'
+    alertMessage.value = SuccessManage('MQTT Broker')
+    alertBody.value = ActionSuccess
   } else {
     console.error('Failed to save mqttBroker:', result.error || result.errors)
   }
@@ -152,8 +153,8 @@ const handleDeleteMqttBroker = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete MQTT Broker'
-
+    alertMessage.value = SuccessDelete('MQTT Broker')
+alertBody.value = ActionSuccess
   } else {
     console.error('Failed to delete user:', result.error)
 
@@ -328,7 +329,8 @@ onMounted(() => {
         key: 'reason',
         label: 'Reason',
         placeholder: 'Type your reason...',
-        type: 'text'
+        type: 'text',
+        formErrors: formErrors,
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
@@ -349,5 +351,7 @@ onMounted(() => {
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"
     :title-alert="alertMessage"
+    :body-alert="alertBody"
+
   />
 </template>

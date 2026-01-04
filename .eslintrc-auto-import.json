@@ -406,6 +406,9 @@
     "useMqttConnection": true,
     "useManageDashboardWidget": true,
     "useManageRegistere": true,
-    "useManageRegister": true
+    "useManageRegister": true,
+    "ActionSuccess": true,
+    "SuccessManage": true,
+    "SuccessDelete": true
   }
 }

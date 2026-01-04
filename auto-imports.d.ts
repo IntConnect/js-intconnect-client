@@ -6,10 +6,13 @@
 // biome-ignore lint: disable
 export {}
 declare global {
+  const ActionSuccess: typeof import('./src/utils/constants.js')['ActionSuccess']
   const COOKIE_MAX_AGE_1_YEAR: typeof import('./src/utils/constants.js')['COOKIE_MAX_AGE_1_YEAR']
   const EffectScope: typeof import('vue')['EffectScope']
   const ITEMS_PER_PAGE_OPTIONS: typeof import('./src/utils/constants.js')['ITEMS_PER_PAGE_OPTIONS']
   const ItemsPerPage: typeof import('./src/utils/constants.js')['ItemsPerPage']
+  const SuccessDelete: typeof import('./src/utils/constants.js')['SuccessDelete']
+  const SuccessManage: typeof import('./src/utils/constants.js')['SuccessManage']
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
   const alphaDashValidator: typeof import('./src/@core/utils/validators.js')['alphaDashValidator']
   const alphaValidator: typeof import('./src/@core/utils/validators.js')['alphaValidator']
@@ -406,10 +409,13 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
+    readonly ActionSuccess: UnwrapRef<typeof import('./src/utils/constants.js')['ActionSuccess']>
     readonly COOKIE_MAX_AGE_1_YEAR: UnwrapRef<typeof import('./src/utils/constants.js')['COOKIE_MAX_AGE_1_YEAR']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly ITEMS_PER_PAGE_OPTIONS: UnwrapRef<typeof import('./src/utils/constants.js')['ITEMS_PER_PAGE_OPTIONS']>
     readonly ItemsPerPage: UnwrapRef<typeof import('./src/utils/constants.js')['ItemsPerPage']>
+    readonly SuccessDelete: UnwrapRef<typeof import('./src/utils/constants.js')['SuccessDelete']>
+    readonly SuccessManage: UnwrapRef<typeof import('./src/utils/constants.js')['SuccessManage']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly alphaDashValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['alphaDashValidator']>
     readonly alphaValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['alphaValidator']>

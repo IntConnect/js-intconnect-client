@@ -4,7 +4,13 @@ export const ITEMS_PER_PAGE_OPTIONS = [{ value: 10, title: '10' }, { value: 25, 
   title: '50',
 }, { value: 100, title: '100' }, { value: -1, title: 'All' }]
 export const ItemsPerPage = ref(10)
-
+export const ActionSuccess = "Your action was completed successfully"
+export const SuccessManage = (featureName) => {
+  return `Success manage ${featureName}`
+} 
+export const SuccessDelete = (featureName) => {
+  return `Success delete ${featureName}`
+} 
 export const colorVariables = themeColors => {
   const themeSecondaryTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['medium-emphasis-opacity']})`
   const themeDisabledTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['disabled-opacity']})`
