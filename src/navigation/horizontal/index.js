@@ -4,52 +4,21 @@ export default [
     title: 'Home',
     icon: { icon: 'tabler-smart-home' },
     to: { name: 'root' },
-    
-   
   },
 
   {
     title: 'Issue',
     icon: { icon: 'tabler-exclamation-circle' },
-      
     children: [
-     
       {
         title: 'Log Alarm',
-        to: { name: 'breakdowns' },
+        to: { name: 'log-alarms' },
         icon: { icon: 'tabler-bell-minus' },
         requiredPermission: "LOG_ALARM_VIEW",
       },
     ],
   },
 
-  // {
-  //   title: 'Pipeline',
-  //   icon: { icon: 'tabler-code' },
-  //   children: [
-  //     {
-  //       title: 'Dynamic Dashboard',
-  //       to: { name: 'dynamic-dashboard' },
-  //       icon: { icon: 'tabler-brand-tabler' },
-  //     },
-  //     {
-  //       title: 'Drawings',
-  //       to: { name: 'drawings' },
-  //       icon: { icon: 'tabler-circuit-changeover' },
-  //     },
-  //     {
-  //       title: 'Protocol Configurations',
-  //       to: { name: 'protocol-configurations' },
-  //       icon: { icon: 'tabler-server-cog' },
-  //     },
-  //     {
-  //       title: 'Database Connections',
-  //       to: { name: 'database-connections' },
-  //       icon: { icon: 'tabler-database-star' },
-  //     },
-  //
-  //   ],
-  // },
   {
     title: 'Configuration',
     to: { name: 'root' },

@@ -656,7 +656,6 @@ declare module 'vue' {
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
-    readonly useManageBreakdown: UnwrapRef<typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']>
     readonly useManageCheckSheet: UnwrapRef<typeof import('./src/composables/useManageCheckSheet.js')['useManageCheckSheet']>
     readonly useManageCheckSheetDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageCheckSheetDocumentTemplate']>
     readonly useManageDashboardWidget: UnwrapRef<typeof import('./src/composables/useManageDashboardWidget.js')['useManageDashboardWidget']>

@@ -1,5 +1,5 @@
 <script setup>
-import { useRoute } from 'vue-router'
+import { useStaticFile } from '@/composables/useStaticFile'
 import avatar1 from '@images/avatars/avatar-1.png'
 
 
@@ -29,6 +29,14 @@ const formData = ref({
   avatar: null,
 })
 
+const TABLE_HEADERS = [
+  { title: 'Feature', key: 'feature', sortable: true },
+  { title: 'Description', key: 'description', sortable: true },
+  { title: 'Action', key: 'action', sortable: true },
+  { title: 'IP Address', key: 'ip_address', sortable: false },
+  { title: 'User Agent', key: 'user_agent', sortable: false },
+]
+const recentActivities = ref([])
 const parsedJwtToken = ref({})
 
 const avatarPreview = ref(avatar1)
@@ -46,12 +54,23 @@ onMounted(async () => {
   parsedJwtToken.value = parseJwt(accessToken)
   await nextTick()
   await fetchUser(parsedJwtToken.value.id)
-
   if (user.value) {
-    formData.value.name = user.value.entry.name
-    formData.value.username = user.value.entry.username
-    formData.value.email = user.value.entry.email
-    avatarPreview.value = user.value.entry.avatar_path === '' ? avatar1 : user.value.entry.avatar_path == ''
+    const userData = user.value.entry
+    formData.value.name = userData.name
+    formData.value.username = userData.username
+    formData.value.email = userData.email
+    avatarPreview.value = userData.avatar_path === '' ? avatar1 : useStaticFile(userData.avatar_path) 
+    console.log(userData.audit_log)
+    recentActivities.value = userData['audit_log'].map(auditLog => {
+      return {
+        feature: auditLog.feature,
+        action: auditLog.action,
+        description: auditLog.description,
+        user_agent: auditLog.user_agent,
+        ip_address: auditLog.ip_address,
+        description: auditLog.description,
+      }
+    }) 
   }
 })
 
@@ -75,7 +94,7 @@ const changeAvatar = event => {
 }
 
 const resetAvatar = () => {
-  avatarPreview.value = user.value?.avatar ?? avatar1
+    avatarPreview.value = user.value.entry.avatar_path === '' ? avatar1 : useStaticFile(user.value.entry.avatar_path) 
   formData.value.avatar = null
 }
 
@@ -116,7 +135,7 @@ const resetForm = () => {
     formData.value.name = user.value.name
     formData.value.username = user.value.username
     formData.value.email = user.value.email
-    avatarPreview.value = user.value.avatar ?? avatar1
+    avatarPreview.value = user.value.entry.avatar_path === '' ? avatar1 : useStaticFile(user.value.entry.avatar_path) 
 
     formData.value.currentPassword = ''
     formData.value.newPassword = ''
@@ -133,8 +152,8 @@ const resetForm = () => {
         <VDivider />
 
         <VDataTable
-          :headers="recentDevicesHeaders"
-          :items="recentDevices"
+          :headers="TABLE_HEADERS"
+          :items="recentActivities"
           class="text-no-wrap"
           hide-default-footer
         >

@@ -2,6 +2,7 @@
 import { useManageAuthentication } from "@/composables/useManageAuthentication"
 import { parseJwt } from "@core/utils/helpers.js"
 import avatar1 from '@images/avatars/avatar-1.png'
+import { watch } from "vue"
 
 const rawJwt = ref('')
 
@@ -14,7 +15,15 @@ const {
 } = useManageAuthentication()
 
 const parsedJwt = computed(() => {
+  console.log(parseJwt(rawJwt.value))
   return parseJwt(rawJwt.value)
+})
+const avatarPath = ref('')
+watch(parsedJwt, () => {
+  if(!parsedJwt) return null
+  console.log(parsedJwt)
+ avatarPath.value =  parsedJwt.value.avatar_path === '' ? avatar1 : useStaticFile(parsedJwt.value.avatar_path) 
+console.log( parsedJwt.value.avatar_path === '' ? avatar1 : useStaticFile(parsedJwt.value.avatar_path) )
 })
 </script>
 
@@ -32,7 +41,7 @@ const parsedJwt = computed(() => {
       color="primary"
       variant="tonal"
     >
-      <VImg :src="avatar1" />
+      <VImg :src="avatarPath" />
 
       <!-- SECTION Menu -->
       <VMenu
@@ -57,7 +66,7 @@ const parsedJwt = computed(() => {
                     color="primary"
                     variant="tonal"
                   >
-                    <VImg :src="avatar1" />
+                    <VImg :src="avatarPath" />
                   </VAvatar>
                 </VBadge>
               </VListItemAction>
