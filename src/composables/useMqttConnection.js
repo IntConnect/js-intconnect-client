@@ -175,8 +175,6 @@ export function useMqttConnection() {
   // GETTERS
   // ==========================================
   const getParameterById =parameterId => {
-    console.log(parametersList)
-    
     return parametersList.value?.find(p => p.id === parameterId)
   }
 

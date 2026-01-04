@@ -57,6 +57,8 @@ const rotationZ = ref(0)
 const category = ref('Data')
 const isDisplay = ref(true)
 const isAutomatic = ref(true)
+const isWatch = ref(true)
+const isFeatured = ref(true)
 const processedMachines = ref([])
 const processedMqttTopic = ref([])
 const isAlertDialogVisible = ref(false)
@@ -130,6 +132,10 @@ onMounted(async () => {
     rotationX.value = processedParameter.rotation_x
     rotationY.value = processedParameter.rotation_y
     rotationZ.value = processedParameter.rotation_z
+    isAutomatic.value= processedParameter.is_automatic
+    isWatch.value= processedParameter.is_watch
+    isDisplay.value= processedParameter.is_display
+    isFeatured.value= processedParameter.is_featured
 
     initialModel()
   }
@@ -456,6 +462,8 @@ const onSubmit = () => {
       rotation_z: rotationZ.value,
       is_display: isDisplay.value,
       is_automatic: isAutomatic.value,
+      is_watch: isWatch.value,
+      is_featured: isFeatured.value,
     }
 
     const result = await saveParameter(parameterData)
@@ -697,24 +705,68 @@ watch([modelPath, () => scene], async () => {
                     />
                   </VCol>
                   <VCol cols="12">
-                    <VLabel
-                      class="mb-1 text-body-2 text-wrap"
-                      style="line-height: 15px;"
-                      text="Is Display"
-                    />
-                    <VSwitch
-                      v-model="isDisplay"
-                      :label="isDisplay ? `Active` : `Inactive`"
-                    />
-                    <VLabel
-                      class="mb-1 text-body-2 text-wrap"
-                      style="line-height: 15px;"
-                      text="Is Automatic"
-                    />
-                    <VSwitch
-                      v-model="isAutomatic"
-                      :label="isAutomatic ? `Automatic` : `Manual`"
-                    />
+                    <VRow>
+                      <VCol
+                        cols="6"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Display"
+                        />
+                        <VSwitch
+                          v-model="isDisplay"
+                          :label="isDisplay ? `Active` : `Inactive`"
+                        />
+                      </VCol>
+                      <VCol
+                        cols="6"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Automatic"
+                        />
+                        <VSwitch
+                          v-model="isAutomatic"
+                          :label="isAutomatic ? `Automatic` : `Manual`"
+                        />
+                      </VCol>
+                    </VRow>
+                  </VCol>
+                  <VCol cols="12">
+                    <VRow>
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Watch"
+                        />
+                        <VSwitch
+                          v-model="isWatch"
+                          :label="isWatch ? `Watch` : `Ignore`"
+                        />
+                      </VCol>
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Featured"
+                        />
+                        <VSwitch
+                          v-model="isFeatured"
+                          :label="isFeatured ? `Yes` : `No`"
+                        />
+                      </VCol>
+                    </VRow>
                   </VCol>
                 </VCol>
               </VWindowItem>

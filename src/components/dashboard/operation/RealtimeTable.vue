@@ -8,11 +8,15 @@ const props = defineProps({
     type: String, 
     default: "",
   },
+  lastUpdate: {
+    type: String,
+    default: "2026-01-01T10:30:00",
+  },
+
   machineData: {
     type: Object,
     default: () => ({
       isOnline: true,
-      lastUpdate: '2026-01-01T10:30:00',
       data: [
         { id: 1, parameter: 'Temperature', value: '75.2°C', status: 'active' },
         { id: 2, parameter: 'Pressure', value: '120 PSI', status: 'active' },

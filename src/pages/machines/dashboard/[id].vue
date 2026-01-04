@@ -1,97 +1,171 @@
 <script setup>
-import UnmanageableAreaOverlay from '@/components/general/UnmanageableAreaOverlay.vue'
+/* ===============================
+ * Imports
+ * =============================== */
 import { GridItem, GridLayout } from 'grid-layout-plus'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import EnergyLineChart from '@/components/dashboard/operation/EnergyLineChart.vue'
 import GaugeChartWidget from '@/components/dashboard/operation/GaugeChartWidget.vue'
 import RealtimeTable from '@/components/dashboard/operation/RealtimeTable.vue'
 import StatsCard from '@/components/dashboard/operation/StatsCard.vue'
+import UnmanageableAreaOverlay from '@/components/general/UnmanageableAreaOverlay.vue'
+
 import { useManageDashboardWidget } from '@/composables/useManageDashboardWidget'
+import { useManageMachine } from '@/composables/useManageMachine'
 
-const {
-  saveDashboardWidget,
-} = useManageDashboardWidget()
+/* ===============================
+ * Composables
+ * =============================== */
+const route = useRoute()
+const router = useRouter()
+const machineId = route.params.id
 
+const { saveDashboardWidget } = useManageDashboardWidget()
+const { machine, fetchMachine } = useManageMachine()
 
+/* ===============================
+ * Component Maps
+ * =============================== */
 const chartComponentMap = {
   gauge: GaugeChartWidget,
   line: EnergyLineChart,
   metric: StatsCard,
 }
 
-
-const route = useRoute()
-const router = useRouter()
-const id = route.params.id
-
-const {
-  machine,
-  fetchMachine,
-} = useManageMachine()
-
-const {
-  mqttData,
-  mqttStatus,
-  isConnected,
-  connectMQTT,
-  disconnectMQTT,
-  getValue,
-  getFormattedValue,
-  filterParametersByKeys,
-  calculateDelta,
-} = useMqttConnection()
-
-onMounted(async () => {
-  await fetchMachine(1)
-
-  // if (processedMachine.value) {
-  //   connectMQTT(processedMachine.value)
-  // }
+/* ===============================
+ * Machine & Parameters
+ * =============================== */
+const processedMachine = computed(() => {
+  return machine?.value?.entry ?? null
 })
 
-// Disconnect on unmount
-onUnmounted(() => {
-  disconnectMQTT()
+const modelConfigurationReady = computed(() => { return Boolean(processedMachine.value) })
+const isDataReady = computed(() => { return ( processedMachine.value !== null && availableParameters.value.length > 0 ) })
+
+const availableParameters = computed(() => {
+  if (!processedMachine.value) return []
+  
+  return processedMachine.value.mqtt_topic?.parameters ?? []
 })
 
-// Get values
-const cop = computed(() => getValue('1_Chiller_COP'))
+/**
+ * Parameter state
+ * - featuredParameterIds: baseline (tidak berubah)
+ * - selectedParameters: state aktif (bisa berubah)
+ */
+const featuredParameterIds = ref([])
+const selectedParameters = ref([])
+const runningTimes = ref([])
 
-const deltaT = computed(() => 
-  calculateDelta('1_Entering_Chilled_Water_Temp', '1_Leaving_Chilled_Water_Temp'),
+/* Sync featured → selected on load */
+watch(
+  availableParameters,
+  params => {
+    if (!params.length) return
+
+    const featured = params.filter(p => p.is_featured)
+
+
+    const featuredFiltered = featured.map(p => p.id)
+
+    featuredParameterIds.value = [...featuredFiltered]
+    selectedParameters.value = [...featuredFiltered]
+    console.log(featured)
+    runningTimes.value = featured
+  },
+  { immediate: true },
 )
 
-// Filter running times
-const runningTimes = computed(() => {
-  return filterParametersByKeys([
-    '1_Comp1RunningTime',
-    '1_Comp2RunningTime',
-  ])
+
+watch(processedMachine, () =>{
+  if(!processedMachine.value) return null
+
+  const widgetConfig = processedMachine.value?.widgets?.map(row => ({
+    i: row.code,
+    x: row.layout.x,
+    y: row.layout.y,
+    w: row.layout.w,
+    h: row.layout.h,
+    ...row.config,
+    dataSourceIds: Array.isArray(row.config.dataSourceIds)
+      ? row.config.dataSourceIds
+      : [row.config.dataSourceIds],
+  })) || []
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(widgetConfig)) 
 })
 
-const processedMachine = computed(() => {
-  if(!machine?.value?.entry) return null 
-  console.log(machine.value)
-  
-  return machine.value.entry
+
+/* Helper */
+const getParameterById = id =>
+  availableParameters.value.find(p => p.id === id)
+
+/* ===============================
+ * Processed Parameters (UI)
+ * =============================== */
+const processedParameters = computed(() =>
+  availableParameters.value.map(p => ({
+    id: p.id,
+    title: p.name,
+    code: p.code,
+    unit: p.unit,
+    is_featured: p.is_featured,
+    value: p.id,
+  })),
+)
+
+/* ===============================
+ * Machine State (Cards)
+ * =============================== */
+const machineState = computed(() => {
+  if (!processedMachine.value) return null
+
+  return {
+    id: processedMachine.value.id,
+    name: processedMachine.value.name,
+    status: 'on',
+    totalRuntime: '1,245h 30m',
+  }
 })
 
+/* ===============================
+ * Layout Persistence
+ * =============================== */
+const STORAGE_KEY = `dashboard_layout_machine_${machineId}`
+const layout = ref([])
+const baselineLayout = ref([])
 
+const loadFromStorage = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
 
-const parameters = computed(() => {
-  if(processedMachine.value == null) return []
-  console.log(processedMachine.value)
-  
-  return processedMachine.value['mqtt_topic'].parameters
-})
+      layout.value = parsed
+      baselineLayout.value = JSON.parse(JSON.stringify(parsed)) // deep copy
+    }
+  } catch (err) {
+    console.error('Load layout failed:', err)
+  }
+}
 
-// State
+const saveIntoStorage = () => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout.value))
+  } catch (err) {
+    console.error('Save layout failed:', err)
+  }
+}
+
+/* ===============================
+ * Widget Dialog State
+ * =============================== */
 const showAddWidget = ref(false)
 const showEditWidget = ref(false)
 const selectedWidget = ref(null)
 
-// Widget form
 const widgetForm = ref({
   type: 'line',
   title: '',
@@ -102,102 +176,45 @@ const widgetForm = ref({
   color: '#10b981',
 })
 
-// Chart types (simplified to 4 types only)
-const chartTypes = [
-  { 
-    value: 'line', 
-    label: 'Line Chart', 
-    icon: 'tabler-chart-line',
-    color: 'success',
-    description: 'Show trends over time',
-  },
-  { 
-    value: 'bar', 
-    label: 'Bar Chart', 
-    icon: 'tabler-chart-bar',
-    color: 'info',
-    description: 'Compare discrete values',
-  },
-  { 
-    value: 'gauge', 
-    label: 'Gauge Chart', 
-    icon: 'tabler-gauge',
-    color: 'warning',
-    description: 'Show current value',
-  },
-  { 
-    value: 'metric', 
-    label: 'Metric Card', 
-    icon: 'tabler-numbers',
-    color: 'primary',
-    description: 'Display key numbers',
-  },
-]
-
-// Color presets
-const colorPresets = [
-  { value: '#10b981', label: 'Green' },
-  { value: '#06b6d4', label: 'Cyan' },
-  { value: '#3b82f6', label: 'Blue' },
-  { value: '#8b5cf6', label: 'Purple' },
-  { value: '#f59e0b', label: 'Orange' },
-  { value: '#ef4444', label: 'Red' },
-  { value: '#ec4899', label: 'Pink' },
-  { value: '#6366f1', label: 'Indigo' },
-]
-
-const getParameterById = id => {
-  return availableParameters.value?.find(p => p.id === id)
-}
-
-// Layout - use localStorage for persistence
-const STORAGE_KEY = `dashboard_layout_machine_${id}`
-const layout = ref([])
-
-// Load from localStorage on mount
-const loadFromStorage = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      layout.value = JSON.parse(saved)
-    }
-  } catch (error) {
-    console.error('Failed to load from storage:', error)
-  }
-}
-
-// Save to localStorage
-const saveIntoStorage = () => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(layout.value))
-  } catch (error) {
-    console.error('Failed to save to storage:', error)
-  }
-}
-
-// Computed
-const availableParameters = computed(() => parameters.value || [])
 const isAddMode = computed(() => !selectedWidget.value)
 
-// Initialize
-onMounted(() => {
-  loadFromStorage()
-  
-  // Load default layout if empty
-  if (layout.value.length === 0) {
-    loadDefaultLayout()
-  }
-})
+/* ===============================
+ * Chart Types
+ * =============================== */
+const chartTypes = [
+  { value: 'line', label: 'Line Chart', icon: 'tabler-chart-line', color: 'success' },
+  { value: 'bar', label: 'Bar Chart', icon: 'tabler-chart-bar', color: 'info' },
+  { value: 'gauge', label: 'Gauge Chart', icon: 'tabler-gauge', color: 'warning' },
+  { value: 'metric', label: 'Metric Card', icon: 'tabler-numbers', color: 'primary' },
+]
 
-// Load default layout
-const loadDefaultLayout = () => {
-  layout.value = []
-  saveIntoStorage()
+/* ===============================
+ * Chart Props Map
+ * =============================== */
+const chartPropsMap = {
+  line: widget => ({
+    title: widget.title,
+    realtimeData: widget.dataSourceIds.map(id => {
+      const p = getParameterById(id)
+      
+      return {
+        name: p?.name,
+        data: [10, 11, 12 ],
+      }
+    }),
+  }),
+  metric: widget => ({
+    title: widget.title,
+    subtitle: widget.subtitle,
+    value: '100',
+    unit: 'N/A',
+  }),
 }
 
-// Handle add/edit widget
-const handleOpenDialog = (widget = null) => {
-  console.log(widget)
+/* ===============================
+ * Widget Handlers
+ * =============================== */
+const handleOpenDialog = widget => {
   if (widget) {
     selectedWidget.value = widget
     widgetForm.value = { ...widget }
@@ -218,154 +235,123 @@ const handleOpenDialog = (widget = null) => {
 }
 
 const handleSaveWidget = () => {
-  if (!widgetForm.value.title.trim()) {
-    alert('Please enter widget title')
-    
-    return
-  }
-
-  if (widgetForm.value.dataSourceIds.length === 0) {
-    alert('Please select at least one parameter')
-    
-    return
-  }
+  if (!widgetForm.value.title.trim()) return alert('Title required')
+  if (!widgetForm.value.dataSourceIds.length)
+    return alert('Select at least one parameter')
 
   if (isAddMode.value) {
-    const newWidget = {
+    layout.value.push({
       ...widgetForm.value,
       i: `widget_${Date.now()}`,
       x: (layout.value.length * 6) % 12,
       y: Math.floor(layout.value.length / 2) * 5,
-    }
-
-    console.log(newWidget)
-
-    layout.value.push(newWidget)
+    })
   } else {
-    const index = layout.value.findIndex(w => w.i === selectedWidget.value.i)
-    if (index !== -1) {
-      layout.value[index] = {
-        ...layout.value[index],
-        ...widgetForm.value,
-      }
-    }
+    const idx = layout.value.findIndex(w => w.i === selectedWidget.value.i)
+    if (idx !== -1)
+      layout.value[idx] = { ...layout.value[idx], ...widgetForm.value }
   }
 
   saveIntoStorage()
-
- 
   showAddWidget.value = false
   showEditWidget.value = false
   selectedWidget.value = null
 }
 
-// Handle remove widget
-const handleRemoveWidget = widgetId => {
-  if (confirm('Are you sure you want to remove this widget?')) {
-    layout.value = layout.value.filter(w => w.i !== widgetId)
-    saveIntoStorage()
-  }
+const handleRemoveWidget = id => {
+  if (!confirm('Remove widget?')) return
+  layout.value = layout.value.filter(w => w.i !== id)
+  saveIntoStorage()
 }
 
-
-const handleStoreWidget = () => {
-  const serializeDashboard = () => {
-    return {
-      machine_id: id,
-      dashboard_widgets: layout.value.map(widget => ({
-        code: widget.i,
-        layout: {
-          x: widget.x,
-          y: widget.y,
-          w: widget.w,
-          h: widget.h,
-        },
-        config: {
-          type: widget.type,
-          title: widget.title,
-          subtitle: widget.subtitle,
-          dataSourceIds: widget.dataSourceIds,
-          color: widget.color,
-        },
-      })),
-    }
-  }
-
-  saveDashboardWidget(serializeDashboard())
-
-}
-
-const machineState = computed(() => {
-  if (!machine?.value?.entry) return null
- 
-  return {
-    id: processedMachine.value.id, 
-    name: processedMachine.value.name, 
-    status: 'on',
-    totalRuntime: '1,245h 30m',
-  }
-})
-
-const modelConfigurationReady = computed(() => {
-  return Boolean(processedMachine.value) 
-})
-
-const isDataReady = computed(() => {
-  return (
-    processedMachine.value !== null &&
-    availableParameters.value.length > 0
-  )
-})
-
-// Handle reset
-const handleReset = () => {
-  if (confirm('Are you sure you want to reset the dashboard? This will load the default layout.')) {
-    loadDefaultLayout()
-  }
-}
-
-// Handle layout update
 const handleLayoutUpdate = newLayout => {
   layout.value = newLayout
   saveIntoStorage()
 }
 
-onMounted(async () => {
-  let actionResult = await fetchMachine(id)
-  await nextTick()
-  console.log(actionResult)
-  if (actionResult.success) {
-    
+/* ===============================
+ * Parameter Selection (Cards)
+ * =============================== */
+const handleAddParameter = id => {
+  if (!selectedParameters.value.includes(id)){
+    selectedParameters.value.push(id)
+
+    const parameter = getParameterById(id)
+
+    runningTimes.value.push(parameter)
   }
+}
+
+const handleRemoveParameter = parameterId => { 
+  const index = selectedParameters.value.findIndex( p => p === parameterId )
+  const indexRunningTime = runningTimes.value.findIndex( p => p === parameterId )
+ 
+  if (index !== -1) { 
+    selectedParameters.value.splice(index, 1) 
+    runningTimes.value.splice(indexRunningTime, 1)
+
+  } 
+}
+
+/* ===============================
+ * Persist Dashboard
+ * =============================== */
+const handleStoreWidget = () => {
+  console.log(removedWidgets.value)
+  console.log({
+    machine_id: machineId,
+    added_parameter_ids: addedParameterIds.value,
+    removed_parameter_ids: removedParameterIds.value,
+    added_widgets: addedWidgets.value,
+    removed_widgets: removedWidgets.value.map(removedWidget => {
+      return removedWidget.i
+    }),
+  })
+  saveDashboardWidget({
+    machine_id: machineId,
+    added_parameter_ids: addedParameterIds.value,
+    removed_parameter_ids: removedParameterIds.value,
+    added_widgets: addedWidgets.value,
+    removed_widgets: removedWidgets.value.map(removedWidget => {
+      return removedWidget.i
+    }),
+  })
+}
+
+/* ===============================
+ * Lifecycle
+ * =============================== */
+onMounted(async () => {
+  await fetchMachine(machineId)
+  loadFromStorage()
+  await nextTick()
 })
 
-const chartPropsMap = {
-  line: widget => ({
-    title: widget.title,
-    series: widget.series,
-    'realtime-data': widget.dataSourceIds.map(dataSourceId => {
-      console.log(dataSourceId)
-      let parameterVal = getParameterById(dataSourceId)
-      console.log(parameterVal)
-      
-      return {
-        name: parameterVal?.name,
-        data: [],
-      }
-    }),
-  }),
-  metric: widget => ({
-    title: widget.title,
-    subtitle: widget.subtitle,
-    badge: "",
-    value: "100",
-    icon: "tabler-snowflake",
-    percentage: "10",
-    unit: "N/A",
-  }),
-  
-}
+const addedParameterIds = computed(() => {
+  return selectedParameters.value.filter(
+    id => !featuredParameterIds.value.includes(id),
+  )
+})
+
+const removedParameterIds = computed(() => {
+  return featuredParameterIds.value.filter(
+    id => !selectedParameters.value.includes(id),
+  )
+})
+
+const addedWidgets = computed(() => {
+  return layout.value.filter(
+    w => !baselineLayout.value.some(b => b.i === w.i),
+  )
+})
+
+const removedWidgets = computed(() => {
+  return baselineLayout.value.filter(
+    b => !layout.value.some(w => w.i === b.i),
+  )
+})
 </script>
+
 
 <template>
   <div>
@@ -382,13 +368,19 @@ const chartPropsMap = {
                 <h2 class="text-h4 font-weight-bold text-white mb-1">
                   Dashboard Manager
                 </h2>
-                <p class="text-body-2 text-grey-lighten-1">
+
+                <div class="d-flex align-center gap-2 text-grey-lighten-1">
                   <VIcon
                     icon="tabler-device-analytics"
-                    size="20"
-                    class="me-1"
+                    size="18"
                   />
-                  Machine {{ processedMachine?.name }} • Configure your monitoring charts
+                  <span class="text-subtitle-2 font-weight-medium">
+                    Machine {{ processedMachine?.name }}
+                  </span>
+                </div>
+
+                <p class="text-body-2 text-grey-lighten-2 mt-1 mb-0">
+                  Configure and monitor real-time machine performance through customizable charts
                 </p>
               </div>
 
@@ -413,20 +405,6 @@ const chartPropsMap = {
                     start
                   />
                   Add Chart
-                </VBtn>
-
-           
-         
-                <VBtn
-                  variant="tonal"
-                  color="warning"
-                  @click="handleReset"
-                >
-                  <VIcon
-                    icon="tabler-refresh"
-                    start
-                  />
-                  Reset
                 </VBtn>
               </div>
             </div>
@@ -468,7 +446,12 @@ const chartPropsMap = {
             <StateCards
               v-if="machineState !== null"
               :machine="machineState"
-              :running-times="runningTimes"
+              :running-times="runningTimes?? []"
+              is-edit-mode
+              :parameters="processedParameters"
+              :selected-parameters="selectedParameters"
+              @add-parameter="handleAddParameter"
+              @remove-parameter="handleRemoveParameter"
             />
           </VCol>
 
@@ -630,7 +613,6 @@ const chartPropsMap = {
     <VDialog
       v-model="showAddWidget"
       max-width="800"
-      persistent
       scrollable
     >
       <VCard class="dialog-card">
@@ -848,7 +830,6 @@ const chartPropsMap = {
     <VDialog
       v-model="showEditWidget"
       max-width="800"
-      persistent
       scrollable
     >
       <VCard class="dialog-card">

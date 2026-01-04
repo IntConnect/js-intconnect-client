@@ -144,15 +144,11 @@ export const useManageMachine = () => {
 
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
-      const { data: response, error: apiError } = await useApi('/machines', {
-        headers: {
-          // Remove any default Content-Type headers
-        },
-      }).post(formData).json()
+      const { data: response, error: apiError } = await useApi('/machines', {}).post(formData).json()
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-
+      
       return { success: true }
     } catch (err) {
       console.error(err)
@@ -179,16 +175,7 @@ export const useManageMachine = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
-      applyPaginationResponse(
-        {
-          entries: machines,
-          totalItems,
-          currentPage,
-          pageSize,
-          totalPages,
-        },
-        response.value,
-      )
+     
 
       return { success: true }
     } catch (_) {

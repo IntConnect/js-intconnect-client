@@ -4,6 +4,7 @@ import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
 import { nextTick, onMounted, reactive, ref, watch } from 'vue'
 
+import { useManageMachine } from '@/composables/useManageMachine'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
@@ -15,6 +16,22 @@ const {
   fetchSystemSetting,
   formErrors,
 } = useManageSystemSetting()
+
+const {
+  machines,
+  fetchMachines,
+} = useManageMachine()
+
+const processedMachines = computed(() => {
+  const machineList = machines.value['entries']
+
+  if (!Array.isArray(machineList)) return []
+
+  return machineList.map(machine => ({
+    title: machine.code,
+    value: machine.id,
+  }))
+})
 
 const {
   errors: dropzoneError,
@@ -34,6 +51,8 @@ let lastPinnedObject = null
 ========================= */
 const localForm = reactive({
   id: null,
+  showing: 'Executive',
+  machineId: null,
   key: 'DASHBOARD_SETTINGS',
   description: '',
   model: null,
@@ -254,6 +273,8 @@ const onSubmit = async () => {
     key: localForm.key,
     description: localForm.description,
     value: {
+      showing: localForm.showing,
+      machine_id: localForm.machineId,
       camera_x: localForm.camera.x,
       camera_y: localForm.camera.y,
       camera_z: localForm.camera.z,
@@ -282,6 +303,7 @@ const onSubmit = async () => {
 onMounted(async () => {
   await fetchSystemSetting({ isMinimal: false, key: "DASHBOARD_SETTINGS" })
   await nextTick()
+  await fetchMachines()
 
   if (systemSetting.value.entry) {
     Object.assign(localForm, {
@@ -310,6 +332,36 @@ onMounted(async () => {
     <VCard>
       <VCardText>
         <VRow>
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppSelect
+              v-model="localForm.showing"
+              :error="!!formErrors.showing"
+              :error-messages="formErrors.showing || []"
+              :items="[{title: 'Machine',value: 'Machine'},{title: 'Executive',value: 'Executive'}]"
+              :rules="[requiredValidator]"
+              label="Showing"
+              placeholder="Select Showing"
+            />
+          </VCol>
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppSelect
+              v-if="localForm.showing === 'Machine'"
+              v-model="localForm.machineId"
+              :error="!!formErrors.machineId"
+              :error-messages="formErrors.machineId || []"
+              :items="processedMachines"
+              :rules="[requiredValidator]"
+              label="Machine"
+              placeholder="Select Machine"
+            />
+          </VCol>
+          
           <VCol
             cols="12"
             md="6"

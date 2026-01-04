@@ -12,7 +12,7 @@ const props = defineProps({
   },
   badge: {
     type: String,
-    default: "Optimal",
+    default: "Warning",
   },
   value: {
     type: [String, Number],
@@ -55,12 +55,12 @@ const stats = {
           <div class="icon-wrapper flex-shrink-0">
             <VIcon
               :icon="props.icon"
-              size="24"
               class="icon-glow"
+              size="24"
             />
           </div>
           <div>
-            <h5 class="text-subtitle-2 text-grey-lighten-1 mb-0">
+            <h5 class="text-subtitle-2 text-grey-lighten-1 mb-0 text-left">
               {{ props.title }}
             </h5>
             <div class="text-caption text-grey">
@@ -71,9 +71,9 @@ const stats = {
 
         <!-- Status Badge -->
         <VChip
-          size="small"
           class="status-chip flex-shrink-0"
           prepend-icon="tabler-circle-filled"
+          size="small"
         >
           {{ props.badge }}
         </VChip>
@@ -89,13 +89,13 @@ const stats = {
               </h3>
               <span class="text-h6 text-grey-lighten-1">{{ props.unit }}</span>
             </div>
-            
+
             <!-- Change Indicator -->
             <div class="d-flex align-center gap-2 mt-1">
               <VChip
-                size="x-small"
                 :class="stats.isPositive ? 'change-chip-positive' : 'change-chip-negative'"
                 :prepend-icon="stats.isPositive ? 'tabler-trending-up' : 'tabler-trending-down'"
+                size="x-small"
               >
                 {{ props.percentage }}
               </VChip>
@@ -109,8 +109,8 @@ const stats = {
     </VCardText>
 
     <!-- Chart Section -->
-   
-  
+
+
     <!-- Animated Background -->
     <div class="animated-bg" />
   </VCard>
@@ -191,8 +191,6 @@ const stats = {
   border: 1px solid rgba(239, 68, 68, 0.3);
   font-weight: 700;
 }
-
-
 
 
 .circle-content {

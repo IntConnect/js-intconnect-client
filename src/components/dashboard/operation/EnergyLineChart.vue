@@ -1,16 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
   realtimeData: {
     type: Array,
     required: true,
-    default: () => {
-      return []
-    },
   },
-  
+  xCategories: {
+    type: Array,
+    required: false,
+    default: () => ['00.00', '01.00', '02.00'],
+  },
   title: {
     type: String,
     default: 'Realtime Monitor',
@@ -22,28 +23,57 @@ const props = defineProps({
 })
 
 const chartRef = ref(null)
+const chartReady = ref(false)
 
 const colorVariables = themeColors => {
   const themeSecondaryTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['medium-emphasis-opacity']})`
   const themeDisabledTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['disabled-opacity']})`
   const themeBorderColor = `rgba(${hexToRgb(String(themeColors.variables['border-color']))},${themeColors.variables['border-opacity']})`
   const themePrimaryTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['high-emphasis-opacity']})`
-  
+
   return { themeSecondaryTextColor, themeDisabledTextColor, themeBorderColor, themePrimaryTextColor }
 }
 
 const vuetifyTheme = useTheme()
 
+const chartOptions = computed(() => {
+  const categories = props.xCategories
 
-
-const chartSeries = computed(() => {
-  return props.realtimeData.map(s => ({
-    ...s,
-    data: [...s.data],
-  }))
+  return getLineChartSimpleConfig(categories)
 })
 
-const getLineChartSimpleConfig = () => {
+watch(
+  () => props.xCategories,
+  categories => {
+    if (!chartReady.value || !chartRef.value || !categories.length) return
+
+    chartRef.value.updateOptions({
+      xaxis: {
+        categories: [...categories],
+      },
+    }, false, false)
+  },
+  { deep: true },
+)
+
+
+watch(
+  () => props.realtimeData,
+  series => {
+    if (!chartReady.value || !chartRef.value) return
+
+    chartRef.value.updateSeries(
+      series.map(s => ({
+        ...s,
+        data: [...s.data],
+      })),
+      true,
+    )
+  },
+  { deep: true },
+)
+
+const getLineChartSimpleConfig = categories => {
   const {
     themeSecondaryTextColor,
     themeDisabledTextColor,
@@ -98,6 +128,7 @@ const getLineChartSimpleConfig = () => {
       },
     },
     xaxis: {
+      categories: categories,
       axisBorder: { show: false },
       axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
       labels: {
@@ -115,6 +146,11 @@ const getLineChartSimpleConfig = () => {
     },
   }
 }
+
+onMounted(async () => {
+  await nextTick()
+  chartReady.value = true
+})
 </script>
 
 <template>
@@ -124,13 +160,13 @@ const getLineChartSimpleConfig = () => {
         <div class="d-flex align-center gap-2">
           <div class="chart-icon-wrapper">
             <VIcon
+              class="chart-icon"
               icon="tabler-chart-line"
               size="30"
-              class="chart-icon"
             />
           </div>
           <div>
-            <h5 class="text-h5 text-white font-weight-bold mb-0">
+            <h5 class="text-h5 text-white font-weight-bold mb-0 text-left">
               {{ title }}
             </h5>
             <span class="text-caption text-grey-lighten-1">{{ subtitle }}</span>
@@ -148,8 +184,8 @@ const getLineChartSimpleConfig = () => {
       <div class="chart-container">
         <VueApexCharts
           ref="chartRef"
-          :options="getLineChartSimpleConfig()"
-          :series="chartSeries"
+          :options="chartOptions"
+          :series="realtimeData"
           height="400"
           type="line"
         />

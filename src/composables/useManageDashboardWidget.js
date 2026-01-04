@@ -93,6 +93,7 @@ export const useManageDashboardWidget = () => {
     clearFormErrors()
 
     try {
+      console.log(dashboardWidgetData)
       const { data: response, error: apiError } = await useApi(`/machines/dashboard/${dashboardWidgetData.machine_id}`)
         .post(dashboardWidgetData)
         .json()

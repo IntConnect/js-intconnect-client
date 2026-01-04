@@ -9,6 +9,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 
 import { useManageFacility } from "@/composables/useManageFacility"
 import { useManageMachine } from "@/composables/useManageMachine"
+import { useManageParameter } from "@/composables/useManageParameter"
 import { extractFilename } from "@core/utils/helpers"
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
@@ -32,7 +33,6 @@ const numberedSteps = [
 const currentStep = ref(0)
 const isEditMode = ref(false)
 const { facilities, fetchFacilities } = useManageFacility()
-const processedFacilities = ref([])
 
 // Use composable for machines
 const {
@@ -45,6 +45,11 @@ const {
 
   // (optional) machines etc if needed
 } = useManageMachine()
+
+const {
+  parameters,
+  fetchParameters,
+} = useManageParameter()
 
 
 // Preview state
@@ -74,6 +79,7 @@ const localForm = reactive({
   thumbnailUrl: null, // File or null
   modelUrl: null, // File or null
   facility_id: null,
+  parameter_id: null,
   camera_x: 0,
   camera_y: 0,
   camera_z: 0,
@@ -84,21 +90,12 @@ const localForm = reactive({
 onMounted(async () => {
   await fetchFacilities({ isMinimal: false })
 
-  const result = await fetchMachine(id)
+  const machineResult=  await fetchMachine(id)
 
+  await fetchParameters({})
   await nextTick()
 
-  if (processedFacilities.value.length > 0) {
-    localForm.facility_id = processedFacilities.value[0].id
-  }
-  processedFacilities.value = facilities.value?.entries?.map(facility => ({
-    title: facility.name,
-    value: facility.id,
-  })) || []
-  if (processedFacilities.value.length > 0) {
-    localForm.facility_id = processedFacilities.value[0].id
-  }
-  if (result.success) {
+  if (machineResult.success) {
     isEditMode.value = true
 
     const processedMachine = machine.value.entry
@@ -304,12 +301,13 @@ const onSubmit = async () => {
     code: localForm.code,
     description: localForm.description,
     facility_id: localForm.facility_id,
-    model: modelFile.value || null, // File or null
+    parameter_id: localForm.parameter_id,
+    model: modelFile.value || null, 
     thumbnail: thumbnailFile.value,
     documents: localForm.documents.map(document => ({
       title: document.title,
       description: document.description,
-      files: document.files, // array of File
+      files: document.files, 
     })),
     camera_x: localForm.camera_x,
     camera_y: localForm.camera_y,
@@ -457,6 +455,24 @@ function removeExistingDocument(docId, index) {
   // Remove from visual list
   localForm.documents.splice(index, 1)
 }
+
+const processedFacilities = computed(() => {
+  const facilityList = facilities.value['entries']
+  if (!Array.isArray(facilityList)) return []
+
+  return facilities.value.entries.map(facility => ({
+    title: facility.code,
+    value: facility.id,
+  }))})
+
+const processedParameters = computed(() => {
+  const parameterList = parameters.value['entries']
+  if (!Array.isArray(parameterList)) return []
+
+  return parameters.value.entries.map(parameter => ({
+    title: parameter.code,
+    value: parameter.id,
+  }))})
 </script>
 
 <template>
@@ -558,7 +574,32 @@ function removeExistingDocument(docId, index) {
                     textarea
                   />
                 </VCol>
-
+                
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <div class="d-flex flex-column justify-space-between gap-4">
+                    <h4>
+                      Parameter Running Time
+                    </h4>
+                    <div class="text-caption text-medium-emphasis">
+                      Select a parameter that contains the machine run time value.
+                    </div>
+                  </div>
+                </VCol>
+                <VCol
+                  cols="12"
+                  md="6"
+                >
+                  <AppSelect
+                    v-model="localForm.parameter_id"
+                    :error-messages="formErrors.parameter_id || []"
+                    :items="processedParameters"
+                    label="Parameter Running Time"
+                    placeholder="Select parameter running time"
+                  />
+                </VCol>
                 <VCol
                   cols="12"
                   md="6"
@@ -986,3 +1027,22 @@ function removeExistingDocument(docId, index) {
   </VCol>
 </template>
 
+<style>
+  .helper-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.helper-title {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.helper-text {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+}
+</style>
