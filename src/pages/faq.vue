@@ -2,7 +2,108 @@
 import sittingGirlWithLaptop from '@images/illustrations/sitting-girl-with-laptop.png'
 
 const faqSearchQuery = ref('')
-const faqs = ref([])
+const faqs = ref([
+  {
+    faqTitle: 'Umum',
+    faqIcon: 'tabler-info-circle',
+    faqSubtitle: 'Informasi dasar mengenai sistem Digital Twin Chiller',
+    faqs: [
+      {
+        question: 'Apa itu Digital Twin Chiller?',
+        answer:
+          'Digital Twin Chiller adalah representasi digital dari sistem chiller fisik yang mereplikasi kondisi operasional secara real-time menggunakan data sensor. Sistem ini memungkinkan pemantauan, analisis, dan simulasi performa chiller tanpa harus berinteraksi langsung dengan perangkat fisik.',
+      },
+      {
+        question: 'Apa manfaat utama Digital Twin pada sistem chiller?',
+        answer:
+          'Manfaat utama meliputi pemantauan kondisi real-time, deteksi dini anomali, analisis efisiensi energi, prediksi potensi kerusakan, serta pengambilan keputusan berbasis data untuk meningkatkan keandalan dan umur pakai chiller.',
+      },
+      {
+        question: 'Apakah Digital Twin menggantikan sistem chiller fisik?',
+        answer:
+          'Tidak. Digital Twin tidak menggantikan chiller fisik, melainkan berfungsi sebagai sistem pendukung yang merepresentasikan kondisi aktual chiller untuk keperluan monitoring, analisis, dan optimasi.',
+      },
+    ],
+  },
+  {
+    faqTitle: 'Monitoring',
+    faqIcon: 'tabler-device-analytics',
+    faqSubtitle: 'Pemantauan data dan kondisi operasional chiller',
+    faqs: [
+      {
+        question: 'Parameter apa saja yang dimonitor pada Digital Twin Chiller?',
+        answer:
+          'Parameter yang umumnya dimonitor meliputi suhu masuk dan keluar, tekanan, arus listrik, konsumsi daya, status kompresor, serta parameter lingkungan seperti kelembaban atau level oksigen jika diperlukan.',
+      },
+      {
+        question: 'Apakah data yang ditampilkan bersifat real-time?',
+        answer:
+          'Ya. Data diperoleh dari sensor yang terpasang pada chiller dan dikirim melalui protokol komunikasi seperti MQTT, sehingga informasi yang ditampilkan bersifat real-time atau mendekati real-time.',
+      },
+      {
+        question: 'Bagaimana cara membaca grafik performa chiller?',
+        answer:
+          'Grafik menampilkan tren perubahan parameter terhadap waktu. Kenaikan atau penurunan yang tidak wajar dapat menjadi indikasi adanya gangguan atau penurunan efisiensi pada sistem chiller.',
+      },
+    ],
+  },
+  {
+    faqTitle: 'Analisis & Anomali',
+    faqIcon: 'tabler-alert-triangle',
+    faqSubtitle: 'Analisis performa dan deteksi kondisi abnormal',
+    faqs: [
+      {
+        question: 'Apa yang dimaksud dengan kondisi abnormal pada chiller?',
+        answer:
+          'Kondisi abnormal adalah keadaan ketika nilai parameter operasional berada di luar batas normal yang telah ditentukan, seperti suhu terlalu tinggi, konsumsi daya berlebih, atau tekanan yang tidak stabil.',
+      },
+      {
+        question: 'Bagaimana sistem mendeteksi anomali?',
+        answer:
+          'Sistem membandingkan data sensor dengan ambang batas (threshold) atau pola normal operasional. Jika terjadi penyimpangan signifikan, sistem akan menandai kondisi tersebut sebagai anomali.',
+      },
+      {
+        question: 'Apakah sistem memberikan notifikasi saat terjadi anomali?',
+        answer:
+          'Ya. Sistem dapat dikonfigurasi untuk mengirimkan notifikasi, seperti melalui email atau dashboard alert, ketika terdeteksi kondisi abnormal pada chiller.',
+      },
+    ],
+  },
+  {
+    faqTitle: 'Pemeliharaan',
+    faqIcon: 'tabler-tool',
+    faqSubtitle: 'Dukungan terhadap pemeliharaan dan perawatan chiller',
+    faqs: [
+      {
+        question: 'Bagaimana Digital Twin membantu pemeliharaan chiller?',
+        answer:
+          'Digital Twin membantu dengan menyediakan data historis dan analisis tren performa, sehingga teknisi dapat melakukan pemeliharaan prediktif sebelum terjadi kerusakan serius.',
+      },
+      {
+        question: 'Apakah sistem dapat digunakan untuk prediksi kerusakan?',
+        answer:
+          'Ya. Dengan analisis pola data jangka panjang, sistem dapat mengindikasikan potensi kerusakan komponen tertentu sehingga tindakan pencegahan dapat dilakukan lebih awal.',
+      },
+    ],
+  },
+  {
+    faqTitle: 'Keamanan & Data',
+    faqIcon: 'tabler-shield-lock',
+    faqSubtitle: 'Keamanan sistem dan pengelolaan data',
+    faqs: [
+      {
+        question: 'Apakah data Digital Twin Chiller aman?',
+        answer:
+          'Keamanan data dijaga melalui mekanisme autentikasi, otorisasi, serta penggunaan protokol komunikasi yang aman untuk mencegah akses tidak sah.',
+      },
+      {
+        question: 'Apakah data historis chiller disimpan?',
+        answer:
+          'Ya. Data historis disimpan untuk keperluan analisis performa, evaluasi efisiensi energi, serta dokumentasi operasional sistem chiller.',
+      },
+    ],
+  },
+])
 
 
 const activeTab = ref('Payment')
