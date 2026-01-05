@@ -6,18 +6,7 @@ export default [
     to: { name: 'root' },
   },
 
-  {
-    title: 'Issue',
-    icon: { icon: 'tabler-exclamation-circle' },
-    children: [
-      {
-        title: 'Log Alarm',
-        to: { name: 'log-alarms' },
-        icon: { icon: 'tabler-bell-minus' },
-        requiredPermission: "LOG_ALARM_VIEW",
-      },
-    ],
-  },
+ 
 
   {
     title: 'Configuration',
@@ -135,6 +124,13 @@ export default [
         requiredPermission: "CHECK_SHEET_VIEW",
       },
     ],
+  },
+
+   {
+   title: 'Log Alarm',
+        to: { name: 'log-alarms' },
+        icon: { icon: 'tabler-bell-minus' },
+        requiredPermission: "LOG_ALARM_VIEW",
   },
 
   {
