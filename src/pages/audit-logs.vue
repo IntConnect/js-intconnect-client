@@ -58,7 +58,7 @@ const headers = [
   { title: 'Description', key: 'description', sortable: false },
   { title: 'IP Address', key: 'ip_address', sortable: false },
   { title: 'User Agent', key: 'user_agent', sortable: false },
-  { title: 'Username', key: 'username', sortable: false },
+  { title: 'Username', key: 'created_by', sortable: false },
   { title: 'Created At', key: 'created_at', sortable: true },
 ]
 
@@ -182,6 +182,12 @@ const normalizeCompareData = item => {
           {{ format(new Date(item.auditable.created_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
 
+        <!-- Created At Column -->
+        <template #item.user_agent="{ item }">
+          <div class="clamp-text text-wrap">
+          {{ item.user_agent }}
+          </div>
+        </template>
 
         <!-- Bottom Pagination -->
         <template #bottom>
