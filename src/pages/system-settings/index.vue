@@ -1,6 +1,7 @@
 <script setup>
-import pages1 from '@images/pages/1.png'
-import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
+import pages1 from '@images/pages/1.png';
+import pages2 from '@images/pages/2.webp';
+import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
 </script>
 
 <template>
@@ -46,6 +47,7 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
       </VCardText>
     </VCard>
   </VCol>
+  <VRow class="d-flex flex-row match-height mb-5">
   <VCol
     cols="12"
     lg="4"
@@ -55,6 +57,8 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
       <VImg
         :src="pages1"
         cover
+        style="max-height: 250px;"
+
       />
 
       <VCardItem>
@@ -66,13 +70,44 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
       </VCardText>
       <VCardActions>
         <RouterLink to="system-settings/dashboard-settings">
-          <VBtn>
+          <VBtn variant="tonal">
             Manage
           </VBtn>
         </RouterLink>
       </VCardActions>
     </VCard>
+    
   </VCol>
+   <VCol
+    cols="12"
+    lg="4"
+    md="4"
+  >
+    <VCard class="mt-5">
+      <VImg
+        :src="pages2"
+        cover
+        style="max-height: 250px;"
+      />
+
+      <VCardItem>
+        <VCardTitle>Listener Settings</VCardTitle>
+      </VCardItem>
+
+      <VCardText>
+Configure and manage listener parameters for real-time data processing.
+      </VCardText>
+      <VCardActions>
+        <RouterLink to="system-settings/listener-settings">
+          <VBtn variant="tonal">
+            Manage
+          </VBtn>
+        </RouterLink>
+      </VCardActions>
+    </VCard>
+    
+  </VCol>
+  </VRow>
 </template>
 
 <style lang="scss">
