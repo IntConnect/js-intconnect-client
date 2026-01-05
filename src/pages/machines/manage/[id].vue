@@ -575,31 +575,7 @@ const processedParameters = computed(() => {
                   />
                 </VCol>
                 
-                <VCol
-                  cols="12"
-                  md="6"
-                >
-                  <div class="d-flex flex-column justify-space-between gap-4">
-                    <h4>
-                      Parameter Running Time
-                    </h4>
-                    <div class="text-caption text-medium-emphasis">
-                      Select a parameter that contains the machine run time value.
-                    </div>
-                  </div>
-                </VCol>
-                <VCol
-                  cols="12"
-                  md="6"
-                >
-                  <AppSelect
-                    v-model="localForm.parameter_id"
-                    :error-messages="formErrors.parameter_id || []"
-                    :items="processedParameters"
-                    label="Parameter Running Time"
-                    placeholder="Select parameter running time"
-                  />
-                </VCol>
+              
                 <VCol
                   cols="12"
                   md="6"
@@ -908,24 +884,7 @@ const processedParameters = computed(() => {
                   </div>
                 </VCol>
 
-                <VCol cols="12">
-                  <h4 class="text-h5 mb-3">
-                    3D Model Preview
-                  </h4>
-
-                  <div
-                    v-if="localForm.modelUrl"
-                    ref="threeContainer"
-                    style="width: 100%; height: 300px; border-radius: 8px; background: #000;"
-                  />
-
-                  <div
-                    v-if="!localForm.modelUrl"
-                    class="text-grey mt-1"
-                  >
-                    No 3D model uploaded
-                  </div>
-                </VCol>
+              
                 <!-- Documents Summary -->
                 <VCol cols="12">
                   <h4 class="text-h5 mb-3">

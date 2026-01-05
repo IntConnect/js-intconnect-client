@@ -4,6 +4,7 @@ import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { SuccessManage } from '@/utils/constants'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
@@ -414,8 +415,7 @@ const onSubmit = async () => {
   if (result.success) {
     isAlertDialogVisible.value = true
     bodyAlert.value = "You will be redirected to facilities page"
-    alertType.value = 'info'
-    titleAlert.value = "Success manage facilities"
+    titleAlert.value = SuccessManage("facilities")
 
     setTimeout(() => {
       router.push('/facilities')
