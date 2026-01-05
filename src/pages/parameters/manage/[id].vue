@@ -117,9 +117,10 @@ onMounted(async () => {
   }))
   if (result.success) {
     let processedParameter = parameter.value.entry
+    console.log(processedParameter)
     id.value = processedParameter.id
     name.value = processedParameter.name
-    machineId.value = processedParameter.machine_id
+    machineId.value = processedParameter['mqtt_topic']['machine_id']
     mqttTopicId.value = processedParameter.mqtt_topic_id
     code.value = processedParameter.code
     unit.value = processedParameter.unit

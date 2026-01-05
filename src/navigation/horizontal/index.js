@@ -127,10 +127,9 @@ export default [
   },
 
    {
-   title: 'Log Alarm',
-        to: { name: 'log-alarms' },
+   title: 'Alarm Log',
+        to: { name: 'alarm-logs' },
         icon: { icon: 'tabler-bell-minus' },
-        requiredPermission: "LOG_ALARM_VIEW",
   },
 
   {

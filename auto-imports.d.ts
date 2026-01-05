@@ -261,6 +261,7 @@ declare global {
   const useLastChanged: typeof import('@vueuse/core')['useLastChanged']
   const useLocalStorage: typeof import('@vueuse/core')['useLocalStorage']
   const useMagicKeys: typeof import('@vueuse/core')['useMagicKeys']
+  const useManageAlarmLog: typeof import('./src/composables/useManageAlarmLog.js')['useManageAlarmLog']
   const useManageAuthentication: typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']
   const useManageBreakdown: typeof import('./src/composables/useManageBreakdown.js')['useManageBreakdown']
   const useManageCheckSheet: typeof import('./src/composables/useManageCheckSheet.js')['useManageCheckSheet']
@@ -661,6 +662,7 @@ declare module 'vue' {
     readonly useLastChanged: UnwrapRef<typeof import('@vueuse/core')['useLastChanged']>
     readonly useLocalStorage: UnwrapRef<typeof import('@vueuse/core')['useLocalStorage']>
     readonly useMagicKeys: UnwrapRef<typeof import('@vueuse/core')['useMagicKeys']>
+    readonly useManageAlarmLog: UnwrapRef<typeof import('./src/composables/useManageAlarmLog.js')['useManageAlarmLog']>
     readonly useManageAuthentication: UnwrapRef<typeof import('./src/composables/useManageAuthentication.js')['useManageAuthentication']>
     readonly useManageCheckSheet: UnwrapRef<typeof import('./src/composables/useManageCheckSheet.js')['useManageCheckSheet']>
     readonly useManageCheckSheetDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageCheckSheetDocumentTemplate.js')['useManageCheckSheetDocumentTemplate']>

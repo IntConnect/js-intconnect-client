@@ -409,6 +409,7 @@
     "useManageRegister": true,
     "ActionSuccess": true,
     "SuccessManage": true,
-    "SuccessDelete": true
+    "SuccessDelete": true,
+    "useManageAlarmLog": true
   }
 }
