@@ -56,9 +56,7 @@ const handleRemoveParameter = itemId => {
   emit('removeParameter', itemId)
 }
 
-watch(props.runningTimes, () => {
-  console.log(props.runningTimes)
-})
+
 </script>
 
 <template>

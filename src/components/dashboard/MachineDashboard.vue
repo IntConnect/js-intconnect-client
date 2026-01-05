@@ -60,7 +60,6 @@ const realtimeData = ref([])
 watch(
   mqttData,
   newVal => {
-    console.log('MQTT DATA:', newVal)
     let newData = []
     Object.entries(mqttData).forEach(([key, value]) => {
       newData.push({
@@ -78,7 +77,6 @@ watch(
 const processedMachine = computed(() => {
   if(!machine?.value?.entry) return null 
   const rawProcessedMachine = machine.value.entry
-  console.log(rawProcessedMachine)
   if (rawProcessedMachine) {
     connectMQTT(rawProcessedMachine)
   }
@@ -92,7 +90,6 @@ const parameters = computed(() => {
 })
 
 watch(parameters, () => {
-  console.log(parameters.value.filter(parameter => parameter.is_featured))
   runningTimes.value = parameters.value.filter(parameter => parameter.is_featured)
 })
 
@@ -108,8 +105,6 @@ const layout = computed(() => {
       ? row.config.dataSourceIds
       : [row.config.dataSourceIds],
   })) || []
-
-  console.log(data)
   
   return data
 })
@@ -140,12 +135,8 @@ const isDataReady = computed(() => {
 })
 
 onMounted(async () => {
-  console.log(props.systemSetting)
   let actionResult = await fetchMachine(props.systemSetting.entry.value.machine_id)
   await nextTick()
- 
-
-
 })
 
 // Helper untuk generate props per widget - DIBUAT COMPUTED
@@ -173,9 +164,6 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
-
-      console.log('Metric update:', dataSourceId, formattedValue, parameter)
-      
       return {
         title: widget.title,
         subtitle: parameter?.name || widget.subtitle,
@@ -218,8 +206,6 @@ const gridMinHeight = computed(() => {
   
   // Total height = (jumlah row * (row height + margin)) + extra padding
   const totalHeight = (maxRow * (rowHeight + marginY)) + 32
-  
-  console.log('Grid height calculation:', { maxRow, totalHeight })
   
   return `${totalHeight}px`
 })

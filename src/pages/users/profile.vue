@@ -60,7 +60,6 @@ onMounted(async () => {
     formData.value.username = userData.username
     formData.value.email = userData.email
     avatarPreview.value = userData.avatar_path === '' ? avatar1 : useStaticFile(userData.avatar_path) 
-    console.log(userData.audit_log)
     recentActivities.value = userData['audit_log'].map(auditLog => {
       return {
         feature: auditLog.feature,

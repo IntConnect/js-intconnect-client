@@ -53,7 +53,6 @@ export const useManageRegister = () => {
         },
         response.value,
       )
-      console.log(registers)
 
     } catch (_) {
       return { success: false, error: 'Unknown error' }

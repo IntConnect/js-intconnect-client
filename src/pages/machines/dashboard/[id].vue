@@ -72,7 +72,6 @@ watch(
 
     featuredParameterIds.value = [...featuredFiltered]
     selectedParameters.value = [...featuredFiltered]
-    console.log(featured)
     runningTimes.value = featured
   },
   { immediate: true },
@@ -297,16 +296,7 @@ const handleRemoveParameter = parameterId => {
  * Persist Dashboard
  * =============================== */
 const handleStoreWidget = () => {
-  console.log(removedWidgets.value)
-  console.log({
-    machine_id: machineId,
-    added_parameter_ids: addedParameterIds.value,
-    removed_parameter_ids: removedParameterIds.value,
-    added_widgets: addedWidgets.value,
-    removed_widgets: removedWidgets.value.map(removedWidget => {
-      return removedWidget.i
-    }),
-  })
+ 
   saveDashboardWidget({
     machine_id: machineId,
     added_parameter_ids: addedParameterIds.value,

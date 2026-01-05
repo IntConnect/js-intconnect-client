@@ -15,15 +15,12 @@ const {
 } = useManageAuthentication()
 
 const parsedJwt = computed(() => {
-  console.log(parseJwt(rawJwt.value))
   return parseJwt(rawJwt.value)
 })
 const avatarPath = ref('')
 watch(parsedJwt, () => {
   if(!parsedJwt) return null
-  console.log(parsedJwt)
  avatarPath.value =  parsedJwt.value.avatar_path === '' ? avatar1 : useStaticFile(parsedJwt.value.avatar_path) 
-console.log( parsedJwt.value.avatar_path === '' ? avatar1 : useStaticFile(parsedJwt.value.avatar_path) )
 })
 </script>
 

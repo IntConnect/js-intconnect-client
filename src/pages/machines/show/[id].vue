@@ -68,7 +68,6 @@ const realtimeData = ref([])
 watch(
   mqttData,
   newVal => {
-    console.log('MQTT DATA:', newVal)
     let newData = []
     Object.entries(mqttData).forEach(([key, value]) => {
       newData.push({
@@ -108,7 +107,6 @@ const layout = computed(() => {
       : [row.config.dataSourceIds],
   })) || []
 
-  console.log(data)
   
   return data
 })
@@ -141,7 +139,6 @@ const isDataReady = computed(() => {
 onMounted(async () => {
   let actionResult = await fetchMachine(id)
   await nextTick()
-  console.log(actionResult)
   if (actionResult.success) {
     
   }
@@ -173,8 +170,6 @@ const getWidgetProps = computed(() => {
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
 
-      console.log('Metric update:', dataSourceId, formattedValue, parameter)
-      
       return {
         title: widget.title,
         subtitle: parameter?.name || widget.subtitle,
@@ -217,8 +212,6 @@ const gridMinHeight = computed(() => {
   
   // Total height = (jumlah row * (row height + margin)) + extra padding
   const totalHeight = (maxRow * (rowHeight + marginY)) + 32
-  
-  console.log('Grid height calculation:', { maxRow, totalHeight })
   
   return `${totalHeight}px`
 })

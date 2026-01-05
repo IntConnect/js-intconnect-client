@@ -39,7 +39,7 @@ watch(
   async cfg => {
     if (!cfg?.entry) return
     await nextTick()
-    console.log(cfg)
+    (cfg)
     initScene(cfg.entry.value)
   },
   { immediate: true },
@@ -58,7 +58,6 @@ watch(
    INIT SCENE
 ========================= */
 function initScene(config) {
-  console.log(config)
   destroyScene()
 
   scene = new THREE.Scene()
@@ -66,8 +65,6 @@ function initScene(config) {
 
   const width = wrapperRef.value.clientWidth
   const height = wrapperRef.value.clientHeight || 400 // 🔴 FIX UTAMA
-
-  console.log('SCENE SIZE:', width, height)
 
   camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 5000)
   camera.position.set(config.camera_x, config.camera_y, config.camera_z)

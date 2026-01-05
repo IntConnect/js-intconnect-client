@@ -21,7 +21,6 @@ onMounted(async () => {
   loading.value = true
   await fetchSystemSetting({ isMinimal: true, key: "DASHBOARD_SETTINGS" })
   loading.value = false
-  console.log(systemSetting)
 })
 </script>
 

@@ -139,7 +139,7 @@ watch(
   () => props.checkSheetDocumentTemplateData,
   val => {
     if (val && Object.keys(val).length) {
-      console.log(val)
+      (val)
       id.value = val.id || ''
       machineId.value = val.machine_id
       name.value = val.name || ''

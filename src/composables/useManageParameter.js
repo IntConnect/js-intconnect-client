@@ -77,7 +77,6 @@ export const useManageParameter = () => {
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
       parameters.value = response.value
-      console.log(parameters)
       
       return {
         success: true,

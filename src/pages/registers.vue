@@ -181,7 +181,6 @@ onMounted(async () => {
   loadRegister()
   await fetchRegisterDependency()
   await nextTick()
-  console.log(registerDependency)
 })
 </script>
 

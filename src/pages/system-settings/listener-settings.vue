@@ -219,9 +219,6 @@ function markAsPin(object) {
 
   lastPinnedObject = object
 
-  console.log('PIN OBJECT:', {
-    name: object.name,
-  })
 }
 
 function animate() {
