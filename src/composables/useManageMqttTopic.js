@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageMqttTopic = () => {
   // --------------------
@@ -43,6 +43,7 @@ export const useManageMqttTopic = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
+      console.log(response)
       applyPaginationResponse(
         {
           entries: mqttTopics,
