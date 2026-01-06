@@ -15,12 +15,14 @@ import { nextTick, onMounted, ref } from 'vue'
 // Composable
 // ==========================================
 const {
+  parameters,
   parameter,
   parameterDependency,
   loading,
   actionLoading,
   fetchParameterDependency,
   fetchParameter,
+  fetchParameters,
   totalItems,
   saveParameter,
   totalPages,
@@ -28,6 +30,7 @@ const {
   formErrors,
   clearFormErrors,
   clearErrors,
+  getParameterById,
 } = useManageParameter()
 
 const {
@@ -55,16 +58,20 @@ const rotationX = ref(0)
 const rotationY = ref(0)
 const rotationZ = ref(0)
 const category = ref('Data')
-const isDisplay = ref(true)
-const isAutomatic = ref(true)
-const isWatch = ref(true)
-const isFeatured = ref(true)
+const isDisplay = ref(false)
+const isAutomatic = ref(false)
+const isWatch = ref(false)
+const isFeatured = ref(false)
+const isRunningTime = ref(false)
+const isProcessed = ref(false)
 const processedMachines = ref([])
 const processedMqttTopic = ref([])
+const processedParameterSequences = ref([])
 const isAlertDialogVisible = ref(false)
 const isModelClickable = ref(false)
 const refForm = ref()
 const modelPath = ref('')
+const processedParameters = ref([])
 
 const numberedSteps = [
   {
@@ -106,7 +113,9 @@ const alertType = ref('info')
 onMounted(async () => {
   await fetchParameterDependency()
   let result = await fetchParameter(id.value)
+  await fetchParameters({isAutomatic: null})
   await nextTick()
+  console.log(parameterDependency)
   processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,
@@ -120,7 +129,7 @@ onMounted(async () => {
     console.log(processedParameter)
     id.value = processedParameter.id
     name.value = processedParameter.name
-    machineId.value = processedParameter['mqtt_topic']['machine_id']
+    machineId.value = processedParameter['mqtt_topic']['machine_id'] != 0 ? processedParameter['mqtt_topic']['machine_id'] :processedParameter['machine_id']
     mqttTopicId.value = processedParameter.mqtt_topic_id
     code.value = processedParameter.code
     unit.value = processedParameter.unit
@@ -133,12 +142,20 @@ onMounted(async () => {
     rotationX.value = processedParameter.rotation_x
     rotationY.value = processedParameter.rotation_y
     rotationZ.value = processedParameter.rotation_z
-    isAutomatic.value= processedParameter.is_automatic
-    isWatch.value= processedParameter.is_watch
-    isDisplay.value= processedParameter.is_display
-    isFeatured.value= processedParameter.is_featured
-
+    isAutomatic.value = processedParameter.is_automatic
+    isWatch.value = processedParameter.is_watch
+    isDisplay.value = processedParameter.is_display
+    isFeatured.value = processedParameter.is_featured
+    isProcessed.value = processedParameter.is_processed
+    processedParameterSequences.value = processedParameter.processed_parameter_sequence?.map(processedParameterSequence => {
+      return {
+        type: processedParameterSequence.type,
+        parameter_id: processedParameterSequence.parameter_id
+      }
+    })
     initialModel()
+  }else{
+    id.value = null
   }
 })
 
@@ -245,7 +262,7 @@ const setPositionFromClick = () => {
     bodyAlert.value = 'Fill Name and Parameter First!'
     titleAlert.value = "Invalid Input"
     alertType.value = 'error'
-    
+
     return
   }
   isModelClickable.value = !isModelClickable.value
@@ -445,6 +462,10 @@ const onSubmit = () => {
   refForm.value.validate().then(async ({ valid }) => {
     if (!valid) return
 
+     const arranged = processedParameterSequences.value.map((op, i) => ({
+    ...op,
+    sequence: i + 1,
+  }))
     const parameterData = {
       id: id.value,
       name: name.value,
@@ -455,6 +476,7 @@ const onSubmit = () => {
       description: description.value,
       machine_id: machineId.value,
       mqtt_topic_id: mqttTopicId.value,
+      category: category.value,
       position_x: positionX.value,
       position_y: positionY.value,
       position_z: positionZ.value,
@@ -465,6 +487,9 @@ const onSubmit = () => {
       is_automatic: isAutomatic.value,
       is_watch: isWatch.value,
       is_featured: isFeatured.value,
+      is_processed: isProcessed.value,
+      is_running_time: isRunningTime.value,
+      processed_parameter_sequence: arranged,
     }
 
     const result = await saveParameter(parameterData)
@@ -511,7 +536,7 @@ watch(machineId, async value => {
 const loadDynamicModel = () => {
   if (!scene) {
     console.warn("Scene belum siap untuk load model")
-    
+
     return
   }
 
@@ -550,6 +575,45 @@ watch([modelPath, () => scene], async () => {
     loadDynamicModel()
   }
 })
+
+watch(parameters, () => {
+  const list = parameters.value['entries']
+
+  if (!Array.isArray(list)) return []
+  processedParameters.value = list.map((parameter) => {
+    return {
+      title: parameter.code,
+      value: parameter.id
+    }
+  })
+})
+
+const availableOps = [
+  { title: 'Add (+)', value: 'ADDITION' },
+  { title: 'Subtract (-)', value: 'SUBTRACTION' },
+  { title: 'Multiply (×)', value: 'MULTIPLICATION' },
+  { title: 'Divide (÷)', value: 'DIVISION' },
+]
+
+// Add new operation
+function addOperation() {
+  processedParameterSequences.value.push({
+    type: 'ADDITION',
+    parameter_id: null,
+  })
+
+}
+
+// Remove operation
+function removeOperation(index) {
+  const op = processedParameterSequences.value[index]
+
+  // jika punya id, masuk list deleted
+  if (op && op.id) {
+  }
+
+  processedParameterSequences.value.splice(index, 1)
+}
 </script>
 
 <template>
@@ -562,11 +626,7 @@ watch([modelPath, () => scene], async () => {
     </p>
   </VCol>
   <div class="mb-6 d-flex justify-center">
-    <AppStepper
-      v-model:current-step="currentStep"
-      :items="numberedSteps"
-      align="start"
-    />
+    <AppStepper v-model:current-step="currentStep" :items="numberedSteps" align="start" />
   </div>
 
   <VRow>
@@ -576,76 +636,36 @@ watch([modelPath, () => scene], async () => {
     <VCol cols="12">
       <VCard>
         <VCardText>
-          <VForm
-            ref="refForm"
-            lazy-validation
-            @submit.prevent="onSubmit"
-          >
-            <VWindow
-              v-model="currentStep"
-              class="disable-tab-transition"
-            >
+          <VForm ref="refForm" lazy-validation @submit.prevent="onSubmit">
+            <VWindow v-model="currentStep" class="disable-tab-transition">
               <VWindowItem>
                 <VCol>
                   <VCol cols="12">
-                    <GeneralAlert
-                      v-if="formErrors.value"
-                      color="error"
-                      description="There are error for some input, please fix it first!"
-                      icon="tabler-bug"
-                    />
-                    <AppSelect
-                      v-model="machineId"
-                      :error="!!formErrors.machine_id"
-                      :error-messages="formErrors.machine_id"
-                      :items="processedMachines"
-                      class="mt-3"
-                      label="Machine"
-                      placeholder="Select a Machine"
-                    />
+                    <GeneralAlert v-if="formErrors.value" color="error"
+                      description="There are error for some input, please fix it first!" icon="tabler-bug" />
+                    <AppSelect v-model="machineId" :error="!!formErrors.machine_id"
+                      :error-messages="formErrors.machine_id" :items="processedMachines" class="mt-3" label="Machine"
+                      placeholder="Select a Machine" />
                   </VCol>
-                  <VCol
-                    v-if="isAutomatic"
-                    cols="12"
-                  >
-                    <AppSelect
-                      v-model="mqttTopicId"
-                      :error="!!formErrors.mqtt_topic_id"
-                      :error-messages="formErrors.mqtt_topic_id"
-                      :items="processedMqttTopic"
-                      label="MQTT Topic"
-                      placeholder="Select a MQTT Topic"
-                    />
+                  <VCol v-if="isAutomatic" cols="12">
+                    <AppSelect v-model="mqttTopicId" :error="!!formErrors.mqtt_topic_id"
+                      :error-messages="formErrors.mqtt_topic_id" :items="processedMqttTopic" label="MQTT Topic"
+                      placeholder="Select a MQTT Topic" />
                   </VCol>
 
 
                   <VCol cols="12">
-                    <AppTextField
-                      v-model="name"
-                      :error="!!formErrors.name"
-                      :error-messages="formErrors.name"
-                      label="Parameter Name"
-                      placeholder="e.g., Temperature"
-                      required
-                    />
+                    <AppTextField v-model="name" :error="!!formErrors.name" :error-messages="formErrors.name"
+                      label="Parameter Name" placeholder="e.g., Temperature" required />
                   </VCol>
 
                   <VCol cols="12">
-                    <AppTextField
-                      v-model="code"
-                      :error="!!formErrors.code"
-                      :error-messages="formErrors.code"
-                      label="Code"
-                      placeholder="e.g., TEMP_01"
-                      required
-                    />
+                    <AppTextField v-model="code" :error="!!formErrors.code" :error-messages="formErrors.code"
+                      label="Code" placeholder="e.g., TEMP_01" required />
                   </VCol>
                   <VCol cols="12">
-                    <AppSelect
-                      v-model="machineId"
-                      :error="!!formErrors.machine_id"
-                      :error-messages="formErrors.machine_id"
-                      :items="[{
+                    <AppSelect v-model="category" :error="!!formErrors.category"
+                      :error-messages="formErrors.category" :items="[{
                         title: 'Data',
                         value: 'Data',
                       }, {
@@ -654,118 +674,93 @@ watch([modelPath, () => scene], async () => {
                       }, {
                         title: 'Time',
                         value: 'Time',
-                      }]"
-                      label="Category"
-                      placeholder="Select a Category"
-                    />
+                      }]" label="Category" placeholder="Select a Category" />
                   </VCol>
 
                   <VCol cols="12">
-                    <AppTextField
-                      v-model="unit"
-                      :error="!!formErrors.unit"
-                      :error-messages="formErrors.unit"
-                      label="Unit"
-                      placeholder="e.g., °C"
-                      required
-                    />
+                    <AppTextField v-model="unit" :error="!!formErrors.unit" :error-messages="formErrors.unit"
+                      label="Unit" placeholder="e.g., °C" required />
                   </VCol>
 
                   <VCol cols="12">
                     <VRow>
                       <VCol cols="6">
-                        <AppTextField
-                          v-model.number="minValue"
-                          :error="!!formErrors.min_value"
-                          :error-messages="formErrors.min_value"
-                          label="Min Value"
-                          placeholder="0"
-                          type="number"
-                        />
+                        <AppTextField v-model.number="minValue" :error="!!formErrors.min_value"
+                          :error-messages="formErrors.min_value" label="Min Value" placeholder="0" type="number" />
                       </VCol>
 
                       <VCol cols="6">
-                        <AppTextField
-                          v-model.number="maxValue"
-                          :error="!!formErrors.max_value"
-                          :error-messages="formErrors.max_value"
-                          label="Max Value"
-                          placeholder="100"
-                          type="number"
-                        />
+                        <AppTextField v-model.number="maxValue" :error="!!formErrors.max_value"
+                          :error-messages="formErrors.max_value" label="Max Value" placeholder="100" type="number" />
                       </VCol>
                     </VRow>
                   </VCol>
                   <VCol cols="12">
-                    <AppTextField
-                      v-model="description"
-                      :error="!!formErrors.description"
-                      :error-messages="formErrors.description"
-                      label="Description"
-                      placeholder="Describe this parameter"
-                    />
+                    <AppTextField v-model="description" :error="!!formErrors.description"
+                      :error-messages="formErrors.description" label="Description"
+                      placeholder="Describe this parameter" />
                   </VCol>
+                  <VCol cols="12" class="pa-0">
+                    <VRow>
+                      <VCol cols="6" md="6">
+                        <VCol cols="6" md="6">
+                          <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;"
+                            text="Is Running Time" />
+                          <VSwitch v-model="isRunningTime" :label="isRunningTime ? `Yes` : `No`" />
+                        </VCol>
+                        <VCol cols="6" md="6">
+                          <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Processed" />
+                          <VSwitch v-model="isProcessed"
+                            :label="isProcessed ? `Processed Parmaeter` : `Regular Parameter`" />
+                        </VCol>
+                        <VBtn v-if="isProcessed" block color="primary" variant="tonal" @click="addOperation">
+                          Add Operation
+                        </VBtn>
+                      </VCol>
+                      <VCol cols="6" class="mt-4">
+                        <VRow v-if="isProcessed" v-for="(op, i) in processedParameterSequences" :key="i"
+                          class="align-center mb-4">
+                          <VCol cols="5">
+                            <VSelect v-model="op.type" :items="availableOps" label="Operation Type"
+                              density="comfortable" />
+                          </VCol>
+
+                          <VCol cols="5">
+                            <VSelect v-model.number="op.parameter_id" :items="processedParameters" density="comfortable"
+                              :rules="[requiredValidator]" label="Parameter" />
+                          </VCol>
+
+                          <VCol cols="2" class="text-center">
+                            <VBtn icon size="small" color="error" @click="removeOperation(i)">
+                              <VIcon icon="tabler-trash" size="20" />
+                            </VBtn>
+                          </VCol>
+                        </VRow>
+                      </VCol>
+                    </VRow>
+                  </VCol>
+
                   <VCol cols="12">
                     <VRow>
-                      <VCol
-                        cols="6"
-                        md="6"
-                      >
-                        <VLabel
-                          class="mb-1 text-body-2 text-wrap"
-                          style="line-height: 15px;"
-                          text="Is Display"
-                        />
-                        <VSwitch
-                          v-model="isDisplay"
-                          :label="isDisplay ? `Active` : `Inactive`"
-                        />
+                      <VCol cols="6" md="6">
+                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Display" />
+                        <VSwitch v-model="isDisplay" :label="isDisplay ? `Active` : `Inactive`" />
                       </VCol>
-                      <VCol
-                        cols="6"
-                        md="6"
-                      >
-                        <VLabel
-                          class="mb-1 text-body-2 text-wrap"
-                          style="line-height: 15px;"
-                          text="Is Automatic"
-                        />
-                        <VSwitch
-                          v-model="isAutomatic"
-                          :label="isAutomatic ? `Automatic` : `Manual`"
-                        />
+                      <VCol cols="6" md="6">
+                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Automatic" />
+                        <VSwitch v-model="isAutomatic" :label="isAutomatic ? `Automatic` : `Manual`" />
                       </VCol>
                     </VRow>
                   </VCol>
                   <VCol cols="12">
                     <VRow>
-                      <VCol
-                        cols="12"
-                        md="6"
-                      >
-                        <VLabel
-                          class="mb-1 text-body-2 text-wrap"
-                          style="line-height: 15px;"
-                          text="Is Watch"
-                        />
-                        <VSwitch
-                          v-model="isWatch"
-                          :label="isWatch ? `Watch` : `Ignore`"
-                        />
+                      <VCol cols="12" md="6">
+                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Watch" />
+                        <VSwitch v-model="isWatch" :label="isWatch ? `Watch` : `Ignore`" />
                       </VCol>
-                      <VCol
-                        cols="12"
-                        md="6"
-                      >
-                        <VLabel
-                          class="mb-1 text-body-2 text-wrap"
-                          style="line-height: 15px;"
-                          text="Is Featured"
-                        />
-                        <VSwitch
-                          v-model="isFeatured"
-                          :label="isFeatured ? `Yes` : `No`"
-                        />
+                      <VCol cols="12" md="6">
+                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Featured" />
+                        <VSwitch v-model="isFeatured" :label="isFeatured ? `Yes` : `No`" />
                       </VCol>
                     </VRow>
                   </VCol>
@@ -773,28 +768,15 @@ watch([modelPath, () => scene], async () => {
               </VWindowItem>
               <VWindowItem>
                 <VRow>
-                  <VCol
-                    class="h-100"
-                    cols="8"
-                  >
-                    <div
-                      ref="wrapperRef"
-                      class="three-wrapper rounded-lg grow"
-                    >
-                      <canvas
-                        ref="canvasRef"
-                        class="rounded-lg"
-                      />
+                  <VCol class="h-100" cols="8">
+                    <div ref="wrapperRef" class="three-wrapper rounded-lg grow">
+                      <canvas ref="canvasRef" class="rounded-lg" />
                     </div>
                   </VCol>
                   <VCol cols="4">
                     <!-- Position -->
                     <VCol cols="12">
-                      <VBtn
-                        :color="buttonModelColor"
-                        class="w-full"
-                        @click="setPositionFromClick"
-                      >
+                      <VBtn :color="buttonModelColor" class="w-full" @click="setPositionFromClick">
                         {{ buttonModelText }}
                       </VBtn>
                     </VCol>
@@ -806,28 +788,16 @@ watch([modelPath, () => scene], async () => {
 
 
                     <VCol cols="12">
-                      <AppTextField
-                        v-model.number="positionX"
-                        label="Position X"
-                        type="number"
-                        @update:model-value="val => updateMarkerPosition(Number(val))"
-                      />
+                      <AppTextField v-model.number="positionX" label="Position X" type="number"
+                        @update:model-value="val => updateMarkerPosition(Number(val))" />
                     </VCol>
                     <VCol cols="12">
-                      <AppTextField
-                        v-model.number="positionY"
-                        label="Position Y"
-                        type="number"
-                        @update:model-value="val => updateMarkerPosition(Number(val))"
-                      />
+                      <AppTextField v-model.number="positionY" label="Position Y" type="number"
+                        @update:model-value="val => updateMarkerPosition(Number(val))" />
                     </VCol>
                     <VCol cols="12">
-                      <AppTextField
-                        v-model.number="positionZ"
-                        label="Position Z"
-                        type="number"
-                        @update:model-value="val => updateMarkerPosition(Number(val))"
-                      />
+                      <AppTextField v-model.number="positionZ" label="Position Z" type="number"
+                        @update:model-value="val => updateMarkerPosition(Number(val))" />
                     </VCol>
                     <VDivider class="my-2" />
                     <!-- Rotation -->
@@ -837,25 +807,13 @@ watch([modelPath, () => scene], async () => {
                       </h4>
                     </VCol>
                     <VCol cols="12">
-                      <AppTextField
-                        v-model.number="rotationX"
-                        label="Rotation X"
-                        type="number"
-                      />
+                      <AppTextField v-model.number="rotationX" label="Rotation X" type="number" />
                     </VCol>
                     <VCol cols="12">
-                      <AppTextField
-                        v-model.number="rotationY"
-                        label="Rotation Y"
-                        type="number"
-                      />
+                      <AppTextField v-model.number="rotationY" label="Rotation Y" type="number" />
                     </VCol>
                     <VCol cols="12">
-                      <AppTextField
-                        v-model.number="rotationZ"
-                        label="Rotation Z"
-                        type="number"
-                      />
+                      <AppTextField v-model.number="rotationZ" label="Rotation Z" type="number" />
                     </VCol>
                   </VCol>
                 </VRow>
@@ -868,97 +826,55 @@ watch([modelPath, () => scene], async () => {
                     </h4>
                   </VCol>
                   <VCol cols="12">
-                    <VAlert
-                      type="info"
-                      variant="tonal"
-                      class="mb-4"
-                    >
+                    <VAlert type="info" variant="tonal" class="mb-4">
                       Please review all information carefully before submitting.
                     </VAlert>
                   </VCol>
 
                   <!-- Machine & MQTT -->
                   <VCol cols="6">
-                    <AppTextField
-                      :model-value="processedMachines?.find(m => m.value === machineId)?.title"
-                      label="Machine"
-                      disabled
-                    />
+                    <AppTextField :model-value="processedMachines?.find(m => m.value === machineId)?.title"
+                      label="Machine" disabled />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField
-                      :model-value="processedMqttTopic?.find(t => t.value === mqttTopicId)?.title"
-                      label="MQTT Topic"
-                      disabled
-                    />
+                    <AppTextField :model-value="processedMqttTopic?.find(t => t.value === mqttTopicId)?.title"
+                      label="MQTT Topic" disabled />
                   </VCol>
 
                   <!-- Basic Info -->
                   <VCol cols="6">
-                    <AppTextField
-                      v-model="name"
-                      label="Parameter Name"
-                      disabled
-                    />
+                    <AppTextField v-model="name" label="Parameter Name" disabled />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField
-                      v-model="code"
-                      label="Code"
-                      disabled
-                    />
+                    <AppTextField v-model="code" label="Code" disabled />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField
-                      v-model="unit"
-                      label="Unit"
-                      disabled
-                    />
+                    <AppTextField v-model="unit" label="Unit" disabled />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField
-                      v-model="category"
-                      label="Category"
-                      disabled
-                    />
+                    <AppTextField v-model="category" label="Category" disabled />
                   </VCol>
 
                   <!-- Value Range -->
                   <VCol cols="6">
-                    <AppTextField
-                      v-model="minValue"
-                      label="Min Value"
-                      disabled
-                    />
+                    <AppTextField v-model="minValue" label="Min Value" disabled />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField
-                      v-model="maxValue"
-                      label="Max Value"
-                      disabled
-                    />
+                    <AppTextField v-model="maxValue" label="Max Value" disabled />
                   </VCol>
 
                   <!-- Flags -->
                   <VCol cols="6">
-                    <AppTextField
-                      :model-value="isDisplay ? 'Active' : 'Inactive'"
-                      label="Is Display"
-                      disabled
-                    />
+                    <AppTextField :model-value="isDisplay ? 'Active' : 'Inactive'" label="Is Display" disabled />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField
-                      :model-value="isAutomatic ? 'Automatic' : 'Manual'"
-                      label="Is Automatic"
-                      disabled
-                    />
+                    <AppTextField :model-value="isAutomatic ? 'Automatic' : 'Manual'" label="Is Automatic" disabled />
                   </VCol>
 
                   <!-- Position -->
@@ -970,25 +886,13 @@ watch([modelPath, () => scene], async () => {
                   </VCol>
 
                   <VCol cols="4">
-                    <AppTextField
-                      v-model="positionX"
-                      label="Position X"
-                      disabled
-                    />
+                    <AppTextField v-model="positionX" label="Position X" disabled />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField
-                      v-model="positionY"
-                      label="Position Y"
-                      disabled
-                    />
+                    <AppTextField v-model="positionY" label="Position Y" disabled />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField
-                      v-model="positionZ"
-                      label="Position Z"
-                      disabled
-                    />
+                    <AppTextField v-model="positionZ" label="Position Z" disabled />
                   </VCol>
 
                   <!-- Rotation -->
@@ -999,60 +903,28 @@ watch([modelPath, () => scene], async () => {
                   </VCol>
 
                   <VCol cols="4">
-                    <AppTextField
-                      v-model="rotationX"
-                      label="Rotation X"
-                      disabled
-                    />
+                    <AppTextField v-model="rotationX" label="Rotation X" disabled />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField
-                      v-model="rotationY"
-                      label="Rotation Y"
-                      disabled
-                    />
+                    <AppTextField v-model="rotationY" label="Rotation Y" disabled />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField
-                      v-model="rotationZ"
-                      label="Rotation Z"
-                      disabled
-                    />
+                    <AppTextField v-model="rotationZ" label="Rotation Z" disabled />
                   </VCol>
                 </VRow>
               </VWindowItem>
             </VWindow>
             <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
-              <VBtn
-                :disabled="currentStep === 0"
-                color="secondary"
-                variant="tonal"
-                @click="currentStep--"
-              >
-                <VIcon
-                  class="flip-in-rtl"
-                  icon="tabler-arrow-left"
-                  start
-                />
+              <VBtn :disabled="currentStep === 0" color="secondary" variant="tonal" @click="currentStep--">
+                <VIcon class="flip-in-rtl" icon="tabler-arrow-left" start />
                 Previous
               </VBtn>
-              <VBtn
-                v-if="numberedSteps.length - 1 === currentStep"
-                color="success"
-                @click="onSubmit"
-              >
+              <VBtn v-if="numberedSteps.length - 1 === currentStep" color="success" @click="onSubmit">
                 Submit
               </VBtn>
-              <VBtn
-                v-else
-                @click="currentStep++"
-              >
+              <VBtn v-else @click="currentStep++">
                 Next
-                <VIcon
-                  class="flip-in-rtl"
-                  end
-                  icon="tabler-arrow-right"
-                />
+                <VIcon class="flip-in-rtl" end icon="tabler-arrow-right" />
               </VBtn>
             </div>
           </VForm>
@@ -1060,13 +932,8 @@ watch([modelPath, () => scene], async () => {
       </VCard>
     </VCol>
   </VRow>
-  <AlertDialog
-    :body-alert="bodyAlert"
-    :is-dialog-visible="isAlertDialogVisible"
-    :title-alert="titleAlert"
-    :type="alertType"
-    @update:is-dialog-visible="isAlertDialogVisible = $event"
-  />
+  <AlertDialog :body-alert="bodyAlert" :is-dialog-visible="isAlertDialogVisible" :title-alert="titleAlert"
+    :type="alertType" @update:is-dialog-visible="isAlertDialogVisible = $event" />
 </template>
 
 <style scoped>
