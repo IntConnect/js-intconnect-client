@@ -170,10 +170,10 @@ const handleUpdateAction = async (note) => {
             {{ item.status }}
           </VChip>
         </template>
-          <template #item.acknowledged_by="{ item }">
-         <div class="d-flex align-center gap-2">
-          {{ item.acknowledged_by.name }}
-         </div>
+        <template #item.acknowledged_by="{ item }">
+          <div class="d-flex align-center gap-2">
+            {{ item.acknowledged_by.name }}
+          </div>
         </template>
 
 
@@ -186,7 +186,7 @@ const handleUpdateAction = async (note) => {
         <template #item.updated_at="{ item }">
           {{ format(new Date(item.updated_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
-<template #item.acknowledged_at="{ item }">
+        <template #item.acknowledged_at="{ item }">
           {{ format(new Date(item.acknowledged_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
         <template #header.actions>
