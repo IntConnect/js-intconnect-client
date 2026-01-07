@@ -7,11 +7,7 @@ const props = defineProps({
     type: Array,
     required: true,
   },
-  xCategories: {
-    type: Array,
-    required: false,
-    default: () => ['00.00', '01.00', '02.00'],
-  },
+ 
   title: {
     type: String,
     default: 'Realtime Monitor',
@@ -37,25 +33,9 @@ const colorVariables = themeColors => {
 const vuetifyTheme = useTheme()
 
 const chartOptions = computed(() => {
-  const categories = props.xCategories
 
-  return getLineChartSimpleConfig(categories)
+  return getLineChartSimpleConfig()
 })
-
-watch(
-  () => props.xCategories,
-  categories => {
-    if (!chartReady.value || !chartRef.value || !categories.length) return
-
-    chartRef.value.updateOptions({
-      xaxis: {
-        categories: [...categories],
-      },
-    }, false, false)
-  },
-  { deep: true },
-)
-
 
 watch(
   () => props.realtimeData,
@@ -73,7 +53,7 @@ watch(
   { deep: true },
 )
 
-const getLineChartSimpleConfig = categories => {
+const getLineChartSimpleConfig = () => {
   const {
     themeSecondaryTextColor,
     themeDisabledTextColor,
@@ -127,20 +107,22 @@ const getLineChartSimpleConfig = categories => {
         },
       },
     },
-    xaxis: {
-      categories: categories,
-      axisBorder: { show: false },
-      axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
-      labels: {
-        style: {
-          colors: Array(20).fill(themeSecondaryTextColor),
-          fontSize: '0.8125rem',
-        },
-      },
-      crosshairs: {
-        stroke: { color: 'rgba(255, 255, 255, 0.1)' },
-      },
+  xaxis: {
+  type: 'datetime',
+  axisBorder: { show: false },
+  axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
+  labels: {
+    datetimeUTC: false,
+    format: 'HH:mm:ss',
+    style: {
+      colors: themeSecondaryTextColor,
+      fontSize: '0.8125rem',
     },
+  },
+  crosshairs: {
+    stroke: { color: 'rgba(255, 255, 255, 0.1)' },
+  },
+},
     tooltip: {
       theme: 'dark',
     },
