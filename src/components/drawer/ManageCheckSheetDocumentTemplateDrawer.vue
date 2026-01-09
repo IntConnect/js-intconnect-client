@@ -65,7 +65,8 @@ const intervalType = ref('Hours')
 const rotationType = ref("Daily")
 const revisionNumber = ref(0)
 const effectiveDate = ref('')
- 
+const startingHour = ref('')
+
 
 // ==========================================
 // Computed
@@ -115,6 +116,7 @@ const onSubmit = () => {
       interval: interval.value,
       revision_number: revisionNumber.value,
       effective_date: effectiveDate.value,
+      starting_hour: startingHour.value,
     }
 
 
@@ -151,7 +153,8 @@ watch(
       rotationType.value = val.rotation_type || ''
       revisionNumber.value = val.revision_number || ''
       effectiveDate.value = val.effective_date || ''
-     
+      startingHour.value = val.starting_hour || ''
+
     }
   },
   { immediate: true, deep: true },
@@ -188,24 +191,17 @@ const handleDrawerModelValueUpdate = val => {
 
 onMounted(async () => {
   await fetchMachines()
- 
+
 })
 </script>
 
 <template>
-  <VNavigationDrawer
-    :model-value="props.isDrawerOpen"
-    :width="700"
-    class="scrollable-content"
-    location="end"
-    temporary
-    @update:model-value="handleDrawerModelValueUpdate"
-  >
+  <VNavigationDrawer :model-value="props.isDrawerOpen" :width="700" class="scrollable-content" location="end" temporary
+    @update:model-value="handleDrawerModelValueUpdate">
     <!-- Header -->
     <AppDrawerHeaderSection
       :title="isEditMode ? 'Edit Check Sheet Document Template' : 'Create Check Sheet Document Template'"
-      @cancel="closeNavigationDrawer"
-    />
+      @cancel="closeNavigationDrawer" />
 
     <VDivider />
 
@@ -213,172 +209,111 @@ onMounted(async () => {
       <VCard flat>
         <VCardText>
           <!-- Form -->
-          <VForm
-            ref="refForm"
-            v-model="isFormValid"
-            @submit.prevent="onSubmit"
-          >
+          <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
             <VRow>
               <VCol cols="12">
-                <AppSelect
-                  v-model.number="machineId"
-                  :items="processedMachines"
-                  :error="!!props.formErrors.machineId"
-                  :error-messages="props.formErrors.machineId || []"
-                  :rules="[requiredValidator]"
-                  label="Machine"
-                />
+                <AppSelect v-model.number="machineId" :items="processedMachines" :error="!!props.formErrors.machineId"
+                  :error-messages="props.formErrors.machineId || []" :rules="[requiredValidator]" label="Machine" />
               </VCol>
-             
+
               <VCol cols="12">
-                <AppTextField
-                  v-model="name"
-                  :error="!!props.formErrors.name"
-                  :error-messages="props.formErrors.name || []"
-                  :rules="[requiredValidator]"
-                  label="Name"
-                  placeholder="SPX.001"
-                />
+                <AppTextField v-model="name" :error="!!props.formErrors.name"
+                  :error-messages="props.formErrors.name || []" :rules="[requiredValidator]" label="Name"
+                  placeholder="SPX.001" />
               </VCol>
               <VCol cols="12">
-                <AppTextField
-                  v-model="no"
-                  :error="!!props.formErrors.no"
-                  :error-messages="props.formErrors.no || []"
-                  :rules="[requiredValidator]"
-                  label="No"
-                  placeholder="SPX.001"
-                />
+                <AppTextField v-model="no" :error="!!props.formErrors.no" :error-messages="props.formErrors.no || []"
+                  :rules="[requiredValidator]" label="No" placeholder="SPX.001" />
               </VCol>
               <VCol cols="12">
-                <AppTextField
-                  v-model="description"
-                  :error="!!props.formErrors.description"
-                  :error-messages="props.formErrors.description || []"
-                  :rules="[requiredValidator]"
-                  label="Description"
-                  placeholder="Type something..."
-                />
+                <AppTextField v-model="description" :error="!!props.formErrors.description"
+                  :error-messages="props.formErrors.description || []" :rules="[requiredValidator]" label="Description"
+                  placeholder="Type something..." />
               </VCol>
               <VCol cols="12">
-                <AppSelect
-                  v-model="category"
-                  :items="[{
-                             title: 'Inspection',
-                             value: 'Inspection'
-                           },{
-                             title: 'Lubrication', 
-                             value:'Lubrication'
-                           },{
-                             title: 'Cleaning', 
-                             value:'Cleaning'
-                           }
-                           ,{
-                             title: 'Standar Operating Procedure', 
-                             value:'Standar Operating Procedure'
-                           }]"
-                  :error="!!props.formErrors.category"
-                  :error-messages="props.formErrors.category || []"
-                  :rules="[requiredValidator]"
-                  label="Category"
-                />
+                <AppSelect v-model="category" :items="[{
+                  title: 'Inspection',
+                  value: 'Inspection'
+                }, {
+                  title: 'Lubrication',
+                  value: 'Lubrication'
+                }, {
+                  title: 'Cleaning',
+                  value: 'Cleaning'
+                }
+                  , {
+                  title: 'Standar Operating Procedure',
+                  value: 'Standar Operating Procedure'
+                }]" :error="!!props.formErrors.category" :error-messages="props.formErrors.category || []"
+                  :rules="[requiredValidator]" label="Category" />
               </VCol>
-             
+
               <VCol cols="12">
                 <VRow>
                   <VCol cols="6">
-                    <AppTextField
-                      v-model.number="interval"
-                      :error="!!props.formErrors.interval"
-                      :error-messages="props.formErrors.interval || []"
-                      :rules="[requiredValidator]"
-                      label="Interval"
-                      placeholder="0"
-                    />
+                    <AppTextField v-model.number="interval" :error="!!props.formErrors.interval"
+                      :error-messages="props.formErrors.interval || []" :rules="[requiredValidator]" label="Interval"
+                      placeholder="0" />
                   </VCol>
                   <VCol cols="6">
-                    <AppSelect
-                      v-model="intervalType"
-                      :items="[{
-                        title: 'Hours',
-                        value: 'Hours'
-                      },{
-                        title: 'Minutes', 
-                        value:'Minutes'
-                      }]"
-                      :error="!!props.formErrors.interval_type"
-                      :error-messages="props.formErrors.interval_type || []"
-                      :rules="[requiredValidator]"
-                      label="Interval Type"
-                    />
+                    <AppSelect v-model="intervalType" :items="[{
+                      title: 'Hours',
+                      value: 'Hours'
+                    }, {
+                      title: 'Minutes',
+                      value: 'Minutes'
+                    }]" :error="!!props.formErrors.interval_type"
+                      :error-messages="props.formErrors.interval_type || []" :rules="[requiredValidator]"
+                      label="Interval Type" />
                   </VCol>
                 </VRow>
               </VCol>
-             
-              <VCol cols="12">
-                <AppSelect
-                  v-model="rotationType"
-                  :items="[{
-                             title: 'Daily',
-                             value: 'Daily'
-                           },{
-                             title: 'Weekly', 
-                             value:'Weekly'
-                           },
-                           {
-                             title: 'Monthly', 
-                             value:'Monthly'
-                           }]"
-                  :error="!!props.formErrors.rotationType"
-                  :error-messages="props.formErrors.rotationType || []"
-                  :rules="[requiredValidator]"
-                  label="Rotation Type"
-                />
-              </VCol>
-              <VCol cols="12">
-                <AppTextField
-                  v-model.number="revisionNumber"
-                  :error="!!props.formErrors.revision_number"
-                  :error-messages="props.formErrors.revision_number || []"
-                  :rules="[requiredValidator]"
-                  label="Revision Number"
-                  placeholder="1"
-                  :disabled="isEditMode"
-                />
-              </VCol>
-              <VCol cols="12">
-                <AppDateTimePicker
-                  id="effectiveDate"
-                  v-model="effectiveDate"
-                  style="width: full;"
-                  :config="{
-                    dateFormat: 'Y-m-d',
-                    altInput: true,
-                    altFormat: 'd M Y',     
-                  }"
-                  :error="!!props.formErrors.effective_date"
-                  :error-messages="props.formErrors.effective_date || []"
-                  label="Effective Date"
-                  :rules="[requiredValidator]"
 
-                  placeholder="Select date"
-                />
+              <VCol cols="12">
+                <AppSelect v-model="rotationType" :items="[{
+                  title: 'Daily',
+                  value: 'Daily'
+                }, {
+                  title: 'Weekly',
+                  value: 'Weekly'
+                },
+                {
+                  title: 'Monthly',
+                  value: 'Monthly'
+                }]" :error="!!props.formErrors.rotationType" :error-messages="props.formErrors.rotationType || []"
+                  :rules="[requiredValidator]" label="Rotation Type" />
               </VCol>
-             
+              <VCol cols="12">
+                <AppTextField v-model.number="revisionNumber" :error="!!props.formErrors.revision_number"
+                  :error-messages="props.formErrors.revision_number || []" :rules="[requiredValidator]"
+                  label="Revision Number" placeholder="1" :disabled="isEditMode" />
+              </VCol>
+              <VCol cols="12">
+                <AppDateTimePicker id="effectiveDate" v-model="effectiveDate" style="width: full;" :config="{
+                  dateFormat: 'Y-m-d',
+                  altInput: true,
+                  altFormat: 'd M Y',
+                }" :error="!!props.formErrors.effective_date" :error-messages="props.formErrors.effective_date || []"
+                  label="Effective Date" :rules="[requiredValidator]" placeholder="Select date" />
+              </VCol>
+              <VCol cols="12">
+                <AppDateTimePicker id="startingHour" v-model="startingHour" :config="{
+                  enableTime: true,
+                  noCalendar: true,
+                  dateFormat: 'H:i',
+                  time_24hr: true,
+                }" :error="!!props.formErrors.starting_hour" :error-messages="props.formErrors.starting_hour || []"
+                  label="Effective Time" :rules="[requiredValidator]" placeholder="Select time" />
+              </VCol>
+
+
+
               <!-- Actions -->
               <VCol cols="12">
-                <VBtn
-                  :loading="props.loading"
-                  class="me-3"
-                  type="submit"
-                >
+                <VBtn :loading="props.loading" class="me-3" type="submit">
                   {{ isEditMode ? 'Update' : 'Create' }}
                 </VBtn>
-                <VBtn
-                  color="error"
-                  variant="tonal"
-                  @click="closeNavigationDrawer"
-                >
+                <VBtn color="error" variant="tonal" @click="closeNavigationDrawer">
                   Cancel
                 </VBtn>
               </VCol>
