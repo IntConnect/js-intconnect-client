@@ -303,6 +303,8 @@ onMounted(async () => {
 
   if (systemSetting.value.entry) {
     Object.assign(localForm, {
+      showing: systemSetting.value.entry.value.showing,
+      machineId: Number(systemSetting.value.entry.value.machine_id),
       description: systemSetting.value.entry.description,
       existingModelUrl: systemSetting.value.entry.value.model_path,
       pinObjectName: systemSetting.value.entry.value.pin_object_name,
