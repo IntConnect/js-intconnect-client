@@ -7,7 +7,7 @@ const props = defineProps({
     type: Array,
     required: true,
   },
- 
+
   title: {
     type: String,
     default: 'Realtime Monitor',
@@ -107,22 +107,22 @@ const getLineChartSimpleConfig = () => {
         },
       },
     },
-  xaxis: {
-  type: 'datetime',
-  axisBorder: { show: false },
-  axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
-  labels: {
-    datetimeUTC: false,
-    format: 'HH:mm:ss',
-    style: {
-      colors: themeSecondaryTextColor,
-      fontSize: '0.8125rem',
+    xaxis: {
+      type: 'datetime',
+      axisBorder: { show: false },
+      axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
+      labels: {
+        datetimeUTC: false,
+        format: 'HH:mm:ss',
+        style: {
+          colors: themeSecondaryTextColor,
+          fontSize: '0.8125rem',
+        },
+      },
+      crosshairs: {
+        stroke: { color: 'rgba(255, 255, 255, 0.1)' },
+      },
     },
-  },
-  crosshairs: {
-    stroke: { color: 'rgba(255, 255, 255, 0.1)' },
-  },
-},
     tooltip: {
       theme: 'dark',
     },
@@ -141,11 +141,7 @@ onMounted(async () => {
       <div class="d-flex align-center justify-space-between mb-3">
         <div class="d-flex align-center gap-2">
           <div class="chart-icon-wrapper">
-            <VIcon
-              class="chart-icon"
-              icon="tabler-chart-line"
-              size="30"
-            />
+            <VIcon class="chart-icon" icon="tabler-chart-line" size="30" />
           </div>
           <div>
             <h5 class="text-h5 text-white font-weight-bold mb-0 text-left">
@@ -164,13 +160,7 @@ onMounted(async () => {
 
     <VCardText class="pt-0">
       <div class="chart-container">
-        <VueApexCharts
-          ref="chartRef"
-          :options="chartOptions"
-          :series="realtimeData"
-          height="400"
-          type="line"
-        />
+        <VueApexCharts ref="chartRef" :options="chartOptions" :series="realtimeData" height="400" type="line" />
       </div>
     </VCardText>
   </VCard>
@@ -225,9 +215,12 @@ onMounted(async () => {
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }

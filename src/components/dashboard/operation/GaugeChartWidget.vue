@@ -8,6 +8,16 @@ const props = defineProps({
     required: false,
     default: 0,
   },
+  header: {
+    type: String,
+    required: false,
+    default: ""
+  },
+  subHeader: {
+    type: String,
+    required: false,
+    default: ""
+  },
 })
 
 const vuetifyTheme = useTheme()
@@ -25,7 +35,7 @@ const copMax = 8.0 // Maximum COP value
 
 // Calculate percentage for gauge
 const copPercentage = computed(() => {
-  return  Number (props.copValue / copMax) * 100
+  return Number(props.copValue / copMax) * 100
 
 })
 
@@ -128,37 +138,29 @@ const chartOptions = computed(() => ({
   <VCard class="gauge-glass-card">
     <!-- Animated Background Effect -->
     <div class="animated-glow" />
-    
+
     <!-- Header -->
     <VCardText class="pb-2">
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center gap-2">
           <div class="header-icon-wrapper">
-            <VIcon
-              icon="tabler-gauge"
-              size="20"
-              class="header-icon"
-            />
+            <VIcon icon="tabler-gauge" size="20" class="header-icon" />
           </div>
-          <div>
-            <h6 class="text-subtitle-2 text-white font-weight-bold mb-0">
-              COP Monitor
+          <div class="text-left">
+            <h6 class="text-h5 text-white font-weight-bold mb-0 text-left">
+              {{ props.header }}
             </h6>
+            <span class="text-caption text-grey-lighten-1">{{ props.subHeader }}</span>
           </div>
         </div>
 
         <!-- Status Badge -->
-        <VChip
-          size="small"
-          :style="{
-            background: copStatus.bgColor,
-            color: copStatus.color,
-            borderColor: copStatus.borderColor,
-            border: '1px solid'
-          }"
-          class="font-weight-bold status-chip"
-          :prepend-icon="copStatus.icon"
-        >
+        <VChip size="small" :style="{
+          background: copStatus.bgColor,
+          color: copStatus.color,
+          borderColor: copStatus.borderColor,
+          border: '1px solid'
+        }" class="font-weight-bold status-chip" :prepend-icon="copStatus.icon">
           {{ copStatus.label }}
         </VChip>
       </div>
@@ -167,14 +169,9 @@ const chartOptions = computed(() => ({
     <!-- Gauge Chart -->
     <VCardText class="py-3">
       <div class="gauge-container">
-        <VueApexCharts
-          :height="250"
-          :options="chartOptions"
-          :series="series"
-          type="radialBar"
-        />
-        
-      
+        <VueApexCharts :height="250" :options="chartOptions" :series="series" type="radialBar" />
+
+
         <!-- Min Max Labels -->
         <div class="gauge-labels">
           <span class="text-caption text-grey">0.0</span>
@@ -186,7 +183,7 @@ const chartOptions = computed(() => ({
 
     <!-- Footer Info -->
     <VDivider class="divider-custom" />
-    
+
 
     <!-- Sparkle Effects -->
     <div class="sparkle sparkle-1" />
@@ -220,12 +217,10 @@ const chartOptions = computed(() => ({
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(16, 185, 129, 0.15) 0%,
-    rgba(6, 182, 212, 0.1) 30%,
-    transparent 70%
-  );
+  background: radial-gradient(circle,
+      rgba(16, 185, 129, 0.15) 0%,
+      rgba(6, 182, 212, 0.1) 30%,
+      transparent 70%);
   animation: rotate-glow 8s linear infinite;
   pointer-events: none;
   opacity: 0.6;
@@ -235,6 +230,7 @@ const chartOptions = computed(() => ({
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -272,9 +268,12 @@ const chartOptions = computed(() => ({
 }
 
 @keyframes pulse-badge {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.8;
   }
@@ -370,9 +369,12 @@ const chartOptions = computed(() => ({
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -409,10 +411,13 @@ const chartOptions = computed(() => ({
 }
 
 @keyframes sparkle-float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0) scale(1);
     opacity: 0;
   }
+
   50% {
     transform: translateY(-20px) scale(1.5);
     opacity: 1;

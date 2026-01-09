@@ -39,7 +39,6 @@ watch(
   async cfg => {
     if (!cfg?.entry) return
     await nextTick()
-    (cfg)
     initScene(cfg.entry.value)
   },
   { immediate: true },

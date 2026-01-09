@@ -12,6 +12,7 @@ import RealtimeTable from '@/components/dashboard/operation/RealtimeTable.vue'
 import StatsCard from '@/components/dashboard/operation/StatsCard.vue'
 import UnmanageableAreaOverlay from '@/components/general/UnmanageableAreaOverlay.vue'
 
+import RawBarChart from '@/components/dashboard/RawBarChart.vue'
 import { useManageDashboardWidget } from '@/composables/useManageDashboardWidget'
 import { useManageMachine } from '@/composables/useManageMachine'
 
@@ -32,6 +33,7 @@ const chartComponentMap = {
   gauge: GaugeChartWidget,
   line: EnergyLineChart,
   metric: StatsCard,
+  bar: RawBarChart,
 }
 
 /* ===============================
@@ -209,10 +211,31 @@ const chartPropsMap = {
       }
     }),
   }),
+  bar: widget => ({
+    title: widget.title,
+    realtimeData: widget.dataSourceIds.map(id => {
+      const p = getParameterById(id)
+      const now = Date.now()
+      return {
+        name: p?.name,
+        data: [
+          { x: now - 2000, y: 10 },
+          { x: now - 1000, y: 11 },
+          { x: now, y: 12 },
+        ]
+      }
+    }),
+  }),
   metric: widget => ({
     title: widget.title,
     subtitle: widget.subtitle,
     value: '100',
+    unit: 'N/A',
+  }),
+  gauge: widget => ({
+    header: widget.title,
+    subHeader: widget.subtitle,
+    copValue: 100,
     unit: 'N/A',
   }),
 }
@@ -241,8 +264,9 @@ const handleOpenDialog = widget => {
 }
 
 const handleSaveWidget = () => {
+  console.log(widgetForm)
   if (!widgetForm.value.title.trim()) return alert('Title required')
-  if (!widgetForm.value.dataSourceIds.length)
+  if (!widgetForm.value.dataSourceIds.length && (widgetForm.value.type !== 'metric' && widgetForm.value.type !== 'gauge'))
     return alert('Select at least one parameter')
 
   if (isAddMode.value) {
@@ -252,6 +276,7 @@ const handleSaveWidget = () => {
       x: (layout.value.length * 6) % 12,
       y: Math.floor(layout.value.length / 2) * 5,
     })
+    console.log(layout.value)
   } else {
     let oldIdx = baselineLayout.value.findIndex(w => w.i === selectedWidget.value.i)
     if (oldIdx !== -1)
@@ -289,7 +314,7 @@ const handleLayoutUpdate = newLayout => {
     )
 
 
-    if (isLayoutChanged(baselineItem, newItem)) {
+    if (!isAddMode && isLayoutChanged(baselineItem, newItem)) {
       console.error("Edited !!!!")
       edited.push({
         id: baselineItem.id,
@@ -355,7 +380,8 @@ const handleRemoveParameter = parameterId => {
  * =============================== */
 const handleStoreWidget = () => {
   console.log(editedWidgets.value)
-  return
+  console.log(addedWidgets.value)
+  console.log(removedWidgets.value)
   saveDashboardWidget({
     machine_id: machineId,
     added_parameter_ids: addedParameterIds.value,

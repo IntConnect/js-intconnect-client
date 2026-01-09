@@ -1,16 +1,12 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 
 const props = defineProps({
-  chartData: {
+  realtimeData: {
     type: Array,
     required: true,
   },
-  xCategories: {
-    type: Array,
-    required: true,
-  },
+  
   title: {
     type: String,
     default: 'Bar Chart',
@@ -19,13 +15,14 @@ const props = defineProps({
     type: String,
     default: 'Data visualization',
   },
+  // ✅ Added colors prop with default
   colors: {
     type: Array,
-    default: () => ['#10b981', '#06b6d4', '#8b5cf6'],
+    default: () => ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'],
   },
 })
 
-const chartRef = ref(null)
+const vuetifyTheme = useTheme()
 
 const colorVariables = themeColors => {
   const themeSecondaryTextColor = `rgba(${hexToRgb(themeColors.colors['on-surface'])},${themeColors.variables['medium-emphasis-opacity']})`
@@ -36,45 +33,7 @@ const colorVariables = themeColors => {
   return { themeSecondaryTextColor, themeDisabledTextColor, themeBorderColor, themePrimaryTextColor }
 }
 
-const vuetifyTheme = useTheme()
-
-const chartOptions = computed(() => {
-  const categories = props.xCategories
-  
-  return getBarChartConfig(categories)
-})
-
-watch(
-  () => props.xCategories,
-  categories => {
-    if (!chartRef.value || !categories.length) return
-
-    chartRef.value.updateOptions({
-      xaxis: {
-        categories: [...categories],
-      },
-    }, false, false)
-  },
-  { deep: true },
-)
-
-watch(
-  () => props.chartData,
-  series => {
-    if (!chartRef.value) return
-
-    chartRef.value.updateSeries(
-      series.map(s => ({
-        ...s,
-        data: [...s.data],
-      })),
-      true,
-    )
-  },
-  { deep: true },
-)
-
-const getBarChartConfig = categories => {
+const getBarChartConfig = () => {
   const {
     themeSecondaryTextColor,
     themeDisabledTextColor,
@@ -101,7 +60,7 @@ const getBarChartConfig = categories => {
         },
       },
     },
-    colors: props.colors,
+    colors: props.colors, // ✅ Use from props
     plotOptions: {
       bar: {
         horizontal: false,
@@ -123,8 +82,8 @@ const getBarChartConfig = categories => {
     },
     legend: {
       show: true,
-      position: 'top',
-      horizontalAlign: 'left',
+      position: 'bottom', // ✅ Changed from 'top' to 'bottom'
+      horizontalAlign: 'center', // ✅ Changed from 'left' to 'center'
       labels: {
         colors: themeSecondaryTextColor,
       },
@@ -138,17 +97,19 @@ const getBarChartConfig = categories => {
       strokeDashArray: 4,
     },
     xaxis: {
-      categories: categories,
+      type: 'datetime',
       axisBorder: { show: false },
-      axisTicks: { 
-        show: true,
-        color: 'rgba(255, 255, 255, 0.1)',
-      },
+      axisTicks: { color: 'rgba(255, 255, 255, 0.1)' },
       labels: {
+        datetimeUTC: false,
+        format: 'HH:mm:ss',
         style: {
-          colors: Array(20).fill(themeSecondaryTextColor),
+          colors: themeSecondaryTextColor,
           fontSize: '0.8125rem',
         },
+      },
+      crosshairs: {
+        stroke: { color: 'rgba(255, 255, 255, 0.1)' },
       },
     },
     yaxis: {
@@ -166,7 +127,7 @@ const getBarChartConfig = categories => {
         shade: 'dark',
         type: 'vertical',
         shadeIntensity: 0.5,
-        gradientToColors: props.colors.map(color => color + '80'),
+        gradientToColors: props.colors.map(color => color + '80'), // ✅ Use props.colors
         inverseColors: false,
         opacityFrom: 1,
         opacityTo: 0.8,
@@ -183,6 +144,8 @@ const getBarChartConfig = categories => {
     },
   }
 }
+
+const chartOptions = computed(() => getBarChartConfig())
 </script>
 
 <template>
@@ -198,7 +161,7 @@ const getBarChartConfig = categories => {
             />
           </div>
           <div>
-            <h6 class="text-h6 text-white font-weight-bold mb-0">
+            <h6 class="text-left text-h6 text-white font-weight-bold mb-0">
               {{ title }}
             </h6>
             <span class="text-caption text-grey-lighten-1">{{ subtitle }}</span>
@@ -215,9 +178,8 @@ const getBarChartConfig = categories => {
     <VCardText class="pt-0">
       <div class="chart-container">
         <VueApexCharts
-          ref="chartRef"
           :options="chartOptions"
-          :series="chartData"
+          :series="realtimeData"
           height="400"
           type="bar"
         />
@@ -243,8 +205,8 @@ const getBarChartConfig = categories => {
 }
 
 .chart-icon-wrapper {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
   border-radius: 10px;
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
   border: 1px solid rgba(16, 185, 129, 0.3);
@@ -255,6 +217,7 @@ const getBarChartConfig = categories => {
 
 .chart-icon {
   color: #10b981;
+  width: 36px;
 }
 
 .chart-container {
@@ -274,9 +237,12 @@ const getBarChartConfig = categories => {
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }

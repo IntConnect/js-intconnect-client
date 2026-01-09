@@ -4,12 +4,9 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+
   lastUpdate: {
-    type: String, 
-    default: "",
-  },
-  lastUpdate: {
-    type: String,
+    type: Date,
     default: "2026-01-01T10:30:00",
   },
 

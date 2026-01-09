@@ -6,6 +6,7 @@ import StatsCard from '@/components/dashboard/operation/StatsCard.vue'
 import { useManageDashboardWidget } from '@/composables/useManageDashboardWidget'
 import { GridItem, GridLayout } from 'grid-layout-plus'
 import { computed, onMounted } from 'vue'
+import RawBarChart from './RawBarChart.vue'
 
 const props = defineProps({
   systemSetting: {
@@ -23,6 +24,7 @@ const chartComponentMap = {
   gauge: GaugeChartWidget,
   line: EnergyLineChart,
   metric: StatsCard,
+  bar: RawBarChart,
 }
 
 
@@ -133,7 +135,7 @@ const modelConfigurationReady = computed(() => {
 })
 
 const isDataReady = computed(() => {
-  
+
   return (
     processedMachine.value !== null &&
     availableParameters.value.length > 0
@@ -225,11 +227,28 @@ const getWidgetProps = computed(() => {
       const parameter = getParameterById(dataSourceId)
 
       return {
-        title: widget.title,
+        header: widget.title,
+        subHeader: widget.subtitle,
         value: formattedValue.value || 0,
         unit: formattedValue.unit || '',
         min: widget.min || 0,
         max: widget.max || 100,
+      }
+    }
+
+    if (widget.type === 'bar') {
+        return {
+        title: widget.title,
+        subtitle: widget.subtitle,
+        realtimeData: widget.dataSourceIds.map(id => {
+          const p = getParameterById(id)
+          if (!p) return null
+
+          return {
+            name: p.name,
+            data: lineSeriesStore.value[p.code] ?? [],
+          }
+        })
       }
     }
 
