@@ -20,7 +20,7 @@ const numberedSteps = [
     title: 'Fill Report',
     subtitle: 'Input report with valid data',
   },
- 
+
 ]
 
 const isEditMode = ref(false)
@@ -43,6 +43,10 @@ const {
   fetchParameters,
 } = useManageParameter()
 
+const {
+  telemetries,
+  fetchTelemetriesInterval
+} = useFetchTelemetry()
 
 
 const currentStep = ref(0)
@@ -71,10 +75,13 @@ const onParameterChange = (parameterId, index) => {
 
   if (!param) return
 
-  checkpoints.value[index].parameter = {
-    id: param.id,
-    isAutomatic: param.is_automatic,
-    unit: param.unit,
+  checkpoints.value[index] = {
+
+    parameter: {
+      id: param.id,
+      isAutomatic: param.is_automatic,
+      unit: param.unit,
+    }
   }
 }
 
@@ -101,6 +108,7 @@ const totalCheckpoints = computed(() => {
 const addCheckpoint = () => {
   checkpoints.value.push({
     name: "",
+    checkSheetDocumentTemplateParameterId: "",
     parameter: {
       id: null,
       isAutomatic: false,
@@ -120,9 +128,8 @@ const isFormValid = ref(false)
 const refForm = ref()
 
 // Form fields
-const checkSheetDocumentTemplateId = ref('')
-const selectedCheckSheetDocumentTemplateParameter = ref([])
-const groupedCheckSheetValues = ref({})
+const selectedCheckSheetDocumentTemplateId = ref('')
+const timestamp = ref(new Date())
 const status = ref("Draft")
 const note = ref("")
 
@@ -138,21 +145,26 @@ const checkSheetValues = ref({})
 ========================= */
 const onSubmit = async () => {
   formErrors.value = {}
+  console.log(checkSheetData.value)
+  const resultParsing = Object.entries(checkSheetData.value).map(([key, value]) => {
+const [time, index] = key.split('-')
 
-  const resultParsing = Object.entries(checkSheetValues.value).map(([key, value]) => ({
-    check_sheet_document_template_parameter_id: value["check_sheet_document_template_parameter_id"],
-    value: String(value.value),
-    timestamp: value.timestamp,
-  }))
+      return {
+        parameter_id: value.parameterId,
+        value: String(value.value),
+        timestamp: time,
+
+      }
+    })
 
 
 
   const payload = {
-    check_sheet_document_template_id: checkSheetDocumentTemplateId.value,
+    check_sheet_document_template_id: selectedCheckSheetDocumentTemplateId.value,
     check_sheet_values: resultParsing,
   }
 
-
+  console.log(payload, checkSheetValues.value)
   const result = await createCheckSheet(payload)
   if (result.success) {
     isAlertDialogVisible.value = true
@@ -172,11 +184,11 @@ const onSubmit = async () => {
 
 onMounted(async () => {
   let checkSheetResult = await fetchCheckSheet(id)
-  let checkSheetDocumentTemplatesResult =  await fetchChecksheetDocumentTemplates()
+  let checkSheetDocumentTemplatesResult = await fetchChecksheetDocumentTemplates()
   let parameterResult = await fetchParameters({})
   await nextTick()
 
-  if(checkSheetDocumentTemplatesResult.success){
+  if (checkSheetDocumentTemplatesResult.success) {
     processedCheckSheetDocumentTemplates.value = checkSheetDocumentTemplates.value.entries.map(checkSheetDocumentTemplate => {
       return {
         title: checkSheetDocumentTemplate.name,
@@ -187,17 +199,17 @@ onMounted(async () => {
   }
   if (checkSheetResult.success) {
     isEditMode.value = true
-    checkSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
+    selectedCheckSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
     checkSheetValues.value = checkSheet.value["check_sheet_values"].reduce((acc, item) => {
       acc[`${item["timestamp"]}-${item["check_sheet_document_template_parameter_id"]}`] = {
         value: item.value,
         timestamp: item.timestamp,
         check_sheet_document_template_parameter_id: item.check_sheet_document_template_parameter_id,
       }
-      
+
       return acc
     }, {})
-    (checkSheetValues)
+      (checkSheetValues)
   } else {
     id = null
   }
@@ -219,7 +231,7 @@ const isActiveCell = (time, cpIndex) => {
 const fillDown = (time, cpIndex) => {
   const currentValue = getCellValue(time, cpIndex)
   const timeIndex = timeSlots.value.indexOf(time)
-  
+
   // Fill semua cell dibawahnya dengan value yang sama
   for (let i = timeIndex + 1; i < timeSlots.value.length; i++) {
     setCellValue(timeSlots.value[i], cpIndex, currentValue)
@@ -230,18 +242,48 @@ const validCheckpoints = computed(() => {
   return checkpoints.value.filter(cp => isCheckpointValid(cp))
 })
 
-const timeSlots = computed(() => {
-  const slots = []
-  const interval = 1 // 1 jam
-  
-  for (let hour = 0; hour < 24; hour += interval) {
-    const timeKey = String(hour).padStart(2, '0') + ':00'
+const timeSlots = ref([])
 
-    slots.push(timeKey)
-  }
-  
-  return slots
+function parseHour(timeStr) {
+  // "12:00:00" → 12
+  return parseInt(timeStr.split(':')[0], 10)
+}
+
+const selectedCheckSheetDocumentTemplate = computed(() => {
+  return processedCheckSheetDocumentTemplates.value?.find(item => item.value === selectedCheckSheetDocumentTemplateId.value)
+
 })
+
+watch(() => selectedCheckSheetDocumentTemplate.value, () => {
+  if (!selectedCheckSheetDocumentTemplate.value?.rawData) {
+    timeSlots.value = []
+    return
+  }
+
+  const { interval, starting_hour } = selectedCheckSheetDocumentTemplate.value.rawData
+  if (!interval || !starting_hour) {
+    timeSlots.value = []
+    return
+  }
+
+  const startHour = parseHour(starting_hour)
+  timeSlots.value = []
+
+  let currentHour = startHour
+  const visited = new Set()
+
+  while (!visited.has(currentHour)) {
+    visited.add(currentHour)
+
+    timeSlots.value.push(
+      `${String(currentHour % 24).padStart(2, '0')}:00`
+    )
+
+    currentHour = (currentHour + interval) % 24
+  }
+},
+  { immediate: true }
+)
 
 // Initialize checkSheetData untuk menyimpan nilai
 const checkSheetData = ref({})
@@ -249,14 +291,17 @@ const checkSheetData = ref({})
 // Function untuk get/set value
 const getCellValue = (time, checkpointIndex) => {
   const key = `${time}-${checkpointIndex}`
-  
+
   return checkSheetData.value[key] || ''
 }
 
-const setCellValue = (time, checkpointIndex, value) => {
-  const key = `${time}-${checkpointIndex}`
+const setCellValue = (time, checkpointIndex, value, parameterId) => {
+  const key = `${time}-${checkpointIndex}-`
 
-  checkSheetData.value[key] = value
+  checkSheetData.value[key] = {
+    value,
+    parameterId,
+  }
 }
 
 // Validate if checkpoint has valid data
@@ -273,16 +318,11 @@ const copyRow = time => {
   validCheckpoints.value.forEach((_, cpIndex) => {
     rowData[cpIndex] = getCellValue(time, cpIndex)
   })
-  
+
   return rowData
 }
 
-// Paste row
-const pasteRow = (targetTime, rowData) => {
-  Object.entries(rowData).forEach(([cpIndex, value]) => {
-    setCellValue(targetTime, cpIndex, value)
-  })
-}
+
 
 // Quick fill all with same value
 const fillColumn = (cpIndex, value) => {
@@ -290,6 +330,52 @@ const fillColumn = (cpIndex, value) => {
     setCellValue(time, cpIndex, value)
   })
 }
+
+const fetchCheckPointParameterData = async () => {
+  if (!selectedCheckSheetDocumentTemplate.value) return
+
+  const payloadData = {
+    interval: selectedCheckSheetDocumentTemplate.value.rawData.interval,
+    timestamp: timestamp.value,
+    startingHour: selectedCheckSheetDocumentTemplate.value.rawData.starting_hour,
+    parameterIds: checkpoints.value.map(cp => cp.parameter.id),
+  }
+
+  const result = await fetchTelemetriesInterval(payloadData)
+
+  if (!result?.success) return
+
+  const responseData = telemetries.value?.entry.data
+  console.log(responseData)
+  if (!responseData) return
+
+  // RESET agar tidak nabrak data lama
+  checkSheetData.value = {}
+
+  // === PARSING UTAMA ===
+  timeSlots.value.forEach(time => {
+    const slotData = responseData[time]
+    if (!slotData) return
+
+    validCheckpoints.value.forEach((checkpoint, cpIndex) => {
+      // Skip manual input
+      if (!checkpoint.parameter.isAutomatic) return
+
+      const paramId = checkpoint.parameter.id
+      const value = slotData[String(paramId)]
+
+      if (value === undefined || value === null) return
+
+      const key = `${time}-${cpIndex}`
+
+      checkSheetData.value[key] = {
+        value,
+        parameterId: checkpoint.parameter.id
+      }
+    })
+  })
+}
+
 </script>
 
 <template>
@@ -303,25 +389,15 @@ const fillColumn = (cpIndex, value) => {
     <VCard>
       <VCardText>
         <div class="mb-6 mt-5 d-flex justify-center">
-          <AppStepper
-            v-model:current-step="currentStep"
-            :items="numberedSteps"
-            align="start"
-          />
+          <AppStepper v-model:current-step="currentStep" :items="numberedSteps" align="start" />
         </div>
       </VCardText>
     </VCard>
-  
+
     <VCard class="mt-5">
       <VCardText>
-        <VForm
-          ref="vform"
-          lazy-validation
-        >
-          <VWindow
-            v-model="currentStep"
-            class="disable-tab-transition"
-          >
+        <VForm ref="vform" lazy-validation>
+          <VWindow v-model="currentStep" class="disable-tab-transition">
             <!-- STEP 1: Mapping Parameter -->
             <VWindowItem>
               <VRow>
@@ -334,62 +410,44 @@ const fillColumn = (cpIndex, value) => {
                   </p>
 
                   <!-- Parameter Status Info -->
-                  <VAlert
-                    color="info"
-                    variant="tonal"
-                    density="compact"
-                    class="mb-6"
-                  >
+                  <VAlert color="info" variant="tonal" density="compact" class="mb-6">
                     <div class="d-flex align-center gap-2">
-                      <VIcon
-                        icon="tabler-info-circle"
-                        size="20"
-                      />
+                      <VIcon icon="tabler-info-circle" size="20" />
                       <div>
                         <span class="font-weight-medium">Parameter Status:</span>
-                        <VChip
-                          size="small"
-                          color="success"
-                          variant="flat"
-                          class="mx-2"
-                        >
+                        <VChip size="small" color="success" variant="flat" class="mx-2">
                           {{ activeParametersCount }} Active
                         </VChip>
-                        <VChip
-                          size="small"
-                          color="secondary"
-                          variant="flat"
-                        >
+                        <VChip size="small" color="secondary" variant="flat">
                           {{ totalCheckpoints }} Total Checkpoints
                         </VChip>
                       </div>
                     </div>
                   </VAlert>
+                  <VRow class="mb-2 d-flex justify-end">
+                    <VCol cols="4">
+                      <AppDateTimePicker id="timestamp" v-model="timestamp" :disabled="true" :config="{
+                        dateFormat: 'Y-m-d',
+                        altInput: true,
+                        altFormat: 'd M Y',
+                        time_24hr: true,
+                      }" label="Timestamp" :rules="[requiredValidator]" placeholder="Select date" />
+                    </VCol>
+                  </VRow>
 
                   <VRow class="mb-2">
                     <VCol cols="4">
-                      <AppSelect
-                        v-model="checkSheetDocumentTemplateId"
+                      <AppSelect v-model="selectedCheckSheetDocumentTemplateId"
                         :items="processedCheckSheetDocumentTemplates"
                         :error="!!formErrors.check_sheet_document_template_id"
-                        :error-messages="formErrors.check_sheet_document_template_id || []"
-                        :rules="[requiredValidator]"
-                        label="Check Sheet Document Template"
-                      />
+                        :error-messages="formErrors.check_sheet_document_template_id || []" :rules="[requiredValidator]"
+                        label="Check Sheet Document Template" />
                     </VCol>
                     <VCol cols="4">
-                      <AppTextField
-                        v-model="status"
-                        label="Status"
-                        disabled
-                      />
+                      <AppTextField v-model="status" label="Status" disabled />
                     </VCol>
                     <VCol cols="4">
-                      <AppTextField
-                        v-model="note"
-                        label="Note"
-                        placeholder="Insert short note"
-                      />
+                      <AppTextField v-model="note" label="Note" placeholder="Insert short note" />
                     </VCol>
                   </VRow>
 
@@ -415,11 +473,7 @@ const fillColumn = (cpIndex, value) => {
                     </div>
 
                     <!-- Data Rows -->
-                    <div
-                      v-for="(checkpoint, index) in checkpoints"
-                      :key="checkpoint.id"
-                      class="excel-row"
-                    >
+                    <div v-for="(checkpoint, index) in checkpoints" :key="checkpoint.id" class="excel-row">
                       <!-- Index -->
                       <div class="excel-cell index-cell">
                         <span class="index-number">{{ index + 1 }}</span>
@@ -427,33 +481,21 @@ const fillColumn = (cpIndex, value) => {
 
                       <!-- Checkpoint Name -->
                       <div class="excel-cell checkpoint-cell">
-                        <AppTextField
-                          v-model="checkpoint.name"
-                          placeholder="Enter checkpoint name"
-                          density="compact"
-                          hide-details="auto"
-                        />
+                        <AppTextField v-model="checkpoint.name" placeholder="Enter checkpoint name" density="compact"
+                          hide-details="auto" />
                       </div>
 
                       <!-- Parameter Select -->
                       <div class="excel-cell parameter-cell">
-                        <AppSelect
-                          v-model="checkpoint.parameter.id"
-                          :items="processedParameters"
-                          placeholder="Select parameter"
-                          density="compact"
-                          hide-details="auto"
-                          @update:model-value="value => onParameterChange(value, index)"
-                        />
+                        <AppSelect v-model="checkpoint.parameter.id" :items="processedParameters"
+                          placeholder="Select parameter" density="compact" hide-details="auto"
+                          @update:model-value="value => onParameterChange(value, index)" />
                       </div>
 
                       <!-- Is Automatic -->
                       <div class="excel-cell action-cell">
-                        <VChip
-                          :color="checkpoint.parameter.isAutomatic ? 'success' : 'info'"
-                          variant="elevated"
-                          size="small"
-                        >
+                        <VChip :color="checkpoint.parameter.isAutomatic ? 'success' : 'info'" variant="elevated"
+                          size="small">
                           {{ checkpoint.parameter.isAutomatic ? 'Automatic' : 'Manual' }}
                         </VChip>
                       </div>
@@ -468,13 +510,7 @@ const fillColumn = (cpIndex, value) => {
 
                     <!-- Add Row Button -->
                     <div class="excel-footer">
-                      <VBtn
-                        color="info"
-                        variant="tonal"
-                        size="small"
-                        prepend-icon="tabler-plus"
-                        @click="addCheckpoint"
-                      >
+                      <VBtn color="info" variant="tonal" size="small" prepend-icon="tabler-plus" @click="addCheckpoint">
                         Add Checkpoint
                       </VBtn>
                     </div>
@@ -482,16 +518,12 @@ const fillColumn = (cpIndex, value) => {
 
                   <!-- Navigation -->
                   <div class="d-flex justify-end gap-3 mt-6">
-                    <VBtn
-                      color="primary"
-                      :disabled="validCheckpoints.length === 0"
-                      @click="currentStep++"
-                    >
+                    <VBtn color="primary" :disabled="validCheckpoints.length === 0" @click="() => {
+                      currentStep++
+                      fetchCheckPointParameterData()
+                    }">
                       Next
-                      <VIcon
-                        icon="tabler-arrow-right"
-                        end
-                      />
+                      <VIcon icon="tabler-arrow-right" end />
                     </VBtn>
                   </div>
                 </VCol>
@@ -511,71 +543,34 @@ const fillColumn = (cpIndex, value) => {
                       </p>
                     </div>
                     <div class="d-flex gap-2">
-                      <VChip
-                        color="primary"
-                        variant="tonal"
-                        prepend-icon="tabler-checklist"
-                      >
+                      <VChip color="primary" variant="tonal" prepend-icon="tabler-checklist">
                         {{ validCheckpoints.length }} Checkpoints
                       </VChip>
-                      <VChip
-                        color="info"
-                        variant="tonal"
-                        prepend-icon="tabler-clock"
-                      >
+                      <VChip color="info" variant="tonal" prepend-icon="tabler-clock">
                         {{ timeSlots.length }} Time Slots
                       </VChip>
                     </div>
                   </div>
 
                   <!-- Quick Tips -->
-                  <VAlert
-                    color="info"
-                    variant="tonal"
-                    density="compact"
-                    class="mb-4"
-                  >
+                  <VAlert color="info" variant="tonal" density="compact" class="mb-4">
                     <div class="d-flex align-center gap-2">
                       <VIcon icon="tabler-bulb" />
                       <div class="text-caption">
-                        <strong>Quick Tips:</strong> Use Tab to navigate • Double-click time badge to fill all cells in that row • Click column header action to quick fill
+                        <strong>Quick Tips:</strong> Use Tab to navigate • Double-click time badge to fill all cells in
+                        that row • Click column header action to quick fill
                       </div>
                     </div>
                   </VAlert>
 
                   <!-- Excel Data Grid - IMPROVED -->
-                  <div
-                    v-if="validCheckpoints.length > 0"
-                    class="excel-data-grid"
-                  >
+                  <div v-if="validCheckpoints.length > 0" class="excel-data-grid">
                     <div class="grid-toolbar">
                       <div class="d-flex align-center gap-3">
-                        <VIcon
-                          icon="tabler-table"
-                          size="20"
-                          color="primary"
-                        />
+                        <VIcon icon="tabler-table" size="20" color="primary" />
                         <span class="text-body-2 font-weight-medium">Data Entry Grid</span>
                       </div>
-                      <div class="d-flex gap-2">
-                        <VBtn
-                          size="small"
-                          variant="tonal"
-                          color="success"
-                          prepend-icon="tabler-file-export"
-                        >
-                          Export
-                        </VBtn>
-                        <VBtn
-                          size="small"
-                          variant="tonal"
-                          color="warning"
-                          prepend-icon="tabler-refresh"
-                          @click="checkSheetData = {}"
-                        >
-                          Clear All
-                        </VBtn>
-                      </div>
+
                     </div>
 
                     <div class="grid-container">
@@ -584,35 +579,21 @@ const fillColumn = (cpIndex, value) => {
                         <thead>
                           <tr>
                             <th class="corner-cell">
-                              <VIcon
-                                icon="tabler-layout-grid"
-                                size="18"
-                              />
+                              <VIcon icon="tabler-layout-grid" size="18" />
                             </th>
                             <th class="time-column-header">
                               <div class="header-content">
-                                <VIcon
-                                  icon="tabler-clock"
-                                  size="18"
-                                />
+                                <VIcon icon="tabler-clock" size="18" />
                                 <span>TIME</span>
                               </div>
                             </th>
-                            <th
-                              v-for="(checkpoint, cpIndex) in validCheckpoints"
-                              :key="cpIndex"
-                              class="checkpoint-column-header"
-                              @mouseenter="hoveredCol = cpIndex"
-                              @mouseleave="hoveredCol = null"
-                            >
+                            <th v-for="(checkpoint, cpIndex) in validCheckpoints" :key="cpIndex"
+                              class="checkpoint-column-header" @mouseenter="hoveredCol = cpIndex"
+                              @mouseleave="hoveredCol = null">
                               <div class="header-content">
                                 <div class="header-main">
-                                  <VChip
-                                    size="small"
-                                    :color="checkpoint.parameter.isAutomatic ? 'success' : 'primary'"
-                                    class="mb-1"
-                                    variant="flat"
-                                  >
+                                  <VChip size="small" :color="checkpoint.parameter.isAutomatic ? 'success' : 'primary'"
+                                    class="mb-1" variant="flat">
                                     {{ String.fromCharCode(65 + cpIndex) }}
                                   </VChip>
                                   <div class="checkpoint-info">
@@ -620,27 +601,16 @@ const fillColumn = (cpIndex, value) => {
                                       {{ checkpoint.name }}
                                     </div>
                                     <div class="checkpoint-meta">
-                                      <VIcon
-                                        :icon="checkpoint.parameter.isAutomatic ? 'tabler-robot' : 'tabler-edit'"
-                                        size="12"
-                                      />
+                                      <VIcon :icon="checkpoint.parameter.isAutomatic ? 'tabler-robot' : 'tabler-edit'"
+                                        size="12" />
                                       <span>{{ checkpoint.parameter.unit || 'N/A' }}</span>
                                     </div>
                                   </div>
                                 </div>
                                 <VMenu>
                                   <template #activator="{ props }">
-                                    <VBtn
-                                      v-bind="props"
-                                      icon
-                                      size="x-small"
-                                      variant="text"
-                                      class="header-action"
-                                    >
-                                      <VIcon
-                                        icon="tabler-dots-vertical"
-                                        size="16"
-                                      />
+                                    <VBtn v-bind="props" icon size="x-small" variant="text" class="header-action">
+                                      <VIcon icon="tabler-dots-vertical" size="16" />
                                     </VBtn>
                                   </template>
                                   <VList density="compact">
@@ -665,14 +635,9 @@ const fillColumn = (cpIndex, value) => {
 
                         <!-- Body -->
                         <tbody>
-                          <tr
-                            v-for="(time, timeIndex) in timeSlots"
-                            :key="timeIndex"
-                            class="data-row"
-                            :class="{ 'row-hovered': hoveredRow === timeIndex }"
-                            @mouseenter="hoveredRow = timeIndex"
-                            @mouseleave="hoveredRow = null"
-                          >
+                          <tr v-for="(time, timeIndex) in timeSlots" :key="timeIndex" class="data-row"
+                            :class="{ 'row-hovered': hoveredRow === timeIndex }" @mouseenter="hoveredRow = timeIndex"
+                            @mouseleave="hoveredRow = null">
                             <!-- Row Number -->
                             <td class="row-number-cell">
                               <div class="row-number">
@@ -684,20 +649,10 @@ const fillColumn = (cpIndex, value) => {
                             <td class="time-data-cell">
                               <VMenu>
                                 <template #activator="{ props }">
-                                  <div
-                                    v-bind="props"
-                                    class="time-badge-interactive"
-                                  >
-                                    <VIcon
-                                      icon="tabler-clock"
-                                      size="16"
-                                    />
+                                  <div v-bind="props" class="time-badge-interactive">
+                                    <VIcon icon="tabler-clock" size="16" />
                                     <span class="time-text">{{ time }}</span>
-                                    <VIcon
-                                      icon="tabler-chevron-down"
-                                      size="14"
-                                      class="dropdown-icon"
-                                    />
+                                    <VIcon icon="tabler-chevron-down" size="14" class="dropdown-icon" />
                                   </div>
                                 </template>
                                 <VList density="compact">
@@ -718,64 +673,35 @@ const fillColumn = (cpIndex, value) => {
                             </td>
 
                             <!-- Data Cells -->
-                            <td
-                              v-for="(checkpoint, cpIndex) in validCheckpoints"
-                              :key="cpIndex"
-                              class="input-cell"
+                            <td v-for="(checkpoint, cpIndex) in validCheckpoints" :key="cpIndex" class="input-cell"
                               :class="{
                                 'cell-active': isActiveCell(time, cpIndex),
                                 'cell-hovered': hoveredCol === cpIndex,
                                 'cell-disabled': checkpoint.parameter.isAutomatic,
                                 'cell-filled': getCellValue(time, cpIndex)
-                              }"
-                            >
+                              }">
                               <div class="cell-wrapper">
-                                <AppTextField
-                                  :model-value="getCellValue(time, cpIndex)"
-                                  placeholder="--"
-                                  density="compact"
-                                  hide-details
-                                  type="number"
-                                  :disabled="checkpoint.parameter.isAutomatic"
-                                  class="cell-input"
-                                  @focus="setActiveCell(time, cpIndex)"
-                                  @blur="activeCell = null"
-                                  @update:model-value="val => setCellValue(time, cpIndex, val)"
-                                >
-                                  <template
-                                    v-if="checkpoint.parameter.isAutomatic"
-                                    #append-inner
-                                  >
+                                <AppTextField :model-value="getCellValue(time, cpIndex)" placeholder="--"
+                                  density="compact" hide-details type="number"
+                                  :disabled="checkpoint.parameter.isAutomatic" class="cell-input"
+                                  @focus="setActiveCell(time, cpIndex)" @blur="activeCell = null"
+                                  @update:model-value="val => setCellValue(time, cpIndex, val, checkpoint.parameter.id)">
+                                  <template v-if="checkpoint.parameter.isAutomatic" #append-inner>
                                     <VTooltip location="top">
                                       <template #activator="{ props }">
-                                        <VIcon
-                                          v-bind="props"
-                                          icon="tabler-lock"
-                                          size="14"
-                                          color="success"
-                                        />
+                                        <VIcon v-bind="props" icon="tabler-lock" size="14" color="success" />
                                       </template>
                                       <span>Automatic Parameter</span>
                                     </VTooltip>
                                   </template>
                                 </AppTextField>
-                      
+
                                 <!-- Quick Fill Down Button -->
-                                <VBtn
-                                  v-if="!checkpoint.parameter.isAutomatic && getCellValue(time, cpIndex)"
-                                  icon
-                                  size="x-small"
-                                  variant="text"
-                                  class="fill-down-btn"
-                                  @click="fillDown(time, cpIndex)"
-                                >
+                                <VBtn v-if="!checkpoint.parameter.isAutomatic && getCellValue(time, cpIndex)" icon
+                                  size="x-small" variant="text" class="fill-down-btn" @click="fillDown(time, cpIndex)">
                                   <VTooltip location="top">
                                     <template #activator="{ props }">
-                                      <VIcon
-                                        v-bind="props"
-                                        icon="tabler-arrow-down"
-                                        size="14"
-                                      />
+                                      <VIcon v-bind="props" icon="tabler-arrow-down" size="14" />
                                     </template>
                                     <span>Fill Down</span>
                                   </VTooltip>
@@ -791,19 +717,13 @@ const fillColumn = (cpIndex, value) => {
                     <div class="grid-footer">
                       <div class="footer-stats">
                         <div class="stat-item">
-                          <VIcon
-                            icon="tabler-check"
-                            size="16"
-                            color="success"
-                          />
-                          <span>{{ Object.keys(checkSheetData).filter(k => checkSheetData[k]).length }} / {{ timeSlots.length * validCheckpoints.length }} Filled</span>
+                          <VIcon icon="tabler-check" size="16" color="success" />
+                          <span>{{Object.keys(checkSheetData).filter(k => checkSheetData[k]).length}} / {{
+                            timeSlots.length *
+                            validCheckpoints.length }} Filled</span>
                         </div>
                         <div class="stat-item">
-                          <VIcon
-                            icon="tabler-clock"
-                            size="16"
-                            color="info"
-                          />
+                          <VIcon icon="tabler-clock" size="16" color="info" />
                           <span>Last updated: {{ new Date().toLocaleTimeString() }}</span>
                         </div>
                       </div>
@@ -812,20 +732,10 @@ const fillColumn = (cpIndex, value) => {
 
                   <!-- Navigation -->
                   <div class="d-flex justify-space-between mt-6">
-                    <VBtn
-                      color="secondary"
-                      variant="tonal"
-                      prepend-icon="tabler-arrow-left"
-                      @click="currentStep--"
-                    >
+                    <VBtn color="secondary" variant="tonal" prepend-icon="tabler-arrow-left" @click="currentStep--">
                       Back
                     </VBtn>
-                    <VBtn
-                      color="primary"
-                      :loading="actionLoading"
-                      append-icon="tabler-check"
-                      @click="onSubmit"
-                    >
+                    <VBtn color="primary" :loading="actionLoading" append-icon="tabler-check" @click="onSubmit">
                       Submit Check Sheet
                     </VBtn>
                   </div>
@@ -839,136 +749,137 @@ const fillColumn = (cpIndex, value) => {
   </VCol>
 </template>
 
-  <style scoped>
-    .excel-table-wrapper {
-    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: rgb(var(--v-theme-surface));
-    }
+<style scoped>
+.excel-table-wrapper {
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: rgb(var(--v-theme-surface));
+}
 
-    .excel-header {
-    display: grid;
-    grid-template-columns: 60px 1fr 1fr 120px 120px;
-    gap: 0;
-    background-color: rgb(var(--v-theme-primary));
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-    border-bottom: 2px solid rgb(var(--v-theme-primary));
-    }
+.excel-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 120px 120px;
+  gap: 0;
+  background-color: rgb(var(--v-theme-primary));
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 2px solid rgb(var(--v-theme-primary));
+}
 
-    .excel-row {
-    display: grid;
-    grid-template-columns: 60px 1fr 1fr 120px 120px;
-    gap: 0;
-    border-bottom: 1px solid rgba(var(--v-border-color), 0.3);
-    transition: background-color 0.2s;
-    }
+.excel-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr 120px 120px;
+  gap: 0;
+  border-bottom: 1px solid rgba(var(--v-border-color), 0.3);
+  transition: background-color 0.2s;
+}
 
-    .excel-row:hover {
-    background-color: rgba(var(--v-theme-primary), 0.04);
-    }
+.excel-row:hover {
+  background-color: rgba(var(--v-theme-primary), 0.04);
+}
 
-    .excel-row:last-child {
-    border-bottom: none;
-    }
+.excel-row:last-child {
+  border-bottom: none;
+}
 
-    .excel-cell {
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    border-right: 1px solid rgba(var(--v-border-color), 0.2);
-    }
+.excel-cell {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid rgba(var(--v-border-color), 0.2);
+}
 
-    .excel-cell:last-child {
-    border-right: none;
-    }
+.excel-cell:last-child {
+  border-right: none;
+}
 
-    .index-cell {
-    justify-content: center;
-    background-color: rgba(var(--v-theme-surface-variant), 0.3);
-    }
+.index-cell {
+  justify-content: center;
+  background-color: rgba(var(--v-theme-surface-variant), 0.3);
+}
 
-    .index-number {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background-color: rgb(var(--v-theme-primary));
-    color: white;
-    border-radius: 50%;
-    font-size: 12px;
-    font-weight: 600;
-    }
+.index-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: rgb(var(--v-theme-primary));
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+}
 
-    .checkpoint-cell {
-    min-width: 225px;
-    }
+.checkpoint-cell {
+  min-width: 225px;
+}
 
-    .parameter-cell {
-    min-width: 225px;
-    }
+.parameter-cell {
+  min-width: 225px;
+}
 
-    .action-cell {
-    justify-content: center;
-    gap: 8px;
-    }
+.action-cell {
+  justify-content: center;
+  gap: 8px;
+}
 
-    .excel-footer {
-    padding: 16px;
-    text-align: center;
-    background-color: rgba(var(--v-theme-surface-variant), 0.3);
-    border-top: 1px solid rgba(var(--v-border-color), 0.2);
-    }
+.excel-footer {
+  padding: 16px;
+  text-align: center;
+  background-color: rgba(var(--v-theme-surface-variant), 0.3);
+  border-top: 1px solid rgba(var(--v-border-color), 0.2);
+}
 
-    /* Responsive */
-    @media (max-width: 1024px) {
-    .excel-header,
-    .excel-row {
+/* Responsive */
+@media (max-width: 1024px) {
+
+  .excel-header,
+  .excel-row {
     grid-template-columns: 50px 1fr 1fr 100px 100px;
-    }
-  
-    .checkpoint-cell,
-    .parameter-cell {
-    min-width: 175px;
-    }
-    }
+  }
 
-    @media (max-width: 768px) {
-    .excel-header {
+  .checkpoint-cell,
+  .parameter-cell {
+    min-width: 175px;
+  }
+}
+
+@media (max-width: 768px) {
+  .excel-header {
     display: none;
-    }
-  
-    .excel-row {
+  }
+
+  .excel-row {
     grid-template-columns: 1fr;
     padding: 16px;
     gap: 12px;
-    }
-  
-    .excel-cell {
+  }
+
+  .excel-cell {
     border-right: none;
     padding: 0;
-    }
-  
-    .excel-cell::before {
+  }
+
+  .excel-cell::before {
     content: attr(data-label);
     font-weight: 600;
     display: block;
     margin-bottom: 4px;
     font-size: 12px;
     color: rgb(var(--v-theme-primary));
-    }
-  
-    .index-cell {
+  }
+
+  .index-cell {
     background-color: transparent;
-    }
-  
-    .action-cell {
+  }
+
+  .action-cell {
     justify-content: flex-start;
-    }
-    }
+  }
+}
 
 
 /* Excel Data Grid - Modern Design */
@@ -1298,9 +1209,9 @@ const fillColumn = (cpIndex, value) => {
     min-width: 160px;
     width: 160px;
   }
-  
+
   .input-cell {
     min-width: 160px;
   }
 }
-  </style>
+</style>
