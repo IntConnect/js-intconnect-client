@@ -1,4 +1,3 @@
-
 import mqtt from 'mqtt'
 import { computed, reactive, ref } from 'vue'
 
@@ -7,10 +6,10 @@ export function useMqttConnection() {
   // STATE
   // ==========================================
   const mqttData = reactive({})
-  const lastUpdate = ref(null)
+  const lastUpdate = ref(null) // Will store Date object
   const mqttClient = ref(null)
   const mqttStatus = ref('disconnected')
-  const parametersList = ref([]) // Tambahkan ini
+  const parametersList = ref([])
 
   // ==========================================
   // COMPUTED
@@ -155,7 +154,9 @@ export function useMqttConnection() {
       }
     })
 
-    lastUpdate.value = timestamp || new Date().toISOString()
+    // Update lastUpdate to Date object
+    lastUpdate.value = new Date()
+    
     console.log(`✅ Updated ${updatedCount}/${parameters.length} parameters`)
   }
 
@@ -174,12 +175,12 @@ export function useMqttConnection() {
   // ==========================================
   // GETTERS
   // ==========================================
-  const getParameterById =parameterId => {
+  const getParameterById = parameterId => {
     return parametersList.value?.find(p => p.id === parameterId)
   }
 
   const getValueByParameterId = parameterId => {
-  // Cari parameter berdasarkan ID
+    // Cari parameter berdasarkan ID
     const parameter = getParameterById(parameterId)
     if (!parameter) return null
   
@@ -336,7 +337,7 @@ export function useMqttConnection() {
   return {
     // State
     mqttData,
-    lastUpdate,
+    lastUpdate, // Now returns Date object
     mqttStatus,
 
     // Computed
@@ -357,7 +358,6 @@ export function useMqttConnection() {
     getParameterById,
     getValueByParameterId,
     getFormattedValueById,
-
 
     // Status
     getParameterStatus,

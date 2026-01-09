@@ -1,13 +1,11 @@
 <script setup>
 import '@jaxtheprime/vue3-dropzone/dist/style.css'
-import { nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-
-import mqtt from 'mqtt'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,7 +20,6 @@ const {
   machines,
   fetchMachinesByFacilityId,
 } = useManageMachine()
-
 
 // Form fields
 const name = ref('')
@@ -50,7 +47,6 @@ let scene = null
 let camera = null
 let controls = null
 let model = null
-
 
 /* =========================
    THREE.JS FUNCTIONS
@@ -85,27 +81,19 @@ function initThreePreview(config) {
   // Camera (restore saved state)
   camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
   camera.position.set(config.camera_x, config.camera_y, config.camera_z)
-
   camera.updateProjectionMatrix()
 
   // Controls
   controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.dampingFactor = 0.05
-
   controls.enableRotate = true
   controls.enableZoom = true
-  controls.enablePan = true   // 🔴 INI PENTING
-
-  // === KECEPATAN ===
+  controls.enablePan = true
   controls.rotateSpeed = 0.6
   controls.zoomSpeed = 0.8
   controls.panSpeed = 0.6
-
-  // === PAN SCREEN SPACE (lebih natural) ===
   controls.screenSpacePanning = true
-
-  // === TARGET AWAL ===
   controls.target.set(0, 0, 0)
   controls.update()
 
@@ -128,8 +116,6 @@ function initThreePreview(config) {
     model.position.z -= center.z
     model.position.x -= 0.3
     scene.add(model)
-
-
   })
 
   animate()
@@ -142,7 +128,6 @@ function animate() {
   renderer.render(scene, camera)
 }
 
-
 function destroyPreview() {
   if (renderer) {
     renderer.dispose()
@@ -153,15 +138,128 @@ function destroyPreview() {
   }
 }
 
+/* =========================
+   MQTT SETUP - USING COMPOSABLE
+========================= */
+
+// Create MQTT connection instances for each machine
+const mqttConnections = reactive({})
+
+// Initialize MQTT connections for each machine
+function setupMqttConnections() {
+  const entries = machines.value?.entries
+
+  if (!Array.isArray(entries)) return
+
+  entries.forEach(machine => {
+    if (!machine.mqtt_topic?.mqtt_broker) return
+
+    // Create unique connection instance for each machine
+    const connection = useMqttConnection()
+    
+    // Store connection
+    mqttConnections[machine.id] = connection
+
+    // Connect to MQTT broker
+    connection.connectMQTT(machine)
+  })
+}
+
+// Cleanup MQTT connections
+function cleanupMqttConnections() {
+  Object.values(mqttConnections).forEach(connection => {
+    connection.disconnectMQTT()
+  })
+}
 
 /* =========================
-   SUBMIT / PAYLOAD
+   COMPUTED - PROCESSED MACHINES WITH DATA
+========================= */
+
+const processedMachinesWithData = computed(() => {
+  const entries = machines.value?.entries
+
+  if (!Array.isArray(entries)) return []
+
+  return entries.map(machine => {
+    const connection = mqttConnections[machine.id]
+    const parameters = machine.mqtt_topic?.parameters || []
+
+    if (!connection) {
+      return {
+        id: machine.id,
+        name: machine.name,
+        parameters: parameters.map(parameter => ({
+          name: parameter.name,
+          code: parameter.code,
+          value: null,
+          unit: parameter.unit || '',
+          status: 'unknown',
+          formattedValue: '-',
+          timestamp: null,
+          hasData: false,
+        })),
+        lastUpdate: null,
+        isOnline: false,
+        dataCount: 0,
+        mqttStatus: 'disconnected',
+      }
+    }
+
+
+    console.log(connection)
+    return {
+      id: machine.id,
+      name: machine.name,
+      parameters: parameters.map(parameter => {
+        const paramData = connection.getParameter(parameter.code)
+
+        return {
+          name: parameter.name,
+          code: parameter.code,
+          value: connection.getRawValue(parameter.code),
+          unit: parameter.unit || '',
+          status: connection.getParameterStatus(parameter.code),
+          formattedValue: connection.getFormattedValue(parameter.code),
+          timestamp: paramData?.timestamp,
+          hasData: connection.hasParameter(parameter.code),
+        }
+      }),
+      lastUpdate: connection.lastUpdate || null,
+      isOnline: connection.isConnected || false,
+      dataCount: Object.keys(connection.getAllParameters()).length,
+      mqttStatus: connection.mqttStatus || 'disconnected',
+    }
+  })
+})
+
+// MQTT Status summary for all connections
+const mqttStatusSummary = computed(() => {
+  const summary = {}
+  
+  Object.entries(mqttConnections).forEach(([machineId, connection]) => {
+    const machine = machines.value?.entries?.find(m => m.id === machineId)
+    if (!machine) return
+
+    const broker = machine.mqtt_topic?.mqtt_broker
+    if (!broker) return
+
+    const key = `${broker.host_name}:${broker.ws_port}`
+    summary[key] = connection.mqttStatus?.value || 'disconnected'
+  })
+
+  return summary
+})
+
+/* =========================
+   LIFECYCLE
 ========================= */
 
 onMounted(async () => {
   await fetchFacility(id)
   await fetchMachinesByFacilityId(id)
   await nextTick()
+  
   let processedFacility = facility.value.entry
   name.value = processedFacility.name
   code.value = processedFacility.code
@@ -171,362 +269,33 @@ onMounted(async () => {
   positionY.value = processedFacility.position_y
   positionZ.value = processedFacility.position_z
   existingThumbnail.value = [useStaticFile(processedFacility.thumbnail_path)]
+  
   initThreePreview(processedFacility)
+  
+  // Setup MQTT connections after machines are loaded
+  setupMqttConnections()
+})
+
+onBeforeUnmount(() => {
+  destroyPreview()
+  cleanupMqttConnections()
 })
 
 const currentTab = ref(0)
-
-// State untuk menyimpan real-time data dari MQTT
-const mqttData = reactive({})
-const lastUpdate = reactive({})
-
-// MQTT clients dan status
-const mqttClients = reactive({})
-const mqttStatus = reactive({})
-
-// Grouped brokers computation
-const groupedBrokers = computed(() => {
-  const map = {}
-  const entries = machines.value?.entries
-
-  if (!Array.isArray(entries)) {
-    return map
-  }
-
-  entries.forEach(machine => {
-    const topic = machine.mqtt_topic
-    if (!topic || !topic.mqtt_broker) return
-
-    const broker = topic.mqtt_broker
-    const key = `${broker.host_name}:${broker.ws_port}`
-
-    if (!map[key]) {
-      map[key] = {
-        broker,
-        topics: new Set(),
-      }
-    }
-
-    map[key].topics.add(topic.name)
-  })
-
-  return map
-})
-
-// ==========================================
-// MQTT MESSAGE HANDLER
-// ==========================================
-
-/**
- * Parse MQTT message dengan struktur:
- * {
- *   "d": {
- *     "parameter_code": [value],
- *     ...
- *   },
- *   "ts": "2025-12-17T05:37:32.244815+07:00"
- * }
- */
-function handleMqttMessage(topic, data) {
-  console.log('📩 Received MQTT message:', { topic, data })
-
-  // Validasi struktur data
-  if (!data || typeof data !== 'object') {
-    console.warn('Invalid data structure:', data)
-    
-    return
-  }
-
-  const { d: dataValues, ts: timestamp } = data
-
-  if (!dataValues || typeof dataValues !== 'object') {
-    console.warn('Missing "d" field in data:', data)
-    
-    return
-  }
-
-  // Find machine yang terkait dengan topic ini
-  const entries = machines.value?.entries || []
-  const machine = entries.find(m => m.mqtt_topic?.name === topic)
-
-  if (!machine) {
-    console.warn(`No machine found for topic: ${topic}`)
-    
-    return
-  }
-
-  console.log(`✅ Processing data for machine: ${machine.name}`)
-
-  // Initialize storage untuk machine ini jika belum ada
-  if (!mqttData[machine.id]) {
-    mqttData[machine.id] = {}
-  }
-
-  // Process setiap parameter
-  const parameters = machine.mqtt_topic?.parameters || []
-  let updatedCount = 0
-
-  parameters.forEach(parameter => {
-    const paramCode = parameter.code
-
-    // Check apakah parameter code ada di data
-    if (paramCode in dataValues) {
-      const rawValue = dataValues[paramCode]
-
-      // Extract value dari array (struktur: [value])
-      const value = Array.isArray(rawValue) ? rawValue[0] : rawValue
-
-      // Store value
-      mqttData[machine.id][paramCode] = {
-        name: parameter.name,
-        code: paramCode,
-        value: value,
-        unit: parameter.unit || '',
-        timestamp: timestamp || new Date().toISOString(),
-        type: typeof value,
-      }
-
-      updatedCount++
-
-      console.log(`  ✓ ${parameter.name} (${paramCode}): ${value}`)
-    }
-  })
-
-  // Update last update timestamp untuk machine
-  lastUpdate[machine.id] = timestamp || new Date().toISOString()
-
-  console.log(`✅ Updated ${updatedCount} parameters for ${machine.name}`)
-
-  // Trigger reactive update jika perlu
-  triggerUIUpdate(machine.id)
-}
-
-/**
- * Trigger UI update atau side effects
- */
-function triggerUIUpdate(machineId) {
-  // Optional: Trigger animations, notifications, atau updates lainnya
-  // Contoh: update 3D model berdasarkan data
-
-  const data = mqttData[machineId]
-  if (!data) return
-
-  // Example: Update 3D model berdasarkan operating state
-  if (data['1_Chiller_Operating_State']?.value === true) {
-    // Highlight atau animasi chiller dalam 3D scene
-    console.log('🟢 Chiller is operating')
-  } else if (data['1_Chiller_Operating_State']?.value === false) {
-    console.log('🔴 Chiller is off')
-  }
-
-  // Example: Check threshold dan trigger alert
-  const cop = data['1_Chiller_COP']?.value
-  if (cop && cop < 5) {
-    console.warn('⚠️ Low COP detected:', cop)
-  }
-}
-
-/**
- * Get formatted value untuk display
- */
-function getFormattedValue(machineId, paramCode) {
-  const param = mqttData[machineId]?.[paramCode]
-  if (!param) return '-'
-
-  const { value, unit, type } = param
-
-  // Format berdasarkan type
-  if (type === 'boolean') {
-    return value ? 'ON' : 'OFF'
-  }
-
-  if (type === 'number') {
-    // Round to 2 decimal places
-    const rounded = Math.round(value * 100) / 100
-    
-    return unit ? `${rounded} ${unit}` : rounded.toString()
-  }
-
-  return value?.toString() || '-'
-}
-
-/**
- * Get parameter status (for color coding)
- */
-function getParameterStatus(machineId, paramCode) {
-  const param = mqttData[machineId]?.[paramCode]
-  if (!param) return 'unknown'
-
-  const { value, type } = param
-
-  if (type === 'boolean') {
-    return value ? 'active' : 'inactive'
-  }
-
-  // Add custom logic untuk numeric thresholds
-  if (paramCode === '1_Chiller_COP' && value < 5) {
-    return 'warning'
-  }
-
-  return 'normal'
-}
-
-// ==========================================
-// MQTT CONNECTION
-// ==========================================
-
-function connectBroker(brokerKey, brokerData) {
-  if (mqttClients[brokerKey]?.connected) {
-    console.log(`Already connected to ${brokerKey}`)
-    
-    return
-  }
-
-  const { broker, topics } = brokerData
-
-  if (!broker.host_name || !broker.ws_port) {
-    console.error('Invalid broker configuration:', broker)
-    
-    return
-  }
-
-  const url = `ws://${broker.host_name}:${broker.ws_port}/ws`
-
-  console.log(`🔌 Attempting to connect to: ${url}`)
-
-  try {
-    const client = mqtt.connect(url, {
-      username: broker.username || undefined,
-      password: broker.password || undefined,
-      reconnectPeriod: 5000,
-      connectTimeout: 10000,
-      clean: true,
-      clientId: `webapp_${Math.random().toString(16).slice(2, 10)}`,
-    })
-
-    mqttStatus[brokerKey] = 'connecting'
-
-    client.on('connect', () => {
-      console.log(`✅ MQTT connected: ${brokerKey}`)
-      mqttStatus[brokerKey] = 'connected'
-
-      topics.forEach(topic => {
-        client.subscribe(topic, { qos: 0 }, err => {
-          if (err) {
-            console.error(`Failed to subscribe to ${topic}:`, err)
-          } else {
-            console.log(`📡 Subscribed to: ${topic}`)
-          }
-        })
-      })
-    })
-
-    client.on('message', (topic, payload) => {
-      const message = payload.toString()
-
-      try {
-        const data = JSON.parse(message)
-
-        handleMqttMessage(topic, data)
-      } catch (err) {
-        console.error('❌ Failed to parse JSON:', err)
-        console.error('Raw payload:', message)
-      }
-    })
-
-    client.on('error', err => {
-      console.error(`❌ MQTT error (${brokerKey}):`, err.message)
-      mqttStatus[brokerKey] = 'error'
-    })
-
-    client.on('offline', () => {
-      console.warn(`⚠️ MQTT offline: ${brokerKey}`)
-      mqttStatus[brokerKey] = 'offline'
-    })
-
-    client.on('reconnect', () => {
-      console.log(`🔄 MQTT reconnecting: ${brokerKey}`)
-      mqttStatus[brokerKey] = 'reconnecting'
-    })
-
-    mqttClients[brokerKey] = client
-
-  } catch (err) {
-    console.error(`Failed to create MQTT client for ${brokerKey}:`, err)
-    mqttStatus[brokerKey] = 'failed'
-  }
-}
-
-// Watch and connect
-watch(
-  groupedBrokers,
-  brokers => {
-    Object.entries(brokers).forEach(([key, data]) => {
-      connectBroker(key, data)
-    })
-  },
-  { immediate: true },
-)
-
-// Cleanup
-onBeforeUnmount(() => {
-  console.log('🔌 Disconnecting all MQTT clients...')
-  Object.entries(mqttClients).forEach(([key, client]) => {
-    if (client?.connected) {
-      client.end(true)
-      console.log(`Disconnected from ${key}`)
-    }
-  })
-})
-
-// Computed untuk processed machines dengan real-time data
-const processedMachinesWithData = computed(() => {
-  const entries = machines.value?.entries
-
-  if (!Array.isArray(entries)) return []
-
-  return entries.map(machine => {
-    const parameters = machine.mqtt_topic?.parameters || []
-    const machineData = mqttData[machine.id] || {}
-
-    return {
-      id: machine.id,
-      name: machine.name,
-      parameters: parameters.map(parameter => {
-        const realtimeData = machineData[parameter.code]
-
-        return {
-          name: parameter.name,
-          code: parameter.code,
-          value: realtimeData?.value,
-          rawValue: realtimeData?.value, // For debugging
-          unit: parameter.unit || '',
-          status: getParameterStatus(machine.id, parameter.code),
-          formattedValue: getFormattedValue(machine.id, parameter.code),
-          timestamp: realtimeData?.timestamp,
-          hasData: !!realtimeData, // Flag untuk check data tersedia
-        }
-      }),
-      lastUpdate: lastUpdate[machine.id],
-      isOnline: !!lastUpdate[machine.id],
-      dataCount: Object.keys(machineData).length, // Jumlah parameter yang ada datanya
-    }
-  })
-})
 </script>
 
 <template>
   <VRow>
     <!-- MQTT Status Indicators -->
     <VCol
-      v-if="Object.keys(mqttStatus).length > 0"
+      v-if="Object.keys(mqttStatusSummary).length > 0"
       cols="12"
     >
       <VCard>
         <VCardText>
           <div class="d-flex gap-2 flex-wrap">
             <VChip
-              v-for="(status, broker) in mqttStatus"
+              v-for="(status, broker) in mqttStatusSummary"
               :key="broker"
               :color="
                 status === 'connected' ? 'success' :
@@ -612,7 +381,21 @@ const processedMachinesWithData = computed(() => {
                           v-if="machine.lastUpdate"
                           class="pa-3 text-caption text-medium-emphasis"
                         >
-                          Last update: {{ new Date(machine.lastUpdate).toLocaleString() }}
+                          Last update: {{ machine.lastUpdate.toLocaleString() }}
+                        </div>
+
+                        <!-- No Connection Warning -->
+                        <div
+                          v-if="!machine.isOnline"
+                          class="pa-3"
+                        >
+                          <VAlert
+                            type="warning"
+                            variant="tonal"
+                            density="compact"
+                          >
+                            MQTT {{ machine.mqttStatus }}
+                          </VAlert>
                         </div>
 
                         <VList lines="two">
@@ -683,11 +466,24 @@ const processedMachinesWithData = computed(() => {
             >
               Live
             </VChip>
+            <VChip
+              v-else
+              color="default"
+              size="x-small"
+            >
+              {{ machine.mqttStatus }}
+            </VChip>
           </VCardTitle>
         </VCardItem>
 
         <VCardText>
           {{ machines.entries.find(m => m.id === machine.id)?.description }}
+        </VCardText>
+
+        <VCardText v-if="machine.isOnline">
+          <div class="text-caption">
+            <strong>{{ machine.dataCount }}</strong> parameters active
+          </div>
         </VCardText>
 
         <VCardActions>
