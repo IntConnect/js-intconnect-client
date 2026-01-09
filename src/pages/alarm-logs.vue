@@ -143,10 +143,10 @@ const handleUpdateAction = async (note) => {
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
         <template #item.machine_name="{ item }">
-          {{ item.parameter.mqtt_topic.machine.name }}
+          {{ item.parameter?.mqtt_topic?.machine?.name ?  item.parameter?.mqtt_topic?.machine?.name  : item.parameter?.machine?.name }}
         </template>
         <template #item.parameter_name="{ item }">
-          {{ item.parameter.name }}
+          {{ item.parameter?.name }}
         </template>
 
         <template #expanded-row="{ item, columns }">
@@ -172,13 +172,14 @@ const handleUpdateAction = async (note) => {
         </template>
         <template #item.acknowledged_by="{ item }">
           <div class="d-flex align-center gap-2">
-            {{ item.acknowledged_by.name }}
+            {{ item.acknowledged_by?.name }}
           </div>
         </template>
 
 
 
         <!-- Created At Column -->
+
         <template #item.created_at="{ item }">
           {{ format(new Date(item.created_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
@@ -187,7 +188,8 @@ const handleUpdateAction = async (note) => {
           {{ format(new Date(item.updated_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
         <template #item.acknowledged_at="{ item }">
-          {{ format(new Date(item.acknowledged_at), 'dd MMM yyyy HH:mm:ss') }}
+          {{ item.acknowledged_at ? format(new Date(item.acknowledged_at), 'dd MMM yyyy HH:mm:ss') : "" }}
+
         </template>
         <template #header.actions>
           <div class="text-center w-100">
