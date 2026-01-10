@@ -27,7 +27,7 @@ const parsedJwt = computed(() => {
 
 const hasPermission = requiredPermission => {
   if (!requiredPermission) return true // jika menu tidak memerlukan permission
-  
+
   return userPermissions.value?.includes(requiredPermission)
 }
 
@@ -44,13 +44,14 @@ onMounted(async () => {
 
 const filteredNavItems = computed(() => {
   return navItems
+    .filter(navItem => !navItem.name)
     .map(item => {
       if (!hasPermission(item.requiredPermission)) return null
 
       if (item.children) {
         const allowedChildren = item.children.filter(child => hasPermission(child.requiredPermission))
         if (!allowedChildren.length) return null
-        
+
         return { ...item, children: allowedChildren }
       }
 
@@ -64,10 +65,7 @@ const filteredNavItems = computed(() => {
   <HorizontalNavLayout :nav-items="filteredNavItems">
     <!-- 👉 navbar -->
     <template #navbar>
-      <RouterLink
-        to="/"
-        class="app-logo d-flex align-center gap-x-3"
-      >
+      <RouterLink to="/" class="app-logo d-flex align-center gap-x-3">
         <VNodeRenderer :nodes="themeConfig.app.logo" />
 
         <h1 class="app-title font-weight-bold leading-normal text-xl text-capitalize">
@@ -76,24 +74,14 @@ const filteredNavItems = computed(() => {
       </RouterLink>
       <VSpacer />
 
-      <NavBarI18n
-        v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
-        :languages="themeConfig.app.i18n.langConfig"
-      />
+      <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
+        :languages="themeConfig.app.i18n.langConfig" />
 
       <NavbarThemeSwitcher class="me-2" />
       <UserProfile v-if="rawJwt" />
-      <VBtn
-        v-else
-        color="primary"
-        to="/login"
-        style="pointer-events: all;"
-      >
+      <VBtn v-else color="primary" to="/login" style="pointer-events: all;">
         Login
-        <VIcon
-          end
-          icon="tabler-login-2"
-        />
+        <VIcon end icon="tabler-login-2" />
       </VBtn>
     </template>
 
