@@ -36,7 +36,7 @@ export function jsonToFormData(data, form = new FormData(), namespace = '') {
   for (let property in data) {
     if (!data.hasOwnProperty(property)) continue
 
-    const formKey = namespace ? `${namespace}[${property}]` : property
+    const formKey = namespace ? `${namespace}.${property}` : property
     const value = data[property]
 
     if (value instanceof File) {

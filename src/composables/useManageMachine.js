@@ -1,200 +1,213 @@
-import { useApi } from '@/composables/useApi'
-import { ref } from 'vue'
+import { useApi } from "@/composables/useApi";
+import { ref } from "vue";
 
 export const useManageMachine = () => {
   // --------------------
   // State
   // --------------------
-  const machines = ref([])
-  const machine = ref({})
-  const totalItems = ref(0)
-  const currentPage = ref(1)
-  const pageSize = ref(10)
-  const totalPages = ref(0)
+  const machines = ref([]);
+  const machine = ref({});
+  const totalItems = ref(0);
+  const currentPage = ref(1);
+  const pageSize = ref(10);
+  const totalPages = ref(0);
 
-  const errorMessage = ref(null)
-  const formErrors = ref({})
-  const actionLoading = ref(false)
+  const errorMessage = ref(null);
+  const formErrors = ref({});
+  const actionLoading = ref(false);
 
-
-  const clearFormErrors = () => (formErrors.value = {})
+  const clearFormErrors = () => (formErrors.value = {});
 
   const clearErrors = () => {
-    errorMessage.value = null
-    formErrors.value = {}
-  }
+    errorMessage.value = null;
+    formErrors.value = {};
+  };
 
   // --------------------
   // Main API Methods
   // --------------------
 
-  const fetchMachinesPagination = async ({ page = 1, size = 10, query = '', sort = 'id', order = 'asc' }) => {
-    clearErrors()
-    actionLoading.value = true
+  const fetchMachinesPagination = async ({
+    page = 1,
+    size = 10,
+    query = "",
+    sort = "id",
+    order = "asc",
+  }) => {
+    clearErrors();
+    actionLoading.value = true;
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/machines/pagination', {
+        createUrl("/machines/pagination", {
           query: { page, size, query, sort, order },
-        }),
+        })
       )
         .get()
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
       applyPaginationResponse(
         {
           entries: machines,
           totalItems,
-          currentPage,
           pageSize,
           totalPages,
         },
-        response.value,
-      )
+        response.value
+      );
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
   const fetchMachines = async () => {
-    clearErrors()
-    actionLoading.value = true
+    clearErrors();
+    actionLoading.value = true;
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/machines', {}),
+        createUrl("/machines", {})
       )
         .get()
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-      machines.value = response.value
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
+      machines.value = response.value;
 
       return {
         success: true,
-      }
+      };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const fetchMachinesByFacilityId = async id => {
-    clearErrors()
-    actionLoading.value = true
+  const fetchMachinesByFacilityId = async (id) => {
+    clearErrors();
+    actionLoading.value = true;
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/machines/facilities/${id}`, {}),
+        createUrl(`/machines/facilities/${id}`, {})
       )
         .get()
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-      machines.value = response.value
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
+      machines.value = response.value;
 
       return {
         success: true,
-      }
+      };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const fetchMachine = async machineId => {
-    clearErrors()
-    actionLoading.value = true
+  const fetchMachine = async (machineId) => {
+    clearErrors();
+    actionLoading.value = true;
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/machines/${machineId}`, {}),
+        createUrl(`/machines/${machineId}`, {})
       )
         .get()
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
 
-      machine.value = response.value
+      machine.value = response.value;
 
       return {
         success: true,
-      }
+      };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const createMachine = async machineData => {
-    actionLoading.value = true
-    clearFormErrors()
+  const createMachine = async (machineData) => {
+    actionLoading.value = true;
+    clearFormErrors();
     try {
-      const formData = jsonToFormData(machineData)
+      const formData = jsonToFormData(machineData);
 
-
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
       // Don't set Content-Type header - let the browser set it automatically with boundary
-      const { data: response, error: apiError } = await useApi('/machines', {}).post(formData).json()
+      const { data: response, error: apiError } = await useApi("/machines", {})
+        .post(formData)
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-      
-      return { success: true }
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
+
+      return { success: true };
     } catch (err) {
-      console.error(err)
+      console.error(err);
 
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
   const updateMachine = async (machineId, machineData) => {
-    actionLoading.value = true
-    clearFormErrors()
+    actionLoading.value = true;
+    clearFormErrors();
     try {
-      const formData = jsonToFormData(machineData)
-
+      const formData = jsonToFormData(machineData);
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`, {
-        headers: {
-          // Remove any default Content-Type headers
-        },
-      }).put(formData).json()
+      const { data: response, error: apiError } = await useApi(
+        `/machines/${machineId}`,
+        {
+          headers: {
+            // Remove any default Content-Type headers
+          },
+        }
+      )
+        .put(formData)
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-     
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
 
-      return { success: true }
+      return { success: true };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const deleteMachine = async (machineId, reason = '') => {
-    actionLoading.value = true
-    clearFormErrors()
+  const deleteMachine = async (machineId, reason = "") => {
+    actionLoading.value = true;
+    clearFormErrors();
     try {
-      const { data: response, error: apiError } = await useApi(`/machines/${machineId}`)
+      const { data: response, error: apiError } = await useApi(
+        `/machines/${machineId}`
+      )
         .delete({ reason })
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
 
       applyPaginationResponse(
         {
@@ -204,26 +217,26 @@ export const useManageMachine = () => {
           pageSize,
           totalPages,
         },
-        response.value,
-      )
+        response.value
+      );
 
-      return { success: true }
+      return { success: true };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const saveMachine = async machineData => {
+  const saveMachine = async (machineData) => {
     if (machineData.id) {
-      const { id, ...payload } = machineData
+      const { id, ...payload } = machineData;
 
-      return updateMachine(id, payload)
+      return updateMachine(id, payload);
     }
 
-    return createMachine(machineData)
-  }
+    return createMachine(machineData);
+  };
 
   return {
     machines,
@@ -246,6 +259,5 @@ export const useManageMachine = () => {
     saveMachine,
     clearFormErrors,
     clearErrors,
-  }
-}
-
+  };
+};

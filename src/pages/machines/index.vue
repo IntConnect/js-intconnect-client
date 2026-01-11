@@ -23,10 +23,11 @@ const {
   formErrors,
   clearFormErrors,
   clearErrors,
-  currentPage: page, pageSize: itemsPerPage,
+pageSize: itemsPerPage,
 
 } = useManageMachine()
 
+const page = ref(1)
 
 // --- Constants
 const TABLE_HEADERS = [
@@ -55,11 +56,9 @@ const selectedMachine = ref(null)
 const showAlertDialog = ref(false)
 const titleAlert = ref('')
 const bodyAlert = ref('')
+const alertType = ref('info')
 
-// --- Edit user
-function handleEdit(row) {
-  selectedMachine.value = { ...row }
-}
+
 
 // --- Delete dialog
 const openDeleteDialog = user => {
@@ -99,9 +98,11 @@ const handleDeleteMachine = async formData => {
     bodyAlert.value = 'Machine has been deleted'
 
   } else {
-    console.error('Failed to delete machine:', result.error)
-
-    // Optional: Show error notification
+    showAlertDialog.value = true
+    titleAlert.value = 'Action failed'
+    bodyAlert.value = 'Machine failed to deleted'  
+    alertType.value = 'error'
+    
   }
 }
 
@@ -109,6 +110,19 @@ const closeDeleteDialog = () => {
   showDeleteDialog.value = false
   selectedMachine.value = null
 }
+
+// ==========================================
+// Watchers
+// ==========================================
+
+// Reset to page 1 when search query changes
+watch(searchQuery, () => {
+  page.value = 1
+  loadMachines()
+})
+
+
+watch([page, itemsPerPage], loadMachines)
 </script>
 
 <template>
@@ -132,42 +146,25 @@ const closeDeleteDialog = () => {
             <!-- Items per page selector -->
             <div class="d-flex gap-2 align-center">
               <span class="text-body-1">Show</span>
-              <AppSelect
-                :items="ITEMS_PER_PAGE_OPTIONS"
-                :model-value="itemsPerPage"
-                style="inline-size: 5.5rem;"
-                @update:model-value="itemsPerPage = parseInt($event, 10)"
-              />
+              <AppSelect :items="ITEMS_PER_PAGE_OPTIONS" :model-value="itemsPerPage" style="inline-size: 5.5rem;"
+                @update:model-value="itemsPerPage = parseInt($event, 10)" />
             </div>
 
             <!-- Right side controls -->
             <div class="d-flex gap-2 align-center flex-wrap">
-              <AppTextField
-                v-model="searchQuery"
-                clearable
-                placeholder="Search something..."
-                style="inline-size: 15.625rem;"
-              />
-              <RouterLink :to="{ name: 'machines-manage-id', params: { id: 'new' } }">
-                <VBtn color="primary">
-                  New Machine
-                </VBtn>
-              </RouterLink>
+              <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
+                style="inline-size: 15.625rem;" />
+              <VBtn color="primary" :to="{ name: 'machine-create' }">
+                New Machine
+              </VBtn>
             </div>
           </VCardText>
 
           <VDivider />
 
           <!-- Data Table -->
-          <VDataTable
-            v-model:page="page"
-            :headers="TABLE_HEADERS"
-            :items="machines"
-            :items-per-page="itemsPerPage"
-            :loading="actionLoading"
-            class="text-no-wrap"
-            no-data-text="No machines found"
-          >
+          <VDataTable :headers="TABLE_HEADERS" :items="machines" :items-per-page="itemsPerPage"
+            :loading="actionLoading" class="text-no-wrap" no-data-text="No machines found">
             <!-- ID Column -->
             <template #item.id="{ index }">
               {{ (page - 1) * itemsPerPage + index + 1 }}
@@ -193,88 +190,40 @@ const closeDeleteDialog = () => {
             <!-- Actions Column -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-2">
-                <VBtn
-                  color="success"
-                  icon
-                  size="small"
-                  variant="text"
-                  :to="{ name: 'machines-manage-id', params: { id: item.id } }"
-                >
-                  <VIcon
-                    icon="tabler-eye"
-                    size="20"
-                  />
+                <VBtn color="success" icon size="small" variant="text"
+                  :to="{ name: 'machines-manage-id', params: { id: item.id } }">
+                  <VIcon icon="tabler-eye" size="20" />
                 </VBtn>
-                <VBtn
-                  color="warning"
-                  icon
-                  size="small"
-                  variant="text"
-                  :to="{ name: 'machines-dashboard-id', params: { id: item.id } }"
-                >
-                  <VIcon
-                    icon="tabler-dashboard"
-                    size="20"
-                  />
+                <VBtn color="warning" icon size="small" variant="text"
+                  :to="{ name: 'machines-dashboard-id', params: { id: item.id } }">
+                  <VIcon icon="tabler-dashboard" size="20" />
                 </VBtn>
-                <VBtn
-                  color="info"
-                  icon
-                  size="small"
-                  variant="text"
-                  :to="{ name: 'machines-manage-id', params: { id: item.id } }"
-                  @click="handleEdit(item)"
-                >
-                  <VIcon
-                    icon="tabler-pencil"
-                    size="20"
-                  />
+                <VBtn color="info" icon size="small" variant="text"
+                  :to="{ name: 'machine-edit', params: { id: item.id } }">
+                  <VIcon icon="tabler-pencil" size="20" />
                 </VBtn>
-                <VBtn
-                  color="error"
-                  icon
-                  size="small"
-                  variant="text"
-                  @click="openDeleteDialog(item)"
-                >
-                  <VIcon
-                    icon="tabler-trash"
-                    size="20"
-                  />
+                <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
+                  <VIcon icon="tabler-trash" size="20" />
                 </VBtn>
               </div>
             </template>
 
             <!-- Bottom Pagination -->
             <template #bottom>
-              <TablePagination
-                v-model:page="page"
-                :items-per-page="itemsPerPage"
-                :total-items="totalItems"
-              />
+              <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
             </template>
           </VDataTable>
         </VCard>
 
         <!-- Delete Dialog -->
-        <DeleteDialog
-          v-model="showDeleteDialog"
-          :fields="[{
-            key: 'reason',
-            label: 'Reason',
-            placeholder: 'Type your reason...',
-            type: 'text'
-          }]"
-          message="Please provide a reason for deletion"
-          title="Delete Machine"
-          @submit="handleDeleteMachine"
-        />
+        <DeleteDialog v-model="showDeleteDialog" :fields="[{
+          key: 'reason',
+          label: 'Reason',
+          placeholder: 'Type your reason...',
+          type: 'text'
+        }]" message="Please provide a reason for deletion" title="Delete Machine" @submit="handleDeleteMachine" />
       </section>
     </VCol>
   </VRow>
-  <AlertDialog
-    v-model:is-dialog-visible="showAlertDialog"
-    :body-alert="bodyAlert"
-    :title-alert="titleAlert"
-  />
+  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"  :type="alertType"/>
 </template>
