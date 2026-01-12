@@ -23,7 +23,7 @@ const {
   formErrors,
   clearFormErrors,
   clearErrors,
-pageSize: itemsPerPage,
+  pageSize: itemsPerPage,
 
 } = useManageMachine()
 
@@ -100,9 +100,9 @@ const handleDeleteMachine = async formData => {
   } else {
     showAlertDialog.value = true
     titleAlert.value = 'Action failed'
-    bodyAlert.value = 'Machine failed to deleted'  
+    bodyAlert.value = 'Machine failed to deleted'
     alertType.value = 'error'
-    
+
   }
 }
 
@@ -163,8 +163,8 @@ watch([page, itemsPerPage], loadMachines)
           <VDivider />
 
           <!-- Data Table -->
-          <VDataTable :headers="TABLE_HEADERS" :items="machines" :items-per-page="itemsPerPage"
-            :loading="actionLoading" class="text-no-wrap" no-data-text="No machines found">
+          <VDataTable :headers="TABLE_HEADERS" :items="machines" :items-per-page="itemsPerPage" :loading="actionLoading"
+            class="text-no-wrap" no-data-text="No machines found">
             <!-- ID Column -->
             <template #item.id="{ index }">
               {{ (page - 1) * itemsPerPage + index + 1 }}
@@ -220,10 +220,12 @@ watch([page, itemsPerPage], loadMachines)
           key: 'reason',
           label: 'Reason',
           placeholder: 'Type your reason...',
-          type: 'text'
+          type: 'text',
+          formErrors: formErrors,
         }]" message="Please provide a reason for deletion" title="Delete Machine" @submit="handleDeleteMachine" />
       </section>
     </VCol>
   </VRow>
-  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"  :type="alertType"/>
+  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
+    :type="alertType" />
 </template>
