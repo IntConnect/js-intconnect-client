@@ -279,7 +279,7 @@ const onSubmit = async () => {
     },
   }
 
-
+  console.log(payload)
   const result = await saveSystemSetting(payload)
   if (result.success) {
     isAlertDialogVisible.value = true
@@ -300,18 +300,18 @@ onMounted(async () => {
   await fetchSystemSetting({ isMinimal: false, key: "DASHBOARD_SETTINGS" })
   await nextTick()
   await fetchMachines()
-
-  if (systemSetting.value.entry) {
+let systemSettingData = systemSetting.value.entry.value
+  if (systemSettingData) {
     Object.assign(localForm, {
-      showing: systemSetting.value.entry.value.showing,
-      machineId: Number(systemSetting.value.entry.value.machine_id),
-      description: systemSetting.value.entry.description,
-      existingModelUrl: systemSetting.value.entry.value.model_path,
-      pinObjectName: systemSetting.value.entry.value.pin_object_name,
+      showing: systemSettingData.showing,
+      machineId: Number(systemSettingData.value.machine_id),
+      description: systemSettingData.description,
+      existingModelUrl: systemSettingData.value.model_path,
+      pinObjectName: systemSettingData.value.pin_object_name,
       camera: {
-        x: systemSetting.value.entry.value.camera_x,
-        y: systemSetting.value.entry.value.camera_y,
-        z: systemSetting.value.entry.value.camera_z,
+        x: systemSettingData.value.camera_x,
+        y: systemSettingData.value.camera_y,
+        z: systemSettingData.value.camera_z,
       },
     })
   }

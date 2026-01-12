@@ -3,9 +3,10 @@ import EnergyLineChart from '@/components/dashboard/operation/EnergyLineChart.vu
 import GaugeChartWidget from '@/components/dashboard/operation/GaugeChartWidget.vue'
 import RealtimeTable from '@/components/dashboard/operation/RealtimeTable.vue'
 import StatsCard from '@/components/dashboard/operation/StatsCard.vue'
+import { useManageAlarmLog } from '@/composables/useManageAlarmLog'
 import { useManageDashboardWidget } from '@/composables/useManageDashboardWidget'
 import { GridItem, GridLayout } from 'grid-layout-plus'
-import { computed, onMounted } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import RawBarChart from './RawBarChart.vue'
 
 const props = defineProps({
@@ -49,9 +50,166 @@ const {
   lastUpdate,
 } = useMqttConnection()
 
+const {
+  alarmLogs,
+  fetchAlarmLogsByMachineId,
+} = useManageAlarmLog()
+
+
+// WebSocket Alarm Connection
+const alarmSocket = ref(null)
+const alarms = ref([])
+const showAlarmOverlay = ref(false)
+const activeAlarm = ref(null)
+const alarmAudio = ref(null)
+
+// Initialize alarm audio
+onMounted(() => {
+  // Create alarm sound (beep)
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+  const playAlarmSound = () => {
+    if (!audioContext) return
+
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.frequency.value = 800 // Hz
+    oscillator.type = 'sine'
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
+
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.5)
+  }
+
+  alarmAudio.value = playAlarmSound
+})
+
+const connectAlarmWebSocket = () => {
+  try {
+    alarmSocket.value = new WebSocket('ws://localhost:8181/ws')
+
+    alarmSocket.value.onopen = () => {
+      console.log('Alarm WebSocket Connected')
+    }
+
+    alarmSocket.value.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+
+        if (data.type === 'CREATED') {
+          const parameter = getParameterById(data.parameter_id)
+          alarmLogs.value.push({
+  id: data.id,
+            parameter_id: data.parameter_id,
+            parameter_name: parameter?.name || 'Unknown Parameter',
+            parameter_code: parameter?.code || '',
+            value: data.value,
+            unit: parameter?.unit || '',
+            status: data.status,
+            timestamp: data.timestamp,
+            acknowledged: false
+          })
+        
+
+          // Add to alarms list
+          alarms.value.unshift(newAlarm)
+
+          // Show overlay notification if status is Open
+            activeAlarm.value = newAlarm
+            showAlarmOverlay.value = true
+
+            // Play alarm sound
+            if (alarmAudio.value) {
+              alarmAudio.value()
+              // Repeat sound 3 times
+              setTimeout(() => alarmAudio.value?.(), 600)
+              setTimeout(() => alarmAudio.value?.(), 1200)
+              setTimeout(() => {
+                showAlarmOverlay.value =false
+              }, 3000);
+            }
+        }
+      } catch (error) {
+        console.error('Error parsing alarm data:', error)
+      }
+    }
+
+    alarmSocket.value.onerror = (error) => {
+      console.error('Alarm WebSocket Error:', error)
+    }
+
+    alarmSocket.value.onclose = () => {
+      console.log('Alarm WebSocket Disconnected')
+      // Reconnect after 5 seconds
+      setTimeout(() => {
+        if (alarmSocket.value?.readyState === 3) { // 3 = CLOSED
+          connectAlarmWebSocket()
+        }
+      }, 5000)
+    }
+  } catch (error) {
+    console.error('Failed to connect alarm WebSocket:', error)
+  }
+}
+
+const acknowledgeAlarm = (alarmId) => {
+  const alarm = alarms.value.find(a => a.id === alarmId)
+  if (alarm) {
+    alarm.acknowledged = true
+  }
+
+  if (activeAlarm.value?.id === alarmId) {
+    showAlarmOverlay.value = false
+    activeAlarm.value = null
+  }
+}
+
+const dismissAlarmOverlay = () => {
+  showAlarmOverlay.value = false
+  if (activeAlarm.value) {
+    activeAlarm.value.acknowledged = true
+  }
+  activeAlarm.value = null
+}
+
+const getAlarmSeverityColor = (status) => {
+  return status === 'Open' ? 'error' : 'warning'
+}
+
+const formatAlarmTime = (timestamp) => {
+  const date = new Date(timestamp)
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+const formatAlarmDate = (timestamp) => {
+  const date = new Date(timestamp)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+const openAlarms = computed(() => {
+  return alarms.value.filter(a => a.status === 'Open' && !a.acknowledged)
+})
+
 // Disconnect on unmount
 onUnmounted(() => {
   disconnectMQTT()
+  if (alarmSocket.value) {
+    alarmSocket.value.close()
+  }
 })
 
 // Filter running times
@@ -142,10 +300,32 @@ const isDataReady = computed(() => {
   )
 })
 
+const processedAlarmLogs = ref([])
 onMounted(async () => {
-  let actionResult = await fetchMachine(props.systemSetting.entry.value.machine_id)
+  let machineId =props.systemSetting.entry.value.machine_id
+  let actionResult = await fetchMachine(machineId)
+  let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId)
   await nextTick()
+ processedAlarmLogs.value=  alarmLogs.value.entries.map((alarmLog) => {
+    const parameter = getParameterById(alarmLog.parameter_id)
+    return {
+      id: alarmLog.id,
+            parameter_id: alarmLog.parameter_id,
+            parameter_name: parameter?.name || 'Unknown Parameter',
+            parameter_code: parameter?.code || '',
+            value: alarmLog.value,
+            unit: parameter?.unit || '',
+            status: alarmLog.status,
+            timestamp: alarmLog.created_at,
+            acknowledged: false
+            }
+  })
+console.log(processedAlarmLogs)
+
+  // Connect to alarm WebSocket
+  connectAlarmWebSocket()
 })
+
 const lineSeriesStore = ref({})
 watch(
   mqttData,
@@ -237,7 +417,7 @@ const getWidgetProps = computed(() => {
     }
 
     if (widget.type === 'bar') {
-        return {
+      return {
         title: widget.title,
         subtitle: widget.subtitle,
         realtimeData: widget.dataSourceIds.map(id => {
@@ -276,6 +456,67 @@ const gridMinHeight = computed(() => {
 
 <template>
   <div>
+    <!-- Alarm Overlay Notification -->
+    <VOverlay v-model="showAlarmOverlay" class="alarm-overlay" :z-index="9999" persistent>
+      <div class="alarm-notification-container">
+        <VCard class="alarm-notification-card" elevation="24">
+          <VCardText class="pa-6">
+            <div class="d-flex align-center mb-4">
+              <VAvatar color="error" size="64" class="mr-4 alarm-icon-pulse">
+                <VIcon icon="tabler-alert-triangle" size="40" />
+              </VAvatar>
+              <div class="flex-grow-1">
+                <div class="text-h5 font-weight-bold text-error mb-1">
+                  ⚠️ ALARM TRIGGERED
+                </div>
+                <div class="text-body-2 text-medium-emphasis">
+                  Immediate attention required
+                </div>
+              </div>
+            </div>
+
+            <VDivider class="my-4" />
+
+            <div v-if="activeAlarm" class="alarm-details">
+              <VRow dense>
+                <VCol cols="12" class="mb-2">
+                  <div class="text-caption text-medium-emphasis">Parameter</div>
+                  <div class="text-h6 font-weight-medium">
+                    {{ activeAlarm.parameter_name }}
+                  </div>
+                </VCol>
+
+                <VCol cols="6">
+                  <div class="text-caption text-medium-emphasis">Value</div>
+                  <div class="text-h5 text-error font-weight-bold">
+                    {{ activeAlarm.value }} {{ activeAlarm.unit }}
+                  </div>
+                </VCol>
+
+                <VCol cols="6">
+                  <div class="text-caption text-medium-emphasis">Status</div>
+                  <VChip color="error" size="small" class="mt-1">
+                    {{ activeAlarm.status }}
+                  </VChip>
+                </VCol>
+
+                <VCol cols="12" class="mt-2">
+                  <div class="text-caption text-medium-emphasis">Time</div>
+                  <div class="text-body-2">
+                    {{ formatAlarmDate(activeAlarm.timestamp) }} at {{ formatAlarmTime(activeAlarm.timestamp) }}
+                  </div>
+                </VCol>
+              </VRow>
+            </div>
+
+            <VDivider class="my-4" />
+
+           
+          </VCardText>
+        </VCard>
+      </div>
+    </VOverlay>
+
     <VRow style="min-height: 520px" class="match-height">
       <!-- LEFT -->
       <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
@@ -301,8 +542,100 @@ const gridMinHeight = computed(() => {
       </VCol>
     </VRow>
 
+    <!-- Alarms Section -->
+    <VRow class="mt-4">
+      <VCol cols="12">
+        <VCard >
+          <VCardTitle class="d-flex align-center justify-space-between pa-4">
+            <div class="d-flex align-center">
+              <VIcon icon="tabler-bell" class="mr-2" color="error" />
+              <span class="text-h6">System Alarms</span>
+              <VBadge v-if="openAlarms.length > 0" :content="openAlarms.length" color="error" class="ml-3" />
+            </div>
+            <VChip v-if="alarmSocket?.readyState === 1" color="success" size="small" variant="tonal">
+              <VIcon icon="tabler-wifi" size="16" class="mr-1" />
+              Connected
+            </VChip>
+            <VChip v-else-if="alarmSocket?.readyState === 0" color="warning" size="small" variant="tonal">
+              <VIcon icon="tabler-loader" size="16" class="mr-1" />
+              Connecting
+            </VChip>
+            <VChip v-else color="error" size="small" variant="tonal">
+              <VIcon icon="tabler-wifi-off" size="16" class="mr-1" />
+              Disconnected
+            </VChip>
+          </VCardTitle>
+
+          <VDivider />
+
+          <VCardText class="pa-0">
+            <div v-if="processedAlarmLogs.length === 0" class="text-center py-12">
+              <VAvatar color="success" variant="tonal" size="80" class="mb-4">
+                <VIcon icon="tabler-check" size="40" />
+              </VAvatar>
+              <div class="text-h6 text-medium-emphasis mb-2">No Alarms</div>
+              <div class="text-body-2 text-disabled">System is operating normally</div>
+            </div>
+
+            <VTable v-else class="alarm-table mb-2">
+              <thead>
+                <tr>
+                  <th width="50"></th>
+                  <th>Parameter</th>
+                  <th>Value</th>
+                  <th>Status</th>
+                  <th>Timestamp</th>
+                  <th width="120">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="alarm in processedAlarmLogs" :key="alarm.id"
+                  :class="{ 'alarm-open': alarm.status === 'Open' && !alarm.acknowledged }">
+                  <td>
+                    <VIcon :icon="alarm.status === 'Open' ? 'tabler-alert-triangle' : 'tabler-alert-circle'"
+                      :color="getAlarmSeverityColor(alarm.status)"
+                      :class="{ 'alarm-icon-pulse': alarm.status === 'Open' && !alarm.acknowledged }" />
+                  </td>
+                  <td>
+                    <div class="font-weight-medium">{{ alarm.parameter_name }}</div>
+                    <div class="text-caption text-disabled">{{ alarm.parameter_code }}</div>
+                  </td>
+                  <td>
+                    <span class="font-weight-bold" :class="{ 'text-error': alarm.status === 'Open' }">
+                      {{ alarm.value }} {{ alarm.unit }}
+                    </span>
+                  </td>
+                  <td>
+                    <VChip :color="getAlarmSeverityColor(alarm.status)" size="small"
+                      :variant="alarm.acknowledged ? 'tonal' : 'flat'">
+                      {{ alarm.status }}
+                    </VChip>
+                  </td>
+                  <td>
+                    <div class="text-body-2">{{ formatAlarmDate(alarm.timestamp) }}</div>
+                    <div class="text-caption text-disabled">{{ formatAlarmTime(alarm.timestamp) }}</div>
+                  </td>
+                  <td>
+                    <VBtn v-if="!alarm.acknowledged && alarm.status === 'Open'" size="small" color="error"
+                      variant="tonal" @click="acknowledgeAlarm(alarm.id)">
+                      <VIcon icon="tabler-check" size="18" class="mr-1" />
+                      ACK
+                    </VBtn>
+                    <VChip v-else size="small" color="success" variant="tonal">
+                      <VIcon icon="tabler-check" size="16" class="mr-1" />
+                      Acknowledged
+                    </VChip>
+                  </td>
+                </tr>
+              </tbody>
+            </VTable>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
     <VRow>
-      <VCol cols="12" md="12" sm="12" class="pa-0">
+      <VCol cols="12" md="12" sm="12">
         <div v-if="layout.length > 0" :style="{ minHeight: gridMinHeight }">
           <GridLayout v-model:layout="layout" :col-num="12" :row-height="30" :is-resizable="false" :is-draggable="false"
             vertical-compact use-css-transforms :margin="[16, 16]" :container-padding="[0, 0]">
@@ -363,5 +696,80 @@ const gridMinHeight = computed(() => {
 .chart-container {
   height: 100%;
   width: 100%;
+}
+
+/* Alarm Styles */
+.alarm-overlay {
+  background-color: rgba(211, 47, 47, 0.15) !important;
+  backdrop-filter: blur(4px);
+}
+
+.alarm-notification-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+}
+
+.alarm-notification-card {
+  max-width: 600px;
+  width: 100%;
+  border: 3px solid rgb(var(--v-theme-error)) !important;
+  animation: alarm-card-pulse 2s ease-in-out infinite;
+}
+
+@keyframes alarm-card-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(211, 47, 47, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(211, 47, 47, 0.8);
+  }
+}
+
+.alarm-icon-pulse {
+  animation: icon-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.alarm-table tbody tr.alarm-open {
+  background-color: rgba(211, 47, 47, 0.05);
+  animation: row-highlight 2s ease-in-out infinite;
+}
+
+@keyframes row-highlight {
+
+  0%,
+  100% {
+    background-color: rgba(211, 47, 47, 0.05);
+  }
+
+  50% {
+    background-color: rgba(211, 47, 47, 0.12);
+  }
+}
+
+.alarm-details {
+  background-color: rgba(var(--v-theme-surface), 0.5);
+  border-radius: 8px;
+  padding: 16px;
 }
 </style>

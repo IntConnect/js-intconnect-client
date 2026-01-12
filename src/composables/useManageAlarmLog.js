@@ -92,6 +92,31 @@ export const useManageAlarmLog = () => {
     }
   }
 
+   const fetchAlarmLogsByMachineId = async machineId => {
+    clearErrors()
+    actionLoading.value = true
+
+    try {
+      const { data: response, error: apiError } = await useApi(
+        createUrl(`/alarm-logs/machine/${machineId}`, {}),
+      )
+        .get()
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      alarmLogs.value = response.value
+      
+      return {
+        success: true,
+      }
+    } catch (_) {
+      return { success: false, error: 'Unknown error' }
+    } finally {
+      actionLoading.value = false
+    }
+  }
+
 
  
   const updateAlarmLog = async alarmLogData => {
@@ -129,6 +154,7 @@ export const useManageAlarmLog = () => {
 
     fetchAlarmLogsPagination,
     fetchAlarmLog,
+    fetchAlarmLogsByMachineId,
     updateAlarmLog,
     clearFormErrors,
     clearErrors,

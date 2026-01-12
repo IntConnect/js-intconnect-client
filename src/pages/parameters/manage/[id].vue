@@ -462,7 +462,7 @@ const onSubmit = () => {
   refForm.value.validate().then(async ({ valid }) => {
     if (!valid) return
 
-     const arranged = processedParameterSequences.value.map((op, i) => ({
+     const arranged = processedParameterSequences.value?.map((op, i) => ({
     ...op,
     sequence: i + 1,
   }))
