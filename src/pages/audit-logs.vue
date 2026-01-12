@@ -53,8 +53,8 @@ watch([page, itemsPerPage], () => {
 const headers = [
   { title: '', key: 'data-table-expand' },
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Feature', key: 'feature', sortable: true },
-  { title: 'Action', key: 'action', sortable: true },
+  { title: 'Feature', key: 'feature', sortable: false },
+  { title: 'Action', key: 'action', sortable: false },
   { title: 'Description', key: 'description', sortable: false },
   { title: 'IP Address', key: 'ip_address', sortable: false },
   { title: 'User Agent', key: 'user_agent', sortable: false },
@@ -96,106 +96,79 @@ const normalizeCompareData = item => {
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
-          <AppSelect
-            v-model="itemsPerPage"
-            :items="ITEMS_PER_PAGE_OPTIONS"
-            style="inline-size: 5.5rem;"
-          />
+          <AppSelect v-model="itemsPerPage" :items="ITEMS_PER_PAGE_OPTIONS" style="inline-size: 5.5rem;" />
         </div>
 
         <!-- Right side controls -->
         <div class="d-flex gap-2 align-center flex-wrap">
-          <AppTextField
-            v-model="searchQuery"
-            clearable
-            placeholder="Search something..."
-            style="inline-size: 15.625rem;"
-          />
+          <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
+            style="inline-size: 15.625rem;" />
         </div>
       </VCardText>
 
       <VDivider />
 
       <!-- Error Alert -->
-      <VAlert
-        v-if="errorMessage"
-        class="mx-4 mt-4"
-        closable
-        type="error"
-        @click:close="clearErrors"
-      >
+      <VAlert v-if="errorMessage" class="mx-4 mt-4" closable type="error" @click:close="clearErrors">
         {{ errorMessage }}
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable
-        :key="auditLogs.length"
-        :headers="headers"
-        :items="auditLogs"
-        :items-per-page="itemsPerPage"
-        :loading="actionLoading"
-        class="text-no-wrap"
-        hide-default-footer
-        no-data-text="No audit logs found"
-        expand-on-click
-
-      >
+      <VDataTable :key="auditLogs.length" :headers="headers" :items="auditLogs" :items-per-page="itemsPerPage"
+        :loading="actionLoading" class="text-no-wrap" hide-default-footer no-data-text="No audit logs found"
+        expand-on-click>
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
         <template #expanded-row="{ item }">
-  <tr class="v-data-table__tr">
-    <td :colspan="headers.length" class="pa-4">
-      <VTable density="compact">
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th class="text-error">Before</th>
-            <th class="text-success">After</th>
+          <tr class="v-data-table__tr">
+            <td :colspan="headers.length" class="pa-4">
+              <VTable density="compact">
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th class="text-error">Before</th>
+                    <th class="text-success">After</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="row in normalizeCompareData(item)" :key="row.field">
+                    <td class="font-weight-medium">
+                      {{ row.field }}
+                    </td>
+                    <td>
+                      {{ row.before }}
+                    </td>
+                    <td>
+                      {{ row.after }}
+                    </td>
+                  </tr>
+                </tbody>
+              </VTable>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="row in normalizeCompareData(item)"
-            :key="row.field"
-          >
-            <td class="font-weight-medium">
-              {{ row.field }}
-            </td>
-            <td>
-              {{ row.before }}
-            </td>
-            <td>
-              {{ row.after }}
-            </td>
-          </tr>
-        </tbody>
-      </VTable>
-    </td>
-  </tr>
-</template>
+        </template>
 
 
-        <!-- Created At Column -->
         <template #item.created_at="{ item }">
           {{ format(new Date(item.auditable.created_at), 'dd MMM yyyy HH:mm:ss') }}
         </template>
 
-        <!-- Created At Column -->
         <template #item.user_agent="{ item }">
           <div class="clamp-text text-wrap">
-          {{ item.user_agent }}
+            {{ item.user_agent }}
           </div>
         </template>
 
-        <!-- Bottom Pagination -->
+        <template #item.created_by="{ item }">
+          <div class="clamp-text text-wrap">
+            {{ item.auditable.created_by }}
+          </div>
+        </template>
+
         <template #bottom>
-          <TablePagination
-            v-model:page="page"
-            :items-per-page="itemsPerPage"
-            :total-items="totalItems"
-          />
+          <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
         </template>
       </VDataTable>
     </VCard>
