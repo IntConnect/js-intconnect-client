@@ -143,7 +143,6 @@ const checkSheetValues = ref({})
 ========================= */
 const onSubmit = async () => {
   formErrors.value = {}
-  console.log(checkSheetData.value)
   const resultParsing = Object.entries(checkSheetData.value).map(([key, value]) => {
     const [time, index] = key.split('-')
 
@@ -162,7 +161,6 @@ const onSubmit = async () => {
     check_sheet_values: resultParsing,
   }
 
-  console.log(payload, checkSheetValues.value)
   const result = await createCheckSheet(payload)
   if (result.success) {
     isAlertDialogVisible.value = true
@@ -294,7 +292,6 @@ const getCellValue = (time, checkpointIndex) => {
 
 const setCellValue = (time, checkpointIndex, value, parameterId) => {
   const key = `${time}-${checkpointIndex}`
-  console.log(value)
   checkSheetData.value[key] = {
     value,
     parameterId,
@@ -340,7 +337,6 @@ const fetchCheckPointParameterData = async () => {
   if (!result?.success) return
 
   const responseData = telemetries.value?.entry.data
-  console.log(responseData)
   if (!responseData) return
 
   // RESET agar tidak nabrak data lama

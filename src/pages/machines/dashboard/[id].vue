@@ -264,7 +264,6 @@ const handleOpenDialog = widget => {
 }
 
 const handleSaveWidget = () => {
-  console.log(widgetForm)
   if (!widgetForm.value.title.trim()) return alert('Title required')
   if (!widgetForm.value.dataSourceIds.length && (widgetForm.value.type !== 'metric' && widgetForm.value.type !== 'gauge'))
     return alert('Select at least one parameter')
@@ -276,7 +275,6 @@ const handleSaveWidget = () => {
       x: (layout.value.length * 6) % 12,
       y: Math.floor(layout.value.length / 2) * 5,
     })
-    console.log(layout.value)
   } else {
     let oldIdx = baselineLayout.value.findIndex(w => w.i === selectedWidget.value.i)
     if (oldIdx !== -1)
@@ -315,7 +313,6 @@ const handleLayoutUpdate = newLayout => {
 
 
     if (!isAddMode && isLayoutChanged(baselineItem, newItem)) {
-      console.error("Edited !!!!")
       edited.push({
         id: baselineItem.id,
         i: newItem.i,
@@ -379,9 +376,6 @@ const handleRemoveParameter = parameterId => {
  * Persist Dashboard
  * =============================== */
 const handleStoreWidget = () => {
-  console.log(editedWidgets.value)
-  console.log(addedWidgets.value)
-  console.log(removedWidgets.value)
   saveDashboardWidget({
     machine_id: machineId,
     added_parameter_ids: addedParameterIds.value,

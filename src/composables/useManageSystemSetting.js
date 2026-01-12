@@ -122,10 +122,6 @@ export const useManageSystemSetting = () => {
 
     try {
       const formData = jsonToFormData(systemSettingData);
-     for (const [key, value] of formData.entries()) {
-  console.log(key, value)
-}
-      console.log(formData)
       const { data: response, error: apiError } = await useApi(
         "/system-settings"
       )

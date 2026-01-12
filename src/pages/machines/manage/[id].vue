@@ -94,7 +94,6 @@ onMounted(async () => {
     await nextTick()
     if (machineResult.success) {
       const processedMachine = machine.value.entry
-      console.log(processedMachine)
       existingThumbnail.value = [useStaticFile(processedMachine['thumbnail_path'])]
       Object.assign(localForm, {
         id: processedMachine.id,
@@ -120,7 +119,6 @@ onMounted(async () => {
         isExisting: true,
       })) ?? []
 
-      console.log(localForm.documents)
     }
   }
 
@@ -318,7 +316,6 @@ const onSubmit = async () => {
     camera_z: localForm.camera_z,
   }
 
-  console.log(payload)
   const result = await saveMachine(payload)
 
   if (result.success) {

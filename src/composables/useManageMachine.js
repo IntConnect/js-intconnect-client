@@ -146,9 +146,7 @@ export const useManageMachine = () => {
     try {
       const formData = jsonToFormData(machineData);
 
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
+     
       // Don't set Content-Type header - let the browser set it automatically with boundary
       const { data: response, error: apiError } = await useApi("/machines", {})
         .post(formData)

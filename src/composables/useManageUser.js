@@ -125,7 +125,6 @@ export const useManageUser = () => {
         .post(userData)
         .json();
       const result = handleApiError(apiError, { formErrors, errorMessage });
-      console.log(result);
       if (!result.success) return result;
 
       applyPaginationResponse(

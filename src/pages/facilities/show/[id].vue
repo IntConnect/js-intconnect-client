@@ -207,7 +207,6 @@ const processedMachinesWithData = computed(() => {
     }
 
 
-    console.log(connection)
     return {
       id: machine.id,
       name: machine.name,

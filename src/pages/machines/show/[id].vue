@@ -228,7 +228,6 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
-console.log(formattedValue)
       return {
         header: widget.title,
         subHeader: widget.subtitle,

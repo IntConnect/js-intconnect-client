@@ -55,7 +55,6 @@ const onSubmit = async () => {
     },
   }
 
-  console.log(payload)
 
   const result = await saveSystemSetting(payload)
   if (result.success) {

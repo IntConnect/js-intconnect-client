@@ -115,7 +115,6 @@ onMounted(async () => {
   let result = await fetchParameter(id.value)
   await fetchParameters({isAutomatic: null})
   await nextTick()
-  console.log(parameterDependency)
   processedMachines.value = parameterDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,
@@ -126,7 +125,6 @@ onMounted(async () => {
   }))
   if (result.success) {
     let processedParameter = parameter.value.entry
-    console.log(processedParameter)
     id.value = processedParameter.id
     name.value = processedParameter.name
     machineId.value = processedParameter['mqtt_topic']['machine_id'] != 0 ? processedParameter['mqtt_topic']['machine_id'] :processedParameter['machine_id']

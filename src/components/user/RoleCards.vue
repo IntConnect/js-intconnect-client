@@ -79,7 +79,6 @@ const openDeleteDialog = role => {
  * Close delete dialog
  */
 const closeDeleteDialog = () => {
-  console.log("EXECUTED")
   showDeleteDialog.value = false
   selectedRole.value = null
 }
@@ -113,7 +112,6 @@ const handleDeleteRole = async formData => {
   }
 
   const result = await deleteRole(selectedRole.value.id, formData)
-  console.log(result)
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true

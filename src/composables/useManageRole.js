@@ -83,7 +83,6 @@ export const useManageRole = () => {
         .post(roleData)
         .json();
       const result = handleApiError(apiError, { formErrors, errorMessage });
-      console.log(response.value);
       roles.value = response.value;
 
       return { success: true };
@@ -97,7 +96,6 @@ export const useManageRole = () => {
   const updateRole = async (roleId, roleData) => {
     actionLoading.value = true;
     clearFormErrors();
-    console.log(roleId, roleData);
     try {
       const { data: response, error: apiError } = await useApi(
         `/roles/${roleId}`,
@@ -142,7 +140,6 @@ export const useManageRole = () => {
   };
 
   const saveRole = async (roleData) => {
-    console.log(roleData);
     if (roleData.id) {
       const { id, ...payload } = roleData;
 
