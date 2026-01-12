@@ -1,10 +1,9 @@
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppDrawerHeaderSection from "@core/components/AppDrawerHeaderSection.vue"
-import { useApi } from "@/composables/useApi.js"
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
 
 const props = defineProps({
   isDrawerOpen: {
@@ -39,9 +38,9 @@ const refForm = ref()
 
 // Form fields
 const id = ref('')
-const username = ref('johndoe')
-const name = ref('John Doe')
-const email = ref('johndoe@gmail.com')
+const username = ref('')
+const name = ref('')
+const email = ref('')
 const password = ref('Password2412@$!@')
 const confirmPassword = ref('Password2412@$!@')
 const roleId = ref('')
@@ -127,6 +126,7 @@ onMounted(async () => {
     title: role.name,
     value: role.id,
   }))
+  roleId.value = processedRoles.value[0]['value']
 })
 
 

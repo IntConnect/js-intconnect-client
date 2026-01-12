@@ -1,12 +1,11 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
 import ManageUserDrawer from "@/components/drawer/ManageUserDrawer.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { useManageUser } from "@/composables/useManageUser"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { onMounted, ref, watch } from 'vue'
 
 // ==========================================
 // Composable
@@ -48,12 +47,13 @@ const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 // UI States
-const isAddNewUserDrawerVisible = ref(false)
+const isManageUserDrawerVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedUser = ref(null)
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
-
+const titleAlert = ref('')
+const bodyAlert = ref('')
+const alertType = ref('info')
 
 // ==========================================
 // Methods
@@ -78,14 +78,14 @@ const loadUsers = async () => {
 const openAddUserDrawer = () => {
   selectedUser.value = null
   clearFormErrors()
-  isAddNewUserDrawerVisible.value = true
+  isManageUserDrawerVisible.value = true
 }
 
 /**
  * Close add/edit drawer
  */
 const closeAddUserDrawer = () => {
-  isAddNewUserDrawerVisible.value = false
+  isManageUserDrawerVisible.value = false
   selectedUser.value = null
   clearFormErrors()
 }
@@ -96,7 +96,7 @@ const closeAddUserDrawer = () => {
 const handleEdit = user => {
   selectedUser.value = { ...user }
   clearFormErrors()
-  isAddNewUserDrawerVisible.value = true
+  isManageUserDrawerVisible.value = true
 }
 
 /**
@@ -124,9 +124,14 @@ const handleSaveUser = async userData => {
   if (result.success) {
     closeAddUserDrawer()
     showAlertDialog.value = true
-    alertMessage.value = 'Success'
+    titleAlert.value = 'Action success'
+    bodyAlert.value = 'User has been saved'
+    alertType.value = 'info'
   } else {
-    console.error('Failed to save user:', result.error || result.errors)
+    showAlertDialog.value = true
+    titleAlert.value = 'Action failed'
+    bodyAlert.value = 'User failed to be saved'
+    alertType.value = 'error'
   }
 }
 
@@ -146,10 +151,13 @@ const handleDeleteUser = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-
+    titleAlert.value = 'Action success'
+    bodyAlert.value = 'User has been deleted'
   } else {
-    console.error('Failed to delete user:', result.error)
-
+    showAlertDialog.value = true
+    titleAlert.value = 'Action failed'
+    bodyAlert.value = 'User failed to be deleted'
+    alertType.value = 'error'
     // Optional: Show error notification
   }
 }
@@ -175,6 +183,28 @@ watch([page, itemsPerPage], () => {
 onMounted(() => {
   loadUsers()
 })
+
+const resolveBadgeRole = (role) => {
+  switch (role) {
+    case "Administrator":
+      return "primary"
+      break;
+    case "Manager":
+      return "secondary"
+      break;
+    case "Supervisor":
+      return "info"
+      break;
+    case "Maintenance":
+      return "warning"
+      break;
+    case "Operator":
+      return "default"
+      break;
+    default:
+      break;
+  }
+}
 </script>
 
 <template>
@@ -184,27 +214,15 @@ onMounted(() => {
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
-          <AppSelect
-            v-model="itemsPerPage"
-            :items="ITEMS_PER_PAGE_OPTIONS"
-            style="inline-size: 5.5rem;"
-          />
+          <AppSelect v-model="itemsPerPage" :items="ITEMS_PER_PAGE_OPTIONS" style="inline-size: 5.5rem;" />
         </div>
 
         <!-- Right side controls -->
         <div class="d-flex gap-2 align-center flex-wrap">
-          <AppTextField
-            v-model="searchQuery"
-            clearable
-            placeholder="Search something..."
-            style="inline-size: 15.625rem;"
-          />
-          <VBtn
-            :loading="actionLoading"
-            color="primary"
-            @click="openAddUserDrawer"
-          >
-            + New User
+          <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
+            style="inline-size: 15.625rem;" />
+          <VBtn :loading="actionLoading" color="primary" @click="openAddUserDrawer">
+            New User
           </VBtn>
         </div>
       </VCardText>
@@ -212,26 +230,13 @@ onMounted(() => {
       <VDivider />
 
       <!-- Error Alert -->
-      <VAlert
-        v-if="error"
-        class="mx-4 mt-4"
-        closable
-        type="error"
-        @click:close="clearErrors"
-      >
+      <VAlert v-if="error" class="mx-4 mt-4" closable type="error" @click:close="clearErrors">
         {{ error }}
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable
-        :headers="TABLE_HEADERS"
-        :items="users"
-        :items-per-page="itemsPerPage"
-        :loading="loading"
-        class="text-no-wrap"
-        hide-default-footer
-        no-data-text="No users found"
-      >
+      <VDataTable :headers="TABLE_HEADERS" :items="users" :items-per-page="itemsPerPage" :loading="loading"
+        class="text-no-wrap" hide-default-footer no-data-text="No users found">
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
@@ -239,10 +244,7 @@ onMounted(() => {
 
         <!-- Role Column -->
         <template #item.role="{ item }">
-          <VChip
-            color="primary"
-            size="small"
-          >
+          <VChip :color="resolveBadgeRole(item.role?.name)" size="small">
             {{ item.role?.name || 'N/A' }}
           </VChip>
         </template>
@@ -250,71 +252,36 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <VBtn
-              color="info"
-              icon
-              size="small"
-              variant="text"
-              @click="handleEdit(item)"
-            >
-              <VIcon
-                icon="tabler-pencil"
-                size="20"
-              />
+            <VBtn color="info" icon size="small" variant="text" @click="handleEdit(item)">
+              <VIcon icon="tabler-pencil" size="20" />
             </VBtn>
-            <VBtn
-              color="error"
-              icon
-              size="small"
-              variant="text"
-              @click="openDeleteDialog(item)"
-            >
-              <VIcon
-                icon="tabler-trash"
-                size="20"
-              />
+            <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
+              <VIcon icon="tabler-trash" size="20" />
             </VBtn>
           </div>
         </template>
 
         <!-- Bottom Pagination -->
         <template #bottom>
-          <TablePagination
-            v-model:page="page"
-            :items-per-page="itemsPerPage"
-            :total-items="totalItems"
-          />
+          <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
         </template>
       </VDataTable>
     </VCard>
 
     <!-- Delete Dialog -->
-    <DeleteDialog
-      v-model="showDeleteDialog"
-      :fields="[{
-        key: 'reason',
-        label: 'Reason',
-        placeholder: 'Type your reason...',
-        type: 'text'
-      }]"
-      :loading="actionLoading"
-      message="Please provide a reason for deletion"
-      title="Delete User"
-      @submit="handleDeleteUser"
-    />
+    <DeleteDialog v-model="showDeleteDialog" :fields="[{
+      key: 'reason',
+      label: 'Reason',
+      placeholder: 'Type your reason...',
+      type: 'text',
+      formErrors: formErrors,
+    }]" :loading="actionLoading" message="Please provide a reason for deletion" title="Delete User"
+      @submit="handleDeleteUser" />
 
     <!-- Add/Edit User Drawer -->
-    <ManageUserDrawer
-      v-model:is-drawer-open="isAddNewUserDrawerVisible"
-      :form-errors="formErrors"
-      :loading="actionLoading"
-      :user-data="selectedUser"
-      @close="closeAddUserDrawer"
-      @user-data="handleSaveUser"
-    />
+    <ManageUserDrawer v-model:is-drawer-open="isManageUserDrawerVisible" :form-errors="formErrors"
+      :loading="actionLoading" :user-data="selectedUser" @close="closeAddUserDrawer" @user-data="handleSaveUser" />
   </section>
-  <AlertDialog
-    v-model:is-dialog-visible="showAlertDialog"
-    :title-alert="alertMessage"
-  />
+  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
+    :type="alertType" />
 </template>

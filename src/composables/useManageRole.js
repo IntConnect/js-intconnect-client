@@ -1,156 +1,156 @@
-import { ref } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { useApi } from "@/composables/useApi";
+import { ref } from "vue";
 
 export const useManageRole = () => {
   // --------------------
   // State
   // --------------------
-  const role = ref({})
-  const roles = ref([])
-  const totalItems = ref(0)
-  const currentPage = ref(1)
-  const pageSize = ref(10)
-  const totalPages = ref(0)
+  const role = ref({});
+  const roles = ref([]);
+  const totalItems = ref(0);
+  const currentPage = ref(1);
+  const pageSize = ref(10);
+  const totalPages = ref(0);
 
-  const errorMessage = ref(null)
-  const formErrors = ref({})
-  const actionLoading = ref(false)
+  const errorMessage = ref(null);
+  const formErrors = ref({});
+  const actionLoading = ref(false);
 
-
-  const clearFormErrors = () => (formErrors.value = {})
+  const clearFormErrors = () => (formErrors.value = {});
 
   const clearErrors = () => {
-    errorMessage.value = null
-    formErrors.value = {}
-  }
+    errorMessage.value = null;
+    formErrors.value = {};
+  };
 
   // --------------------
   // Main API Methods
   // --------------------
 
   const fetchRoles = async () => {
-    clearErrors()
-    actionLoading.value = true
+    clearErrors();
+    actionLoading.value = true;
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl('/roles', {}),
+        createUrl("/roles", {})
       )
         .get()
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
 
-      roles.value = response.value
-
+      roles.value = response.value;
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const fetchRole = async id => {
-    clearErrors()
-    actionLoading.value = true
+  const fetchRole = async (id) => {
+    clearErrors();
+    actionLoading.value = true;
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/roles/${id}`, {}),
+        createUrl(`/roles/${id}`, {})
       )
         .get()
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
 
-      role.value = response
+      role.value = response;
 
       return {
         success: true,
-      }
+      };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const createRole = async roleData => {
-    actionLoading.value = true
-    clearFormErrors()
-
+  const createRole = async (roleData) => {
+    actionLoading.value = true;
+    clearFormErrors();
     try {
-      const { data: response, error: apiError } = await useApi('/roles')
+      const { data: response, error: apiError } = await useApi("/roles")
         .post(roleData)
-        .json()
+        .json();
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      console.log(response.value);
+      roles.value = response.value;
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-
-      roles.value = response.value
-
-
-      return { success: true }
+      return { success: true };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
   const updateRole = async (roleId, roleData) => {
-    actionLoading.value = true
-    clearFormErrors()
+    actionLoading.value = true;
+    clearFormErrors();
+    console.log(roleId, roleData);
     try {
-      const { data: response, error: apiError } = await useApi(`/roles/${roleId}`)
+      const { data: response, error: apiError } = await useApi(
+        `/roles/${roleId}`,
+        {}
+      )
         .put(roleData)
-        .json()
+        .json();
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
+      roles.value = response.value;
 
-      roles.value = response.value
-
-      return { success: true }
+      return { success: true };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const deleteRole = async (roleId, reason = '') => {
-    actionLoading.value = true
-    clearFormErrors()
+  const deleteRole = async (roleId, reason = "") => {
+    actionLoading.value = true;
+    clearFormErrors();
 
     try {
-      const { data: response, error: apiError } = await useApi(`/roles/${roleId}`)
+      const { data: response, error: apiError } = await useApi(
+        `/roles/${roleId}`
+      )
         .delete({ reason })
-        .json()
+        .json();
 
-      const result = handleApiError(apiError, { formErrors, errorMessage })
-      if (!result.success) return result
-      roles.value = response.value
+      const result = handleApiError(apiError, { formErrors, errorMessage });
+      if (!result.success) return result;
+      roles.value = response.value;
 
-      return { success: true }
+      return { success: true };
     } catch (_) {
-      return { success: false, error: 'Unknown error' }
+      return { success: false, error: "Unknown error" };
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
-  }
+  };
 
-  const saveRole = async roleData => {
+  const saveRole = async (roleData) => {
+    console.log(roleData);
     if (roleData.id) {
-      const { id, ...payload } = roleData
+      const { id, ...payload } = roleData;
 
-      return updateRole(id, payload)
+      return updateRole(id, payload);
     }
 
-    return createRole(roleData)
-  }
+    return createRole(roleData);
+  };
 
   return {
     role,
@@ -171,6 +171,5 @@ export const useManageRole = () => {
     saveRole,
     clearFormErrors,
     clearErrors,
-  }
-}
-
+  };
+};

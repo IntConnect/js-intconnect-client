@@ -256,39 +256,29 @@ onMounted(async () => {
                       placeholder="0" />
                   </VCol>
                   <VCol cols="6">
-                    <AppSelect v-model="intervalType" :items="[{
-                      title: 'Hours',
-                      value: 'Hours'
+                    <AppSelect v-model="rotationType" :items="[{
+                      title: 'Daily',
+                      value: 'Daily'
                     }, {
-                      title: 'Minutes',
-                      value: 'Minutes'
-                    }]" :error="!!props.formErrors.interval_type"
-                      :error-messages="props.formErrors.interval_type || []" :rules="[requiredValidator]"
-                      label="Interval Type" />
+                      title: 'Weekly',
+                      value: 'Weekly'
+                    },
+                    {
+                      title: 'Monthly',
+                      value: 'Monthly'
+                    }]" :error="!!props.formErrors.rotationType" :error-messages="props.formErrors.rotationType || []"
+                      :rules="[requiredValidator]" label="Rotation Type" />
                   </VCol>
                 </VRow>
               </VCol>
 
-              <VCol cols="12">
-                <AppSelect v-model="rotationType" :items="[{
-                  title: 'Daily',
-                  value: 'Daily'
-                }, {
-                  title: 'Weekly',
-                  value: 'Weekly'
-                },
-                {
-                  title: 'Monthly',
-                  value: 'Monthly'
-                }]" :error="!!props.formErrors.rotationType" :error-messages="props.formErrors.rotationType || []"
-                  :rules="[requiredValidator]" label="Rotation Type" />
-              </VCol>
-              <VCol cols="12">
+
+              <VCol cols="6">
                 <AppTextField v-model.number="revisionNumber" :error="!!props.formErrors.revision_number"
                   :error-messages="props.formErrors.revision_number || []" :rules="[requiredValidator]"
                   label="Revision Number" placeholder="1" :disabled="isEditMode" />
               </VCol>
-              <VCol cols="12">
+              <VCol cols="6">
                 <AppDateTimePicker id="effectiveDate" v-model="effectiveDate" style="width: full;" :config="{
                   dateFormat: 'Y-m-d',
                   altInput: true,
@@ -303,7 +293,7 @@ onMounted(async () => {
                   dateFormat: 'H:i',
                   time_24hr: true,
                 }" :error="!!props.formErrors.starting_hour" :error-messages="props.formErrors.starting_hour || []"
-                  label="Effective Time" :rules="[requiredValidator]" placeholder="Select time" />
+                  label="Starting Hour" :rules="[requiredValidator]" placeholder="Select time" />
               </VCol>
 
 

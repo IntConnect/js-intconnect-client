@@ -133,7 +133,7 @@ const openRejectDialog = () => {
 }
 
 const handleApprove = async data => {
-  let approvalPayload =  {
+  let approvalPayload = {
     check_sheet_id: id,
     note: data.note,
     decision: true,
@@ -149,14 +149,14 @@ const handleApprove = async data => {
 
     setTimeout(() => {
       router.push('/check-sheets')
-    }, 2000) 
-  }else{
+    }, 2000)
+  } else {
     console.error(formErrors)
   }
 }
 
 const handleReject = async data => {
-  let approvalPayload =  {
+  let approvalPayload = {
     check_sheet_id: id,
     note: data.note,
     decision: false,
@@ -171,8 +171,8 @@ const handleReject = async data => {
 
     setTimeout(() => {
       router.push('/check-sheets')
-    }, 2000) 
-  }else{
+    }, 2000)
+  } else {
     console.error(formErrors)
   }
 }
@@ -247,6 +247,7 @@ onMounted(async () => {
     isEditMode.value = true
     selectedCheckSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
     console.log(checkSheet.value["check_sheet_values"])
+    checkpoints.value = checkSheet.value["check_sheet_values"].map
     checkSheetData.value = checkSheet.value["check_sheet_values"].reduce(
       (acc, item) => {
         const cpIndex = findCheckpointIndexByParameterId(item.parameter_id)
@@ -346,6 +347,7 @@ const findCheckpointIndexByParameterId = (parameterId) => {
   return validCheckpoints.value.findIndex(
     cp => cp.parameter.id === parameterId
   )
+
 }
 
 // Initialize checkSheetData untuk menyimpan nilai
@@ -754,7 +756,8 @@ const fillColumn = (cpIndex, value) => {
                       <VBtn color="error" :loading="actionLoading" prepend-icon="tabler-x" @click="openRejectDialog">
                         Reject
                       </VBtn>
-                      <VBtn color="success" :loading="actionLoading" prepend-icon="tabler-check" @click="openApproveDialog">
+                      <VBtn color="success" :loading="actionLoading" prepend-icon="tabler-check"
+                        @click="openApproveDialog">
                         Approve
                       </VBtn>
                     </div>
@@ -767,18 +770,10 @@ const fillColumn = (cpIndex, value) => {
       </VCardText>
     </VCard>
   </VCol>
-   <ApprovalDialog
-    v-model="showApproveDialog"
-    action="approve"
-    @submit="handleApprove"
-  />
+  <ApprovalDialog v-model="showApproveDialog" action="approve" @submit="handleApprove" />
 
   <!-- Reject Dialog -->
-  <ApprovalDialog
-    v-model="showRejectDialog"
-    action="reject"
-    @submit="handleReject"
-  />
+  <ApprovalDialog v-model="showRejectDialog" action="reject" @submit="handleReject" />
 </template>
 
 <style scoped>
