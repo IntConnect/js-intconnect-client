@@ -86,16 +86,7 @@ const onParameterChange = (parameterId, index) => {
 }
 
 
-const checkpoints = ref([
-  {
-    name: "Test",
-    parameter: {
-      id: 1,
-      isAutomatic: true,
-      unit: "N/A",
-    },
-  },
-])
+const checkpoints = ref([])
 
 const activeParametersCount = computed(() => {
   return checkpoints.value.filter(cp => cp.parameterId).length
@@ -143,23 +134,44 @@ const checkSheetValues = ref({})
 ========================= */
 const onSubmit = async () => {
   formErrors.value = {}
-  const resultParsing = Object.entries(checkSheetData.value).map(([key, value]) => {
-    const [time, index] = key.split('-')
+  const checkSheetCheckPoint = checkpoints.value.map((checkpoint, checkpointIndex) => {
+      // Kumpulkan semua values untuk checkpoint ini dari semua timeSlots
+      const checkSheetValues = timeSlots.value.map(time => {
+        const value = getCellValue(time, checkpointIndex)
+        
+        return {
+          timestamp: time,
+          value: value
+        }
+      })
 
-    return {
-      parameter_id: value.parameterId,
-      value: String(value.value),
-      timestamp: time,
+      // Build checkpoint object
+      const checkpointData = {
+        parameter_id: checkpoint.parameter.id,
+        name: checkpoint.name,
+        check_sheet_values: checkSheetValues
+      }
+      
+      // Hanya tambahkan id jika ada (edit mode)
+      if (checkpoint.id) {
+        checkpointData.id = checkpoint.id
+      }
+      
+      // Hanya tambahkan check_sheet_id jika ada (edit mode)
+      if (checkpoint.check_sheet_id) {
+        checkpointData.check_sheet_id = checkpoint.check_sheet_id
+      }
 
+      return checkpointData
+    })
+
+ 
+
+     const payload = {
+      check_sheet_document_template_id: selectedCheckSheetDocumentTemplateId.value,
+      check_sheet_check_points: checkSheetCheckPoint
     }
-  })
-
-
-
-  const payload = {
-    check_sheet_document_template_id: selectedCheckSheetDocumentTemplateId.value,
-    check_sheet_values: resultParsing,
-  }
+    console.log(payload)
 
   const result = await createCheckSheet(payload)
   if (result.success) {
@@ -296,11 +308,8 @@ const setCellValue = (time, checkpointIndex, value, parameterId) => {
     value,
     parameterId,
   }
+ 
 }
-
-
-
-
 
 // Copy row
 const copyRow = time => {

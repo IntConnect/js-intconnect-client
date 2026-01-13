@@ -36,7 +36,6 @@ const {
   formErrors,
   fetchCheckSheet,
   createCheckSheet,
-  approvalCheckSheet,
 } = useManageCheckSheet()
 
 const {
@@ -87,16 +86,7 @@ const onParameterChange = (parameterId, index) => {
 }
 
 
-const checkpoints = ref([
-  {
-    name: "Test",
-    parameter: {
-      id: 1,
-      isAutomatic: true,
-      unit: "N/A",
-    },
-  },
-])
+const checkpoints = ref([])
 
 const activeParametersCount = computed(() => {
   return checkpoints.value.filter(cp => cp.parameterId).length
@@ -106,78 +96,31 @@ const totalCheckpoints = computed(() => {
   return checkpoints.value.length
 })
 
+const addCheckpoint = () => {
+  checkpoints.value.push({
+    name: "",
+    parameter: {
+      id: null,
+      isAutomatic: false,
+      unit: "",
+    },
+  })
+}
 
-
+const removeCheckpoint = index => {
+  checkpoints.value.splice(index, 1)
+}
 
 // ==========================================
 // Form State
 // ==========================================
-const isFormValid = ref(false)
 const refForm = ref()
 
 // Form fields
-const selectedCheckSheetDocumentTemplateId = ref('')
+const selectedCheckSheetDocumentTemplateId = ref(1)
 const timestamp = ref(new Date())
 const status = ref("Draft")
 const note = ref("")
-
-const showApproveDialog = ref(false)
-const showRejectDialog = ref(false)
-
-const openApproveDialog = () => {
-  showApproveDialog.value = true
-}
-
-const openRejectDialog = () => {
-  showRejectDialog.value = true
-}
-
-const handleApprove = async data => {
-  let approvalPayload = {
-    check_sheet_id: id,
-    note: data.note,
-    decision: true,
-  }
-  const actionResult = await approvalCheckSheet(approvalPayload)
-
-  if (actionResult.success) {
-    showApproveDialog.value = false
-    isAlertDialogVisible.value = true
-    bodyAlert.value = "You will be redirected to Check Sheet page"
-    alertType.value = 'info'
-    titleAlert.value = "Success approve Check Sheet"
-
-    setTimeout(() => {
-      router.push('/check-sheets')
-    }, 2000)
-  } else {
-    console.error(formErrors)
-  }
-}
-
-const handleReject = async data => {
-  let approvalPayload = {
-    check_sheet_id: id,
-    note: data.note,
-    decision: false,
-  }
-  const actionResult = await approvalCheckSheet(approvalPayload)
-  if (actionResult.success) {
-    showApproveDialog.value = false
-    isAlertDialogVisible.value = true
-    bodyAlert.value = "You will be redirected to Check Sheet page"
-    alertType.value = 'info'
-    titleAlert.value = "Success rejected Check Sheet"
-
-    setTimeout(() => {
-      router.push('/check-sheets')
-    }, 2000)
-  } else {
-    console.error(formErrors)
-  }
-}
-
-
 
 const isAlertDialogVisible = ref(false)
 const bodyAlert = ref('')
@@ -191,23 +134,44 @@ const checkSheetValues = ref({})
 ========================= */
 const onSubmit = async () => {
   formErrors.value = {}
-  const resultParsing = Object.entries(checkSheetData.value).map(([key, value]) => {
-    const [time, index] = key.split('-')
+  const checkSheetCheckPoint = checkpoints.value.map((checkpoint, checkpointIndex) => {
+    // Kumpulkan semua values untuk checkpoint ini dari semua timeSlots
+    const checkSheetValues = timeSlots.value.map(time => {
+      const value = getCellValue(time, checkpointIndex)
 
-    return {
-      parameter_id: value.parameterId,
-      value: String(value.value),
-      timestamp: time,
+      return {
+        timestamp: time,
+        value: value
+      }
+    })
 
+    // Build checkpoint object
+    const checkpointData = {
+      parameter_id: checkpoint.parameter.id,
+      name: checkpoint.name,
+      check_sheet_values: checkSheetValues
     }
+
+    // Hanya tambahkan id jika ada (edit mode)
+    if (checkpoint.id) {
+      checkpointData.id = checkpoint.id
+    }
+
+    // Hanya tambahkan check_sheet_id jika ada (edit mode)
+    if (checkpoint.check_sheet_id) {
+      checkpointData.check_sheet_id = checkpoint.check_sheet_id
+    }
+
+    return checkpointData
   })
 
 
 
   const payload = {
     check_sheet_document_template_id: selectedCheckSheetDocumentTemplateId.value,
-    check_sheet_values: resultParsing,
+    check_sheet_check_points: checkSheetCheckPoint
   }
+  console.log(payload)
 
   const result = await createCheckSheet(payload)
   if (result.success) {
@@ -244,26 +208,18 @@ onMounted(async () => {
   if (checkSheetResult.success) {
     isEditMode.value = true
     selectedCheckSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
-    checkpoints.value = checkSheet.value["check_sheet_values"].map
-    checkSheetData.value = checkSheet.value["check_sheet_values"].reduce(
-      (acc, item) => {
-        const cpIndex = findCheckpointIndexByParameterId(item.parameter_id)
-
-        // jika parameter tidak ada di checkpoint (safety)
-        if (cpIndex === -1) return acc
-
-        const key = `${item.timestamp}-${cpIndex}`
-
-        acc[key] = {
-          value: item.value,
-          parameterId: item.parameter_id,
-        }
-
-        return acc
-      },
-      {}
-    )
-
+    checkpoints.value = checkSheet.value['check_sheet_check_points'].map(checkSheetCheckPoint => {
+      let parameter = getParameterById(checkSheetCheckPoint.parameter_id)
+      console.log(parameter)
+      return {
+        name: checkSheetCheckPoint.name,
+        parameter: {
+          id: checkSheetCheckPoint.parameter_id,
+          isAutomatic: parameter.is_automatic,
+          unit: parameter.unit,
+        },
+      }
+    })
   } else {
     id = null
   }
@@ -292,8 +248,13 @@ const fillDown = (time, cpIndex) => {
   }
 }
 
-const validCheckpoints = computed(() => {
-  return checkpoints.value.filter(cp => isCheckpointValid(cp))
+const isCheckpointValid = computed(() => {
+  if (!selectedCheckSheetDocumentTemplateId.value) return false
+
+  return checkpoints.value.every(checkpoint =>
+    checkpoint.name &&
+    checkpoint.parameter?.id
+  )
 })
 
 const timeSlots = ref([])
@@ -339,45 +300,34 @@ watch(() => selectedCheckSheetDocumentTemplate.value, () => {
   { immediate: true }
 )
 
-const findCheckpointIndexByParameterId = (parameterId) => {
-  return validCheckpoints.value.findIndex(
-    cp => cp.parameter.id === parameterId
-  )
-
-}
-
 // Initialize checkSheetData untuk menyimpan nilai
 const checkSheetData = ref({})
 
+// Function untuk get/set value
 const getCellValue = (time, checkpointIndex) => {
   const key = `${time}-${checkpointIndex}`
 
-  if (!(key in checkSheetData.value)) return ''
+  const valueCheckSheet = checkSheetData.value[key]?.value
 
-  return checkSheetData.value[key].value
+  if (valueCheckSheet == null) return ""
+
+  return String(valueCheckSheet)
 }
 
 const setCellValue = (time, checkpointIndex, value, parameterId) => {
-  const key = `${time}-${checkpointIndex}-`
-
+  const key = `${time}-${checkpointIndex}`
   checkSheetData.value[key] = {
     value,
     parameterId,
   }
+
 }
-
-// Validate if checkpoint has valid data
-const isCheckpointValid = checkpoint => {
-  return checkpoint.name && checkpoint.parameter.id
-}
-
-
 
 // Copy row
 const copyRow = time => {
   const rowData = {}
 
-  validCheckpoints.value.forEach((_, cpIndex) => {
+  checkpoints.value.forEach((_, cpIndex) => {
     rowData[cpIndex] = getCellValue(time, cpIndex)
   })
 
@@ -392,7 +342,6 @@ const fillColumn = (cpIndex, value) => {
     setCellValue(time, cpIndex, value)
   })
 }
-
 
 
 </script>
@@ -460,13 +409,13 @@ const fillColumn = (cpIndex, value) => {
                         :items="processedCheckSheetDocumentTemplates"
                         :error="!!formErrors.check_sheet_document_template_id"
                         :error-messages="formErrors.check_sheet_document_template_id || []" :rules="[requiredValidator]"
-                        label="Check Sheet Document Template" :disabled="true" />
+                        label="Check Sheet Document Template" />
                     </VCol>
                     <VCol cols="4">
                       <AppTextField v-model="status" label="Status" disabled />
                     </VCol>
                     <VCol cols="4">
-                      <AppTextField v-model="note" label="Note" placeholder="Insert short note" :disabled="true" />
+                      <AppTextField v-model="note" label="Note" placeholder="Insert short note" />
                     </VCol>
                   </VRow>
 
@@ -501,13 +450,13 @@ const fillColumn = (cpIndex, value) => {
                       <!-- Checkpoint Name -->
                       <div class="excel-cell checkpoint-cell">
                         <AppTextField v-model="checkpoint.name" placeholder="Enter checkpoint name" density="compact"
-                          hide-details="auto" :disabled="true" />
+                          hide-details="auto" />
                       </div>
 
                       <!-- Parameter Select -->
                       <div class="excel-cell parameter-cell">
                         <AppSelect v-model="checkpoint.parameter.id" :items="processedParameters"
-                          placeholder="Select parameter" density="compact" hide-details="auto" :disabled="true"
+                          placeholder="Select parameter" density="compact" hide-details="auto"
                           @update:model-value="value => onParameterChange(value, index)" />
                       </div>
 
@@ -527,12 +476,17 @@ const fillColumn = (cpIndex, value) => {
                       </div>
                     </div>
 
-
+                    <!-- Add Row Button -->
+                    <div class="excel-footer">
+                      <VBtn color="info" variant="tonal" size="small" prepend-icon="tabler-plus" @click="addCheckpoint">
+                        Add Checkpoint
+                      </VBtn>
+                    </div>
                   </div>
 
                   <!-- Navigation -->
                   <div class="d-flex justify-end gap-3 mt-6">
-                    <VBtn color="primary" :disabled="validCheckpoints.length === 0" @click="() => {
+                    <VBtn color="primary" :disabled="!isCheckpointValid" @click="() => {
                       currentStep++
                     }">
                       Next
@@ -557,7 +511,7 @@ const fillColumn = (cpIndex, value) => {
                     </div>
                     <div class="d-flex gap-2">
                       <VChip color="primary" variant="tonal" prepend-icon="tabler-checklist">
-                        {{ validCheckpoints.length }} Checkpoints
+                        {{ checkpoints.length }} Checkpoints
                       </VChip>
                       <VChip color="info" variant="tonal" prepend-icon="tabler-clock">
                         {{ timeSlots.length }} Time Slots
@@ -577,7 +531,7 @@ const fillColumn = (cpIndex, value) => {
                   </VAlert>
 
                   <!-- Excel Data Grid - IMPROVED -->
-                  <div v-if="validCheckpoints.length > 0" class="excel-data-grid">
+                  <div v-if="checkpoints.length > 0" class="excel-data-grid">
                     <div class="grid-toolbar">
                       <div class="d-flex align-center gap-3">
                         <VIcon icon="tabler-table" size="20" color="primary" />
@@ -600,7 +554,7 @@ const fillColumn = (cpIndex, value) => {
                                 <span>TIME</span>
                               </div>
                             </th>
-                            <th v-for="(checkpoint, cpIndex) in validCheckpoints" :key="cpIndex"
+                            <th v-for="(checkpoint, cpIndex) in checkpoints" :key="cpIndex"
                               class="checkpoint-column-header" @mouseenter="hoveredCol = cpIndex"
                               @mouseleave="hoveredCol = null">
                               <div class="header-content">
@@ -686,13 +640,12 @@ const fillColumn = (cpIndex, value) => {
                             </td>
 
                             <!-- Data Cells -->
-                            <td v-for="(checkpoint, cpIndex) in validCheckpoints" :key="cpIndex" class="input-cell"
-                              :class="{
-                                'cell-active': isActiveCell(time, cpIndex),
-                                'cell-hovered': hoveredCol === cpIndex,
-                                'cell-disabled': checkpoint.parameter.isAutomatic,
-                                'cell-filled': getCellValue(time, cpIndex)
-                              }">
+                            <td v-for="(checkpoint, cpIndex) in checkpoints" :key="cpIndex" class="input-cell" :class="{
+                              'cell-active': isActiveCell(time, cpIndex),
+                              'cell-hovered': hoveredCol === cpIndex,
+                              'cell-disabled': checkpoint.parameter.isAutomatic,
+                              'cell-filled': getCellValue(time, cpIndex)
+                            }">
                               <div class="cell-wrapper">
                                 <AppTextField :model-value="getCellValue(time, cpIndex)" placeholder="--"
                                   density="compact" hide-details type="number"
@@ -701,7 +654,7 @@ const fillColumn = (cpIndex, value) => {
                                   @update:model-value="val => setCellValue(time, cpIndex, val, checkpoint.parameter.id)">
                                   <template v-if="checkpoint.parameter.isAutomatic" #append-inner>
                                     <VTooltip location="top">
-                                      <template #activator="{ props }">
+                                      <template #activator="{ props }" activator="parent">
                                         <VIcon v-bind="props" icon="tabler-lock" size="14" color="success" />
                                       </template>
                                       <span>Automatic Parameter</span>
@@ -733,7 +686,7 @@ const fillColumn = (cpIndex, value) => {
                           <VIcon icon="tabler-check" size="16" color="success" />
                           <span>{{Object.keys(checkSheetData).filter(k => checkSheetData[k]).length}} / {{
                             timeSlots.length *
-                            validCheckpoints.length }} Filled</span>
+                            checkpoints.length }} Filled</span>
                         </div>
                         <div class="stat-item">
                           <VIcon icon="tabler-clock" size="16" color="info" />
@@ -748,15 +701,9 @@ const fillColumn = (cpIndex, value) => {
                     <VBtn color="secondary" variant="tonal" prepend-icon="tabler-arrow-left" @click="currentStep--">
                       Back
                     </VBtn>
-                    <div class="d-flex gap-2">
-                      <VBtn color="error" :loading="actionLoading" prepend-icon="tabler-x" @click="openRejectDialog">
-                        Reject
-                      </VBtn>
-                      <VBtn color="success" :loading="actionLoading" prepend-icon="tabler-check"
-                        @click="openApproveDialog">
-                        Approve
-                      </VBtn>
-                    </div>
+                    <VBtn color="primary" :loading="actionLoading" append-icon="tabler-check" @click="onSubmit">
+                      Submit Check Sheet
+                    </VBtn>
                   </div>
                 </VCol>
               </VRow>
@@ -766,10 +713,6 @@ const fillColumn = (cpIndex, value) => {
       </VCardText>
     </VCard>
   </VCol>
-  <ApprovalDialog v-model="showApproveDialog" action="approve" @submit="handleApprove" />
-
-  <!-- Reject Dialog -->
-  <ApprovalDialog v-model="showRejectDialog" action="reject" @submit="handleReject" />
 </template>
 
 <style scoped>
@@ -965,7 +908,8 @@ const fillColumn = (cpIndex, value) => {
 }
 
 .time-column-header {
-  width: 30px;
+  min-width: 35px;
+  width: 35px;
   position: sticky;
   z-index: 25;
 }
@@ -1148,7 +1092,6 @@ const fillColumn = (cpIndex, value) => {
 
 .cell-input :deep(.v-field) {
   border-radius: 6px;
-  background: white;
   border: 2px solid transparent;
   transition: all 0.2s;
 }
