@@ -138,7 +138,7 @@ const connectAlarmWebSocket = () => {
     alarmSocket.value.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-
+console.log(data)
         if (data.type === 'CREATED') {
           const parameter = getParameterById(data.parameter_id)
           const newAlarm = {
@@ -153,7 +153,7 @@ const connectAlarmWebSocket = () => {
             acknowledged: false
           }
           
-          alarmLogs.value.push(newAlarm)
+          processedAlarmLogs.value.push(newAlarm)
 
           // Add to alarms list
           alarms.value.unshift(newAlarm)
@@ -172,6 +172,15 @@ const connectAlarmWebSocket = () => {
               showAlarmOverlay.value = false
             }, 3000)
           }
+        }else{
+         const indexOfUpdatedAlarmLog =  processedAlarmLogs.value.findIndex(alarmLog => alarmLog.parameter_id == data.parameter_id)
+         console.log(indexOfUpdatedAlarmLog)
+         processedAlarmLogs.value[indexOfUpdatedAlarmLog] = {
+          ...processedAlarmLogs.value[indexOfUpdatedAlarmLog],
+          value: data.value,
+            timestamp: data.timestamp,
+            status: data.status,
+         }
         }
       } catch (error) {
         console.error('Error parsing alarm data:', error)
@@ -357,7 +366,7 @@ onMounted(async () => {
       timestamp: alarmLog.created_at,
       acknowledged: false
     }
-  })
+  }) ?? []
   console.log(processedAlarmLogs)
 
   // Connect to alarm WebSocket
