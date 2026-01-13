@@ -237,8 +237,10 @@ onMounted(() => {
       label: 'Reason',
       placeholder: 'Type your reason...',
       type: 'text',
-      formErrors: formErrors,
-    }]" :loading="actionLoading" message="Please provide a reason for deletion" title="Delete Facility"
+      
+    }]"
+    :form-errors="formErrors"
+     :loading="actionLoading" message="Please provide a reason for deletion" title="Delete Facility"
       @submit="handleDeleteFacility" />
   </section>
   <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="alertBody" />

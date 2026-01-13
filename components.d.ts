@@ -83,6 +83,7 @@ declare module 'vue' {
     TablePagination: typeof import('./src/@core/components/TablePagination.vue')['default']
     TheCustomizer: typeof import('./src/@core/components/TheCustomizer.vue')['default']
     ThemeSwitcher: typeof import('./src/@core/components/ThemeSwitcher.vue')['default']
+    ThreeDimensionModelRenderer: typeof import('./src/components/dashboard/ThreeDimensionModelRenderer.vue')['default']
     ThreeModelViewer: typeof import('./src/components/ThreeModelViewer.vue')['default']
     ThreeViewer: typeof import('./src/components/dashboard/ThreeViewer.vue')['default']
     TiptapEditor: typeof import('./src/@core/components/TiptapEditor.vue')['default']

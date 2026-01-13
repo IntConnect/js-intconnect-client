@@ -1,5 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { useConfigStore } from '@core/stores/config'
+import { computed, ref } from 'vue'
+import { useTheme } from 'vuetify'
 
 const props = defineProps({
   machine: {
@@ -15,7 +17,6 @@ const props = defineProps({
     },
     required: false,
   },
-  
   
   runningTimes: {
     type: Array,
@@ -44,6 +45,54 @@ const props = defineProps({
 
 const emit = defineEmits(['addParameter', 'removeParameter'])
 
+// Theme Detection
+const configStore = useConfigStore()
+const theme = useTheme()
+
+const isDark = computed(() => {
+  if (configStore.theme === 'system') {
+    return theme.global.current.value.dark
+  }
+  return configStore.theme === 'dark'
+})
+
+// Dynamic Styles
+const glassCardStyle = computed(() => {
+  if (props.machine.status === 'on') {
+    return {
+      background: isDark.value 
+        ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(20, 184, 166, 0.15) 100%)'
+        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(20, 184, 166, 0.08) 100%)',
+      borderColor: isDark.value 
+        ? 'rgba(16, 185, 129, 0.3)'
+        : 'rgba(16, 185, 129, 0.4)',
+      boxShadow: isDark.value
+        ? '0 20px 60px rgba(16, 185, 129, 0.2)'
+        : '0 8px 32px rgba(16, 185, 129, 0.15)'
+    }
+  }
+  return {
+    background: isDark.value 
+      ? 'rgba(30, 41, 59, 0.4)'
+      : 'rgba(241, 245, 249, 0.6)',
+    borderColor: isDark.value 
+      ? 'rgba(71, 85, 105, 0.3)'
+      : 'rgba(203, 213, 225, 0.5)'
+  }
+})
+
+const textPrimaryClass = computed(() => 
+  isDark.value ? 'text-white' : 'text-grey-darken-3'
+)
+
+const textSecondaryClass = computed(() => 
+  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1'
+)
+
+const textMutedClass = computed(() => 
+  isDark.value ? 'text-grey' : 'text-grey-lighten-1'
+)
+
 // Dialog state
 const showAddDialog = ref(false)
 
@@ -51,12 +100,9 @@ const handleOpenDialog = () => {
   showAddDialog.value = true
 }
 
-
 const handleRemoveParameter = itemId => {
   emit('removeParameter', itemId)
 }
-
-
 </script>
 
 <template>
@@ -69,8 +115,10 @@ const handleRemoveParameter = itemId => {
       <VCard
         class="glass-card pa-5 transition-all"
         :class="[
+          isDark ? 'glass-card-dark' : 'glass-card-light',
           props.machine.status === 'on' ? 'glass-card-on' : 'glass-card-off'
         ]"
+        :style="glassCardStyle"
         elevation="24"
         @mouseenter="props.machine.hover = true"
         @mouseleave="props.machine.hover = false"
@@ -79,13 +127,17 @@ const handleRemoveParameter = itemId => {
         <div class="d-flex justify-space-between align-start mb-4">
           <div class="flex-grow-1">
             <div class="d-flex align-center gap-3 mb-2">
-              <h3 class="text-h5 font-weight-bold text-white mb-0">
+              <h3 
+                class="text-h5 font-weight-bold mb-0"
+                :class="textPrimaryClass"
+              >
                 {{ props.machine.name }}
               </h3>
               <VChip
                 class="px-3 chip-status"
                 :class="[
-                  props.machine.status === 'on' ? 'chip-online' : 'chip-offline'
+                  props.machine.status === 'on' ? 'chip-online' : 'chip-offline',
+                  isDark ? '' : 'chip-light'
                 ]"
                 size="small"
                 label
@@ -104,13 +156,19 @@ const handleRemoveParameter = itemId => {
             <div 
               v-if="props.machine.status === 'on'"
               class="runtime-badge"
+              :class="isDark ? '' : 'runtime-badge-light'"
             >
               <VIcon
                 icon="tabler-clock-hour-4"
                 size="16"
                 class="text-cyan"
               />
-              <span class="text-caption text-grey-lighten-1 ms-1">Total Runtime:</span>
+              <span 
+                class="text-caption ms-1"
+                :class="textSecondaryClass"
+              >
+                Total Runtime:
+              </span>
               <span class="text-subtitle-2 font-weight-bold text-cyan ms-1">
                 {{ props.machine.totalRuntime }}
               </span>
@@ -120,7 +178,8 @@ const handleRemoveParameter = itemId => {
           <VAvatar
             class="icon-avatar"
             :class="[
-              props.machine.status === 'on' ? 'avatar-on' : 'avatar-off'
+              props.machine.status === 'on' ? 'avatar-on' : 'avatar-off',
+              isDark ? '' : 'avatar-light'
             ]"
             size="48"
           >
@@ -143,33 +202,46 @@ const handleRemoveParameter = itemId => {
                 size="20"
                 class="text-emerald me-2"
               />
-              <span class="text-subtitle-2 text-white font-weight-medium">Performance Overview</span>
+              <span 
+                class="text-subtitle-2 font-weight-medium"
+                :class="textPrimaryClass"
+              >
+                Performance Overview
+              </span>
             </div>
             <VIcon
               icon="tabler-arrows-horizontal"
               size="18"
-              class="text-grey scroll-hint-horizontal"
+              :class="textMutedClass"
+              class="scroll-hint-horizontal"
             />
           </div>
             
-          <div class="scrollable-container">
+          <div class="scrollable-container" :class="isDark ? '' : 'scrollable-light'">
             <div class="running-time-grid">
               <!-- Add Parameter Card (Only in Edit Mode) -->
               <VCard
                 v-if="isEditMode"
                 class="add-parameter-card pa-4"
+                :class="isDark ? '' : 'add-parameter-card-light'"
                 elevation="0"
                 @click="handleOpenDialog"
               >
                 <div class="add-card-content">
-                  <div class="add-icon-wrapper">
+                  <div 
+                    class="add-icon-wrapper"
+                    :class="isDark ? '' : 'add-icon-wrapper-light'"
+                  >
                     <VIcon
                       icon="tabler-plus"
                       size="32"
                       class="add-icon"
                     />
                   </div>
-                  <div class="text-caption text-white font-weight-medium mt-3">
+                  <div 
+                    class="text-caption font-weight-medium mt-3"
+                    :class="textPrimaryClass"
+                  >
                     Add Parameter
                   </div>
                 </div>
@@ -180,6 +252,7 @@ const handleRemoveParameter = itemId => {
                 v-for="item in props.runningTimes"
                 :key="item.id"
                 class="running-time-card pa-4"
+                :class="isDark ? '' : 'running-time-card-light'"
                 elevation="0"
               >
                 <!-- Delete Button (Only in Edit Mode) -->
@@ -203,17 +276,22 @@ const handleRemoveParameter = itemId => {
                   <div 
                     class="icon-circle"
                     :style="{ 
-                      background: `linear-gradient(135deg, ${item.color}40, ${item.color}20)`,
-                      borderColor: `${item.color}60`
+                      background: isDark 
+                        ? `linear-gradient(135deg, ${item.color}40, ${item.color}20)`
+                        : `linear-gradient(135deg, ${item.color}20, ${item.color}10)`,
+                      borderColor: isDark ? `${item.color}60` : `${item.color}40`
                     }"
                   >
                     <VIcon
-                      :icon="item.icon"
+                      icon='tabler-wifi'
                       size="20"
                       :style="{ color: item.color }"
                     />
                   </div>
-                  <span class="text-caption text-grey-lighten-1 ms-2 font-weight-medium">
+                  <span 
+                    class="text-caption ms-2 font-weight-medium"
+                    :class="textSecondaryClass"
+                  >
                     {{ item.name }}
                   </span>
                 </div>
@@ -222,6 +300,7 @@ const handleRemoveParameter = itemId => {
                 <div class="value-container">
                   <div 
                     class="text-h5 font-weight-bold value-text"
+                    :class="isDark ? '' : 'value-text-light'"
                     :style="{ color: item.color }"
                   >
                     {{ item.value }}
@@ -241,14 +320,19 @@ const handleRemoveParameter = itemId => {
         <VCard
           v-else
           class="mt-4 text-center pa-2 rounded-lg idle-card"
+          :class="isDark ? '' : 'idle-card-light'"
           elevation="0"
         >
           <VIcon
             icon="tabler-circle-off"
             size="40"
-            class="text-grey mb-2"
+            :class="textMutedClass"
+            class="mb-2"
           />
-          <div class="text-body-2 text-grey font-weight-medium">
+          <div 
+            class="text-body-2 font-weight-medium"
+            :class="textMutedClass"
+          >
             System Idle
           </div>
         </VCard>
@@ -260,7 +344,10 @@ const handleRemoveParameter = itemId => {
       v-model="showAddDialog"
       max-width="600"
     >
-      <VCard class="add-dialog-card">
+      <VCard 
+        class="add-dialog-card"
+        :class="isDark ? '' : 'add-dialog-card-light'"
+      >
         <VCardTitle class="d-flex align-center justify-space-between pa-6">
           <div class="d-flex align-center gap-3">
             <VAvatar
@@ -274,7 +361,10 @@ const handleRemoveParameter = itemId => {
               <div class="text-h6 font-weight-bold">
                 Add Parameters
               </div>
-              <div class="text-caption text-grey">
+              <div 
+                class="text-caption"
+                :class="textMutedClass"
+              >
                 Select parameters to display
               </div>
             </div>
@@ -331,8 +421,14 @@ const handleRemoveParameter = itemId => {
                       size="18"
                     />
                   </VAvatar>
-                </template> <template #subtitle>
-                  <span class="text-caption text-grey"> {{ item.raw.code }} • {{ item.raw.unit }} </span>
+                </template>
+                <template #subtitle>
+                  <span 
+                    class="text-caption"
+                    :class="textMutedClass"
+                  >
+                    {{ item.raw.code }} • {{ item.raw.unit }}
+                  </span>
                 </template>
               </VListItem>
             </template>
@@ -341,11 +437,15 @@ const handleRemoveParameter = itemId => {
           <div
             v-if="selectedParameters.length > 0"
             class="mt-4 pa-3 rounded-lg selection-info"
+            :class="isDark ? '' : 'selection-info-light'"
           >
             <div class="text-caption text-success font-weight-medium mb-1">
               Selected: {{ selectedParameters.length }} parameter(s)
             </div>
-            <div class="text-caption text-grey">
+            <div 
+              class="text-caption"
+              :class="textMutedClass"
+            >
               These parameters will be added to the performance overview
             </div>
           </div>
@@ -354,7 +454,10 @@ const handleRemoveParameter = itemId => {
         <VDivider />
 
         <VCardActions class="pa-6 d-flex justify-space-between">
-          <div class="text-caption text-medium-emphasis ">
+          <div 
+            class="text-caption text-medium-emphasis"
+            :class="textMutedClass"
+          >
             Parameter saved when click "Store Chart"
           </div>
           <div>
@@ -385,15 +488,14 @@ const handleRemoveParameter = itemId => {
   transform: scale(1.01);
 }
 
-.glass-card-on {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(20, 184, 166, 0.15) 100%);
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
-}
-
-.glass-card-off {
+.glass-card-dark.glass-card-off {
   background: rgba(30, 41, 59, 0.4);
   border-color: rgba(71, 85, 105, 0.3);
+}
+
+.glass-card-light.glass-card-off {
+  background: rgba(241, 245, 249, 0.6);
+  border-color: rgba(203, 213, 225, 0.5);
 }
 
 .chip-status {
@@ -409,10 +511,22 @@ const handleRemoveParameter = itemId => {
   border-color: rgba(16, 185, 129, 0.5);
 }
 
+.chip-online.chip-light {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: rgb(5, 150, 105) !important;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
 .chip-offline {
   background: rgba(51, 65, 85, 0.5) !important;
   color: rgb(148, 163, 184) !important;
   border-color: rgba(71, 85, 105, 0.5);
+}
+
+.chip-offline.chip-light {
+  background: rgba(148, 163, 184, 0.15) !important;
+  color: rgb(71, 85, 105) !important;
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 .icon-avatar {
@@ -425,8 +539,19 @@ const handleRemoveParameter = itemId => {
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
 }
 
+.avatar-on.avatar-light {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(20, 184, 166, 0.2)) !important;
+  color: rgb(5, 150, 105) !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+}
+
 .avatar-off {
   background: rgba(51, 65, 85, 0.5) !important;
+  color: rgb(100, 116, 139) !important;
+}
+
+.avatar-off.avatar-light {
+  background: rgba(226, 232, 240, 0.8) !important;
   color: rgb(100, 116, 139) !important;
 }
 
@@ -444,6 +569,10 @@ const handleRemoveParameter = itemId => {
 .scrollable-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
+}
+
+.scrollable-light::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .scrollable-container::-webkit-scrollbar-thumb {
@@ -475,6 +604,12 @@ const handleRemoveParameter = itemId => {
   flex-shrink: 0;
 }
 
+.running-time-card-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(241, 245, 249, 0.6)) !important;
+  border: 1px solid rgba(203, 213, 225, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
 .running-time-card::before {
   content: '';
   position: absolute;
@@ -493,6 +628,10 @@ const handleRemoveParameter = itemId => {
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
 }
 
+.running-time-card-light:hover {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2) !important;
+}
+
 .running-time-card:hover::before {
   opacity: 1;
 }
@@ -509,11 +648,20 @@ const handleRemoveParameter = itemId => {
   transition: all 0.3s ease;
 }
 
+.add-parameter-card-light {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(6, 182, 212, 0.05)) !important;
+  border: 2px dashed rgba(16, 185, 129, 0.3) !important;
+}
+
 .add-parameter-card:hover {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15)) !important;
   border-color: rgba(16, 185, 129, 0.6) !important;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.add-parameter-card-light:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1)) !important;
 }
 
 .add-card-content {
@@ -534,6 +682,11 @@ const handleRemoveParameter = itemId => {
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
+}
+
+.add-icon-wrapper-light {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .add-parameter-card:hover .add-icon-wrapper {
@@ -579,8 +732,10 @@ const handleRemoveParameter = itemId => {
 }
 
 .value-text {
-  text-shadow: 0 0 20px currentColor;
   letter-spacing: 0.5px;
+}
+
+.value-text-light {
 }
 
 .decoration-line {
@@ -597,6 +752,11 @@ const handleRemoveParameter = itemId => {
 .idle-card {
   background: rgba(30, 41, 59, 0.3) !important;
   border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.idle-card-light {
+  background: rgba(241, 245, 249, 0.5) !important;
+  border: 1px solid rgba(203, 213, 225, 0.4) !important;
 }
 
 .text-emerald {
@@ -648,6 +808,11 @@ const handleRemoveParameter = itemId => {
   margin-top: 4px;
 }
 
+.runtime-badge-light {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(14, 165, 233, 0.1));
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
 /* Dialog Styles */
 .add-dialog-card {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)) !important;
@@ -655,8 +820,18 @@ const handleRemoveParameter = itemId => {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
+.add-dialog-card-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95)) !important;
+  border: 1px solid rgba(203, 213, 225, 0.3) !important;
+}
+
 .selection-info {
   background: rgba(16, 185, 129, 0.1);
   border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.selection-info-light {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.15);
 }
 </style>

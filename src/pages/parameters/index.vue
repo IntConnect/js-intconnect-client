@@ -299,6 +299,7 @@ onMounted(() => {
         placeholder: 'Type your reason...',
         type: 'text'
       }]"
+        :form-errors="formErrors"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete Parameter"

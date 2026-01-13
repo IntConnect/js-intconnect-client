@@ -1,4 +1,8 @@
 <script setup>
+import { useConfigStore } from '@core/stores/config'
+import { computed } from 'vue'
+import { useTheme } from 'vuetify'
+
 const props = defineProps({
   realtimeData: {
     type: Array,
@@ -28,21 +32,57 @@ const props = defineProps({
   },
 })
 
+// Theme Detection
+const configStore = useConfigStore()
+const theme = useTheme()
+
+const isDark = computed(() => {
+  if (configStore.theme === 'system') {
+    return theme.global.current.value.dark
+  }
+  return configStore.theme === 'dark'
+})
+
+// Dynamic Styles
+const glassCardStyle = computed(() => ({
+  background: isDark.value
+    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(20, 184, 166, 0.12) 100%)'
+    : 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(20, 184, 166, 0.06) 100%)',
+  borderColor: isDark.value
+    ? 'rgba(16, 185, 129, 0.25)'
+    : 'rgba(16, 185, 129, 0.3)',
+  boxShadow: isDark.value
+    ? '0 20px 60px rgba(16, 185, 129, 0.15)'
+    : '0 8px 32px rgba(16, 185, 129, 0.12)'
+}))
+
+const textPrimaryClass = computed(() => 
+  isDark.value ? 'text-white' : 'text-grey-darken-3'
+)
+
+const textSecondaryClass = computed(() => 
+  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1'
+)
+
+const textMutedClass = computed(() => 
+  isDark.value ? 'text-grey' : 'text-grey-lighten-1'
+)
+
 const getStatusIcon = status => {
   switch(status) {
-  case 'active': return 'tabler-circle-check-filled'
-  case 'warning': return 'tabler-alert-circle'
-  case 'inactive': return 'tabler-circle-x'
-  default: return 'tabler-circle'
+    case 'active': return 'tabler-circle-check-filled'
+    case 'warning': return 'tabler-alert-circle'
+    case 'inactive': return 'tabler-circle-x'
+    default: return 'tabler-circle'
   }
 }
 
 const getStatusColor = status => {
   switch(status) {
-  case 'active': return 'success'
-  case 'warning': return 'warning'
-  case 'inactive': return 'default'
-  default: return 'info'
+    case 'active': return 'success'
+    case 'warning': return 'warning'
+    case 'inactive': return 'default'
+    default: return 'info'
   }
 }
 
@@ -69,6 +109,8 @@ const formatDateTime = dateString => {
     >
       <VCard
         class="glass-table-card pa-5"
+        :class="isDark ? '' : 'glass-table-card-light'"
+        :style="glassCardStyle"
         elevation="24"
       >
         <!-- Header -->
@@ -76,6 +118,7 @@ const formatDateTime = dateString => {
           <div class="d-flex align-center gap-3">
             <VAvatar
               class="header-avatar"
+              :class="isDark ? '' : 'header-avatar-light'"
               size="48"
             >
               <VIcon
@@ -84,18 +127,27 @@ const formatDateTime = dateString => {
               />
             </VAvatar>
             <div>
-              <h4 class="text-h5 font-weight-bold text-white mb-1">
+              <h4 
+                class="text-h5 font-weight-bold mb-1"
+                :class="textPrimaryClass"
+              >
                 Realtime Monitoring
               </h4>
               <div class="d-flex align-center gap-2">
                 <VIcon
                   :icon="machineData.isOnline ? 'tabler-clock-hour-4' : 'tabler-clock-off'"
                   size="14"
-                  :class="machineData.isOnline ? 'text-success' : 'text-grey'"
+                  :class="machineData.isOnline ? 'text-success' : textMutedClass"
                 />
-                <span class="text-caption text-grey-lighten-1">
+                <span 
+                  class="text-caption"
+                  :class="textSecondaryClass"
+                >
                   Last update: 
-                  <span class="font-weight-medium text-white ms-1">
+                  <span 
+                    class="font-weight-medium ms-1"
+                    :class="textPrimaryClass"
+                  >
                     {{ formatDateTime(props.lastUpdate) }}
                   </span>
                 </span>
@@ -119,38 +171,46 @@ const formatDateTime = dateString => {
           <VIcon
             icon="tabler-arrows-horizontal"
             size="18"
-            class="text-grey scroll-hint"
+            :class="textMutedClass"
+            class="scroll-hint"
           />
         </div>
 
         <!-- Horizontal Scrollable Table -->
-        <div class="horizontal-scroll-container">
+        <div 
+          class="horizontal-scroll-container"
+          :class="isDark ? '' : 'horizontal-scroll-light'"
+        >
           <div class="data-grid">
             <VCard
               v-for="item in realtimeData"
               :key="item.id"
               class="data-card pa-4"
+              :class="isDark ? '' : 'data-card-light'"
               elevation="0"
             >
               <!-- Status Indicator -->
               <div class="d-flex align-center justify-space-between mb-3">
                 <VIcon
-                  :icon="getStatusIcon(item.status)"
-                  :color="getStatusColor(item.status)"
+                  :icon="getStatusIcon('active')"
+                  :color="getStatusColor('active')"
                   size="22"
                 />
                 <VChip
-                  :color="getStatusColor(item.status)"
+                  :color="getStatusColor('active')"
                   size="x-small"
                   variant="tonal"
                   class="status-chip"
                 >
-                  {{ item.status }}
+                 Normal
                 </VChip>
               </div>
 
               <!-- Parameter Name -->
-              <div class="text-caption text-grey-lighten-1 mb-2 font-weight-medium text-uppercase letter-spacing">
+              <div 
+                class="text-caption mb-2 font-weight-medium text-uppercase letter-spacing"
+                :class="textSecondaryClass"
+              >
                 {{ item.parameter }}
               </div>
 
@@ -158,12 +218,13 @@ const formatDateTime = dateString => {
               <div 
                 class="text-h5 font-weight-bold mb-3"
                 :class="[
+                  isDark ? '' : '',
                   item.status === 'active' ? 'text-success' : 
                   item.status === 'warning' ? 'text-warning' : 
-                  'text-grey'
+                  textMutedClass
                 ]"
               >
-                {{ item.value }}
+                {{ Number(item.value).toFixed(2) }} 
               </div>
 
               <!-- Decorative Bottom Line -->
@@ -183,17 +244,25 @@ const formatDateTime = dateString => {
         <VCard
           v-if="!machineData.isOnline"
           class="mt-4 text-center pa-6 rounded-lg offline-card"
+          :class="isDark ? '' : 'offline-card-light'"
           elevation="0"
         >
           <VIcon
             icon="tabler-wifi-off"
             size="48"
-            class="text-grey mb-3"
+            :class="textMutedClass"
+            class="mb-3"
           />
-          <div class="text-subtitle-1 text-grey font-weight-medium mb-1">
+          <div 
+            class="text-subtitle-1 font-weight-medium mb-1"
+            :class="textMutedClass"
+          >
             Machine Offline
           </div>
-          <div class="text-caption text-grey-darken-1">
+          <div 
+            class="text-caption"
+            :class="textMutedClass"
+          >
             Data tidak tersedia. Hubungkan mesin untuk mulai monitoring.
           </div>
         </VCard>
@@ -206,16 +275,22 @@ const formatDateTime = dateString => {
 .glass-table-card {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(20, 184, 166, 0.12) 100%);
   border: 1px solid rgba(16, 185, 129, 0.25);
   border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.15);
   transition: all 0.3s ease;
 }
 
 .glass-table-card:hover {
   transform: scale(1.005);
-  box-shadow: 0 24px 70px rgba(16, 185, 129, 0.2);
+}
+
+.glass-table-card-light {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-table-card-light:hover {
+  box-shadow: 0 12px 40px rgba(16, 185, 129, 0.15) !important;
 }
 
 .header-avatar {
@@ -223,6 +298,12 @@ const formatDateTime = dateString => {
   color: rgb(167, 243, 208) !important;
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
   border-radius: 16px !important;
+}
+
+.header-avatar-light {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(20, 184, 166, 0.2)) !important;
+  color: rgb(5, 150, 105) !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
 }
 
 .live-chip {
@@ -251,7 +332,7 @@ const formatDateTime = dateString => {
   margin-bottom: -8px;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Dark */
 .horizontal-scroll-container::-webkit-scrollbar {
   height: 8px;
 }
@@ -269,6 +350,19 @@ const formatDateTime = dateString => {
 
 .horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
   background: rgba(16, 185, 129, 0.6);
+}
+
+/* Custom Scrollbar - Light */
+.horizontal-scroll-light::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.horizontal-scroll-light::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.horizontal-scroll-light::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.5);
 }
 
 /* Data Grid - Horizontal Layout */
@@ -292,6 +386,12 @@ const formatDateTime = dateString => {
   flex-shrink: 0;
 }
 
+.data-card-light {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.8)) !important;
+  border: 1px solid rgba(203, 213, 225, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 .data-card::before {
   content: '';
   position: absolute;
@@ -310,6 +410,10 @@ const formatDateTime = dateString => {
   box-shadow: 0 12px 32px rgba(16, 185, 129, 0.2);
 }
 
+.data-card-light:hover {
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.2) !important;
+}
+
 .data-card:hover::before {
   opacity: 1;
 }
@@ -323,6 +427,13 @@ const formatDateTime = dateString => {
 
 .letter-spacing {
   letter-spacing: 0.5px;
+}
+
+.value-text {
+  text-shadow: 0 0 15px currentColor;
+}
+
+.value-text-light {
 }
 
 /* Decorative Bottom Line */
@@ -352,6 +463,11 @@ const formatDateTime = dateString => {
 .offline-card {
   background: rgba(30, 41, 59, 0.4) !important;
   border: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.offline-card-light {
+  background: rgba(241, 245, 249, 0.6) !important;
+  border: 1px solid rgba(203, 213, 225, 0.4) !important;
 }
 
 .scroll-hint {

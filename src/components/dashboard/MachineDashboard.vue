@@ -5,9 +5,12 @@ import RealtimeTable from '@/components/dashboard/operation/RealtimeTable.vue'
 import StatsCard from '@/components/dashboard/operation/StatsCard.vue'
 import { useManageAlarmLog } from '@/composables/useManageAlarmLog'
 import { useManageDashboardWidget } from '@/composables/useManageDashboardWidget'
+import { useConfigStore } from '@core/stores/config'
 import { GridItem, GridLayout } from 'grid-layout-plus'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useTheme } from 'vuetify'
 import RawBarChart from './RawBarChart.vue'
+import ThreeDimensionModelRenderer from './ThreeDimensionModelRenderer.vue'
 
 const props = defineProps({
   systemSetting: {
@@ -27,7 +30,6 @@ const chartComponentMap = {
   metric: StatsCard,
   bar: RawBarChart,
 }
-
 
 const {
   machine,
@@ -55,6 +57,41 @@ const {
   fetchAlarmLogsByMachineId,
 } = useManageAlarmLog()
 
+// Theme Detection
+const configStore = useConfigStore()
+const theme = useTheme()
+
+const isDark = computed(() => {
+  if (configStore.theme === 'system') {
+    return theme.global.current.value.dark
+  }
+  return configStore.theme === 'dark'
+})
+
+// Dynamic colors berdasarkan theme
+const overlayBgColor = computed(() => 
+  isDark.value 
+    ? 'rgba(211, 47, 47, 0.15)' 
+    : 'rgba(211, 47, 47, 0.08)'
+)
+
+const cardBorderColor = computed(() =>
+  isDark.value
+    ? 'rgb(211, 47, 47)'
+    : 'rgb(244, 67, 54)'
+)
+
+const alarmDetailsBg = computed(() =>
+  isDark.value
+    ? 'rgba(255, 255, 255, 0.05)'
+    : 'rgba(0, 0, 0, 0.03)'
+)
+
+const tableHighlightBg = computed(() =>
+  isDark.value
+    ? 'rgba(211, 47, 47, 0.05)'
+    : 'rgba(211, 47, 47, 0.03)'
+)
 
 // WebSocket Alarm Connection
 const alarmSocket = ref(null)
@@ -104,8 +141,8 @@ const connectAlarmWebSocket = () => {
 
         if (data.type === 'CREATED') {
           const parameter = getParameterById(data.parameter_id)
-          alarmLogs.value.push({
-  id: data.id,
+          const newAlarm = {
+            id: data.id,
             parameter_id: data.parameter_id,
             parameter_name: parameter?.name || 'Unknown Parameter',
             parameter_code: parameter?.code || '',
@@ -114,26 +151,27 @@ const connectAlarmWebSocket = () => {
             status: data.status,
             timestamp: data.timestamp,
             acknowledged: false
-          })
-        
+          }
+          
+          alarmLogs.value.push(newAlarm)
 
           // Add to alarms list
           alarms.value.unshift(newAlarm)
 
           // Show overlay notification if status is Open
-            activeAlarm.value = newAlarm
-            showAlarmOverlay.value = true
+          activeAlarm.value = newAlarm
+          showAlarmOverlay.value = true
 
-            // Play alarm sound
-            if (alarmAudio.value) {
-              alarmAudio.value()
-              // Repeat sound 3 times
-              setTimeout(() => alarmAudio.value?.(), 600)
-              setTimeout(() => alarmAudio.value?.(), 1200)
-              setTimeout(() => {
-                showAlarmOverlay.value =false
-              }, 3000);
-            }
+          // Play alarm sound
+          if (alarmAudio.value) {
+            alarmAudio.value()
+            // Repeat sound 3 times
+            setTimeout(() => alarmAudio.value?.(), 600)
+            setTimeout(() => alarmAudio.value?.(), 1200)
+            setTimeout(() => {
+              showAlarmOverlay.value = false
+            }, 3000)
+          }
         }
       } catch (error) {
         console.error('Error parsing alarm data:', error)
@@ -302,25 +340,25 @@ const isDataReady = computed(() => {
 
 const processedAlarmLogs = ref([])
 onMounted(async () => {
-  let machineId =props.systemSetting.entry.value.machine_id
+  let machineId = props.systemSetting.entry.value.machine_id
   let actionResult = await fetchMachine(machineId)
   let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId)
   await nextTick()
- processedAlarmLogs.value=  alarmLogs.value.entries.map((alarmLog) => {
+  processedAlarmLogs.value = alarmLogs.value.entries.map((alarmLog) => {
     const parameter = getParameterById(alarmLog.parameter_id)
     return {
       id: alarmLog.id,
-            parameter_id: alarmLog.parameter_id,
-            parameter_name: parameter?.name || 'Unknown Parameter',
-            parameter_code: parameter?.code || '',
-            value: alarmLog.value,
-            unit: parameter?.unit || '',
-            status: alarmLog.status,
-            timestamp: alarmLog.created_at,
-            acknowledged: false
-            }
+      parameter_id: alarmLog.parameter_id,
+      parameter_name: parameter?.name || 'Unknown Parameter',
+      parameter_code: parameter?.code || '',
+      value: alarmLog.value,
+      unit: parameter?.unit || '',
+      status: alarmLog.status,
+      timestamp: alarmLog.created_at,
+      acknowledged: false
+    }
   })
-console.log(processedAlarmLogs)
+  console.log(processedAlarmLogs)
 
   // Connect to alarm WebSocket
   connectAlarmWebSocket()
@@ -457,9 +495,21 @@ const gridMinHeight = computed(() => {
 <template>
   <div>
     <!-- Alarm Overlay Notification -->
-    <VOverlay v-model="showAlarmOverlay" class="alarm-overlay" :z-index="9999" persistent>
+    <VOverlay 
+      v-model="showAlarmOverlay" 
+      class="alarm-overlay" 
+      :class="{ 'light-theme': !isDark }"
+      :style="{ backgroundColor: overlayBgColor }"
+      :z-index="9999" 
+      persistent
+    >
       <div class="alarm-notification-container">
-        <VCard class="alarm-notification-card" elevation="24">
+        <VCard 
+          class="alarm-notification-card" 
+          :class="{ 'light-theme-card': !isDark }"
+          :style="{ borderColor: cardBorderColor }"
+          elevation="24"
+        >
           <VCardText class="pa-6">
             <div class="d-flex align-center mb-4">
               <VAvatar color="error" size="64" class="mr-4 alarm-icon-pulse">
@@ -477,7 +527,11 @@ const gridMinHeight = computed(() => {
 
             <VDivider class="my-4" />
 
-            <div v-if="activeAlarm" class="alarm-details">
+            <div 
+              v-if="activeAlarm" 
+              class="alarm-details"
+              :style="{ backgroundColor: alarmDetailsBg }"
+            >
               <VRow dense>
                 <VCol cols="12" class="mb-2">
                   <div class="text-caption text-medium-emphasis">Parameter</div>
@@ -520,9 +574,20 @@ const gridMinHeight = computed(() => {
     <VRow style="min-height: 520px" class="match-height">
       <!-- LEFT -->
       <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
-        <ThreeModelViewer v-if="modelConfigurationReady" class="flex-grow-1"
-          :model-path="processedMachine?.model_path" />
+        <ThreeDimensionModelRenderer
+          v-if="processedMachine"
+          :model-path="processedMachine.model_path"
+          :camera-position="{
+            x: processedMachine.camera_x || 0,
+            y: processedMachine.camera_y || 0,
+            z: processedMachine.camera_z || 0
+          }"
+          :editable="false"
+          container-height="520px"
+          class="flex-grow-1"
+        />
       </VCol>
+
       <!-- RIGHT -->
       <VCol cols="6" md="6" sm="6" class="d-flex flex-column">
         <VRow class="match-height flex-grow-1">
@@ -545,7 +610,7 @@ const gridMinHeight = computed(() => {
     <!-- Alarms Section -->
     <VRow class="mt-4">
       <VCol cols="12">
-        <VCard >
+        <VCard>
           <VCardTitle class="d-flex align-center justify-space-between pa-4">
             <div class="d-flex align-center">
               <VIcon icon="tabler-bell" class="mr-2" color="error" />
@@ -589,8 +654,19 @@ const gridMinHeight = computed(() => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="alarm in processedAlarmLogs" :key="alarm.id"
-                  :class="{ 'alarm-open': alarm.status === 'Open' && !alarm.acknowledged }">
+                <tr 
+                  v-for="alarm in processedAlarmLogs" 
+                  :key="alarm.id"
+                  :class="{ 
+                    'alarm-open': alarm.status === 'Open' && !alarm.acknowledged,
+                    'light-theme-row': !isDark 
+                  }"
+                  :style="
+                    alarm.status === 'Open' && !alarm.acknowledged 
+                      ? { backgroundColor: tableHighlightBg } 
+                      : {}
+                  "
+                >
                   <td>
                     <VIcon :icon="alarm.status === 'Open' ? 'tabler-alert-triangle' : 'tabler-alert-circle'"
                       :color="getAlarmSeverityColor(alarm.status)"
@@ -635,7 +711,7 @@ const gridMinHeight = computed(() => {
     </VRow>
 
     <VRow>
-      <VCol cols="12" md="12" sm="12">
+      <VCol cols="12" md="12" sm="12" class="pa-0">
         <div v-if="layout.length > 0" :style="{ minHeight: gridMinHeight }">
           <GridLayout v-model:layout="layout" :col-num="12" :row-height="30" :is-resizable="false" :is-draggable="false"
             vertical-compact use-css-transforms :margin="[16, 16]" :container-padding="[0, 0]">
@@ -700,8 +776,12 @@ const gridMinHeight = computed(() => {
 
 /* Alarm Styles */
 .alarm-overlay {
-  background-color: rgba(211, 47, 47, 0.15) !important;
   backdrop-filter: blur(4px);
+  transition: background-color 0.3s ease;
+}
+
+.alarm-overlay.light-theme {
+  backdrop-filter: blur(2px);
 }
 
 .alarm-notification-container {
@@ -716,19 +796,30 @@ const gridMinHeight = computed(() => {
 .alarm-notification-card {
   max-width: 600px;
   width: 100%;
-  border: 3px solid rgb(var(--v-theme-error)) !important;
+  border: 3px solid rgb(211, 47, 47) !important;
   animation: alarm-card-pulse 2s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.alarm-notification-card.light-theme-card {
+  animation: alarm-card-pulse-light 2s ease-in-out infinite;
 }
 
 @keyframes alarm-card-pulse {
-
-  0%,
-  100% {
+  0%, 100% {
     box-shadow: 0 0 20px rgba(211, 47, 47, 0.4);
   }
-
   50% {
     box-shadow: 0 0 40px rgba(211, 47, 47, 0.8);
+  }
+}
+
+@keyframes alarm-card-pulse-light {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(211, 47, 47, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(211, 47, 47, 0.6);
   }
 }
 
@@ -737,13 +828,10 @@ const gridMinHeight = computed(() => {
 }
 
 @keyframes icon-pulse {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: scale(1);
     opacity: 1;
   }
-
   50% {
     transform: scale(1.1);
     opacity: 0.8;
@@ -751,25 +839,35 @@ const gridMinHeight = computed(() => {
 }
 
 .alarm-table tbody tr.alarm-open {
-  background-color: rgba(211, 47, 47, 0.05);
   animation: row-highlight 2s ease-in-out infinite;
+  transition: background-color 0.3s ease;
 }
 
 @keyframes row-highlight {
-
-  0%,
-  100% {
+  0%, 100% {
     background-color: rgba(211, 47, 47, 0.05);
   }
-
   50% {
     background-color: rgba(211, 47, 47, 0.12);
   }
 }
 
+.alarm-table tbody tr.alarm-open.light-theme-row {
+  animation: row-highlight-light 2s ease-in-out infinite;
+}
+
+@keyframes row-highlight-light {
+  0%, 100% {
+    background-color: rgba(211, 47, 47, 0.03);
+  }
+  50% {
+    background-color: rgba(211, 47, 47, 0.08);
+  }
+}
+
 .alarm-details {
-  background-color: rgba(var(--v-theme-surface), 0.5);
   border-radius: 8px;
   padding: 16px;
+  transition: background-color 0.3s ease;
 }
 </style>

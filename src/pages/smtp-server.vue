@@ -1,13 +1,12 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
-import { useManageSmtpServer } from "@/composables/useManageSmtpServer"
 import ManageSmtpServerDrawer from "@/components/drawer/ManageSmtpServerDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import { useManageSmtpServer } from "@/composables/useManageSmtpServer"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { onMounted, ref, watch } from 'vue'
 
 // ==========================================
 // Composable
@@ -333,6 +332,7 @@ onMounted(() => {
         placeholder: 'Type your reason...',
         type: 'text'
       }]"
+        :form-errors="formErrors"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete SMTP Server"

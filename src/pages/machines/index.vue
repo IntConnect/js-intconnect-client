@@ -216,13 +216,15 @@ watch([page, itemsPerPage], loadMachines)
         </VCard>
 
         <!-- Delete Dialog -->
-        <DeleteDialog v-model="showDeleteDialog" :fields="[{
+        <DeleteDialog v-model="showDeleteDialog" 
+        :fields="[{
           key: 'reason',
           label: 'Reason',
           placeholder: 'Type your reason...',
           type: 'text',
-          formErrors: formErrors,
-        }]" message="Please provide a reason for deletion" title="Delete Machine" @submit="handleDeleteMachine" />
+        }]" 
+        :form-errors="formErrors"
+         message="Please provide a reason for deletion" title="Delete Machine" @submit="handleDeleteMachine" />
       </section>
     </VCol>
   </VRow>

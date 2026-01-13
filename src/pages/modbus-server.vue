@@ -1,13 +1,12 @@
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
-import TablePagination from "@core/components/TablePagination.vue"
-import DeleteDialog from "@/components/general/DeleteDialog.vue"
-import { format } from "date-fns"
-import { useManageModbusServer } from "@/composables/useManageModbusServer"
 import ManageModbusServerDrawer from "@/components/drawer/ManageModbusServerDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
+import DeleteDialog from "@/components/general/DeleteDialog.vue"
+import { useManageModbusServer } from "@/composables/useManageModbusServer"
+import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
+import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
+import TablePagination from "@core/components/TablePagination.vue"
+import { onMounted, ref, watch } from 'vue'
 
 // ==========================================
 // Composable
@@ -300,6 +299,7 @@ onMounted(() => {
         type: 'text'
       }]"
       :loading="actionLoading"
+        :form-errors="formErrors"
       message="Please provide a reason for deletion"
       title="Delete Modbus Server"
       @submit="handleDeleteModbusServer"

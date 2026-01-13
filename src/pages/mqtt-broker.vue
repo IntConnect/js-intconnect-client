@@ -330,8 +330,8 @@ onMounted(() => {
         label: 'Reason',
         placeholder: 'Type your reason...',
         type: 'text',
-        formErrors: formErrors,
       }]"
+        :form-errors="formErrors"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete MQTT Broker"

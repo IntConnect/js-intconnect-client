@@ -483,6 +483,38 @@ const processedParameters = computed(() => {
     value: parameter.id,
   }))
 })
+
+// Handler untuk update camera position
+const handleCameraUpdate = (position) => {
+  localForm.camera_x = position.x
+  localForm.camera_y = position.y
+  localForm.camera_z = position.z
+}
+
+// Watch model upload
+watch(
+  () => localForm.model,
+  val => {
+    if (val && val[0]?.file) {
+      localForm.modelUrl = URL.createObjectURL(val[0].file)
+    }
+  },
+  { deep: true }
+)
+
+// Saat edit mode, load existing model
+if (isEditMode.value) {
+  const machineResult = await fetchMachine(id)
+  if (machineResult.success) {
+    const processedMachine = machine.value.entry
+    Object.assign(localForm, {
+      camera_x: processedMachine.camera_x || 0,
+      camera_y: processedMachine.camera_y || 0,
+      camera_z: processedMachine.camera_z || 0,
+      modelUrl: processedMachine.model_path
+    })
+  }
+}
 </script>
 
 <template>
@@ -564,15 +596,17 @@ const processedParameters = computed(() => {
                   </p>
                 </VCol>
 
-                <VCol cols="6">
-                  <p class="text-body-2 mb-2">
-                    3D Preview (Rotate to set camera)
-                  </p>
-                  <div ref="threePreviewContainer" class="rounded-lg overflow-hidden"
-                    style="width: 100%; height: 300px; border: 1px solid #e0e0e0; background: #f5f5f5;" />
+                <VCol cols="12" md="6">
+                  <p class="text-body-2 mb-2">3D Preview (Rotate to set camera)</p>
+                  <ThreeDimensionModelRenderer v-if="localForm.modelUrl" :model-path="localForm.modelUrl"
+                    :camera-position="{
+                      x: localForm.camera_x,
+                      y: localForm.camera_y,
+                      z: localForm.camera_z
+                    }" :editable="true" container-height="300px" @camera-update="handleCameraUpdate" />
                 </VCol>
-                <VCol cols="6">
-                  <VCol>
+                <VCol cols="12" md="6">
+                  <VRow>
                     <VCol cols="12">
                       <AppTextField v-model="localForm.camera_x" disabled label="Camera X" />
                     </VCol>
@@ -582,7 +616,7 @@ const processedParameters = computed(() => {
                     <VCol cols="12">
                       <AppTextField v-model="localForm.camera_z" disabled label="Camera Z" />
                     </VCol>
-                  </VCol>
+                  </VRow>
                 </VCol>
               </VRow>
             </VWindowItem>
