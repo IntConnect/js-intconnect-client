@@ -193,17 +193,29 @@ watch([page, itemsPerPage], loadMachines)
                 <VBtn color="success" icon size="small" variant="text"
                   :to="{ name: 'machines-manage-id', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
+                   <VTooltip activator="parent" location="top">
+                <span>Show</span>
+              </VTooltip>
                 </VBtn>
                 <VBtn color="warning" icon size="small" variant="text"
                   :to="{ name: 'machines-dashboard-id', params: { id: item.id } }">
                   <VIcon icon="tabler-dashboard" size="20" />
+                   <VTooltip activator="parent" location="top">
+                <span>Dashboard</span>
+              </VTooltip>
                 </VBtn>
                 <VBtn color="info" icon size="small" variant="text"
                   :to="{ name: 'machine-edit', params: { id: item.id } }">
                   <VIcon icon="tabler-pencil" size="20" />
+                   <VTooltip activator="parent" location="top">
+                <span>Edit</span>
+              </VTooltip>
                 </VBtn>
                 <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
                   <VIcon icon="tabler-trash" size="20" />
+                   <VTooltip activator="parent" location="top">
+                <span>Delete</span>
+              </VTooltip>
                 </VBtn>
               </div>
             </template>

@@ -254,9 +254,15 @@ const resolveBadgeRole = (role) => {
           <div class="d-flex gap-2">
             <VBtn color="info" icon size="small" variant="text" @click="handleEdit(item)">
               <VIcon icon="tabler-pencil" size="20" />
+                  <VTooltip activator="parent" location="top">
+                <span>Edit</span>
+              </VTooltip>
             </VBtn>
             <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
               <VIcon icon="tabler-trash" size="20" />
+                 <VTooltip activator="parent" location="top">
+                <span>Delete</span>
+              </VTooltip>
             </VBtn>
           </div>
         </template>

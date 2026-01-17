@@ -196,12 +196,16 @@ const handleUpdateAction = async (note) => {
             Actions
           </div>
         </template>
-        <template #item.actions="{ item }">
+        <template #item .actions="{ item }">
           <div class="d-flex justify-center gap-1">
-            <VBtn v-if="item.status !== 'Finished' && item.is_active" icon color="info" variant="text"
+            <VBtn v-if="item.status !== 'Finished' && item.is_active" icon color="success" variant="text"
               @click="handleUpdate(item)">
-              <VIcon icon="tabler-pencil" size="18" />
+              <VIcon icon="tabler-check" size="18" />
+              <VTooltip activator="parent" location="top">
+                <span>Acknowledged</span>
+              </VTooltip>
             </VBtn>
+            
           </div>
         </template>
 

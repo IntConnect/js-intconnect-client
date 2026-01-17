@@ -199,11 +199,10 @@ onMounted(() => {
             placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-          <RouterLink :to="{ name: 'parameters-manage-id', params: { id: 'new' } }">
-            <VBtn color="primary">
+            <VBtn color="primary"
+            :to="{ name: 'parameter-create'}">
               New Parameter
             </VBtn>
-          </RouterLink>
         </div>
       </VCardText>
 
@@ -239,19 +238,21 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <RouterLink :to="{ name: 'parameters-manage-id', params: { id: item.id } }">
               <VBtn
                 color="info"
                 icon
                 size="small"
                 variant="text"
+                :to="{ name: 'parameter-edit', params: { id: item.id } }"
               >
                 <VIcon
                   icon="tabler-pencil"
                   size="20"
                 />
+                <VTooltip activator="parent" location="top">
+                <span>Edit</span>
+              </VTooltip>
               </VBtn>
-            </RouterLink>
             <VBtn
               color="warning"
               icon
@@ -263,6 +264,9 @@ onMounted(() => {
                 icon="tabler-math"
                 size="20"
               />
+              <VTooltip activator="parent" location="top">
+                <span>Operations</span>
+              </VTooltip>
             </VBtn>
             <VBtn
               color="error"
@@ -275,6 +279,9 @@ onMounted(() => {
                 icon="tabler-trash"
                 size="20"
               />
+               <VTooltip activator="parent" location="top">
+                <span>Delete</span>
+              </VTooltip>
             </VBtn>
           </div>
         </template>

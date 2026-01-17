@@ -72,6 +72,8 @@ const isModelClickable = ref(false)
 const refForm = ref()
 const modelPath = ref('')
 const processedParameters = ref([])
+const isEditMode = computed(() => route.name === 'parameter-edit')
+
 
 const numberedSteps = [
   {
@@ -112,6 +114,7 @@ const alertType = ref('info')
 
 onMounted(async () => {
   await fetchParameterDependency()
+  if(isEditMode.value){
   let result = await fetchParameter(id.value)
   await fetchParameters({isAutomatic: null})
   await nextTick()
@@ -154,6 +157,7 @@ onMounted(async () => {
     initialModel()
   }else{
     id.value = null
+  }
   }
 })
 

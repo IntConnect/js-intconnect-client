@@ -36,6 +36,7 @@ const {
   formErrors,
   fetchCheckSheet,
   createCheckSheet,
+  approvalCheckSheet,
 } = useManageCheckSheet()
 
 const {
@@ -127,6 +128,60 @@ const bodyAlert = ref('')
 const titleAlert = ref('')
 const alertType = ref('info')
 const checkSheetValues = ref({})
+const showApproveDialog = ref(false)
+const showRejectDialog = ref(false)
+const openApproveDialog = () => {
+  showApproveDialog.value = true
+}
+
+const openRejectDialog = () => {
+  showRejectDialog.value = true
+}
+
+const handleApprove = async data => {
+  let approvalPayload = {
+    check_sheet_id: id,
+    note: data.note,
+    decision: true,
+  }
+  const actionResult = await approvalCheckSheet(approvalPayload)
+
+  if (actionResult.success) {
+    showApproveDialog.value = false
+    isAlertDialogVisible.value = true
+    bodyAlert.value = "You will be redirected to Check Sheet page"
+    alertType.value = 'info'
+    titleAlert.value = "Success approve Check Sheet"
+
+    setTimeout(() => {
+      router.push('/check-sheets')
+    }, 2000)
+  } else {
+    console.error(formErrors)
+  }
+}
+
+const handleReject = async data => {
+  let approvalPayload = {
+    check_sheet_id: id,
+    note: data.note,
+    decision: false,
+  }
+  const actionResult = await approvalCheckSheet(approvalPayload)
+  if (actionResult.success) {
+    showApproveDialog.value = false
+    isAlertDialogVisible.value = true
+    bodyAlert.value = "You will be redirected to Check Sheet page"
+    alertType.value = 'info'
+    titleAlert.value = "Success rejected Check Sheet"
+
+    setTimeout(() => {
+      router.push('/check-sheets')
+    }, 2000)
+  } else {
+    console.error(formErrors)
+  }
+}
 
 
 /* =========================
@@ -701,9 +756,15 @@ const fillColumn = (cpIndex, value) => {
                     <VBtn color="secondary" variant="tonal" prepend-icon="tabler-arrow-left" @click="currentStep--">
                       Back
                     </VBtn>
-                    <VBtn color="primary" :loading="actionLoading" append-icon="tabler-check" @click="onSubmit">
-                      Submit Check Sheet
-                    </VBtn>
+                     <div class="d-flex gap-2">
+                      <VBtn color="error" :loading="actionLoading" prepend-icon="tabler-x" @click="openRejectDialog">
+                        Reject
+                      </VBtn>
+                      <VBtn color="success" :loading="actionLoading" prepend-icon="tabler-check"
+                        @click="openApproveDialog">
+                        Approve
+                      </VBtn>
+                    </div>
                   </div>
                 </VCol>
               </VRow>
@@ -713,6 +774,11 @@ const fillColumn = (cpIndex, value) => {
       </VCardText>
     </VCard>
   </VCol>
+  <ApprovalDialog v-model="showApproveDialog" action="approve" @submit="handleApprove" />
+
+  <!-- Reject Dialog -->
+  <ApprovalDialog v-model="showRejectDialog" action="reject" @submit="handleReject" />
+
 </template>
 
 <style scoped>

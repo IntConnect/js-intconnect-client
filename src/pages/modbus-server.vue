@@ -262,6 +262,9 @@ onMounted(() => {
                 icon="tabler-pencil"
                 size="20"
               />
+                  <VTooltip activator="parent" location="top">
+                <span>Edit</span>
+              </VTooltip>
             </VBtn>
             <VBtn
               color="error"
@@ -274,6 +277,9 @@ onMounted(() => {
                 icon="tabler-trash"
                 size="20"
               />
+                  <VTooltip activator="parent" location="top">
+                <span>Delete</span>
+              </VTooltip>
             </VBtn>
           </div>
         </template>

@@ -30,7 +30,7 @@ const {
 
 const startDate = ref('')
 const endDate = ref('')
-const interval = ref(0)
+const interval = ref(1)
 const selectedReportDocumentTemplateId = ref(null)
 
 const flatRows = computed(() => {
@@ -180,8 +180,6 @@ onMounted(async () => {
               type="submit"
             />
           </VForm>
-             
-        
           <AppTextField
             v-model="searchQuery"
             clearable
