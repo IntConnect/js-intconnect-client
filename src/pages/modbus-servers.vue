@@ -51,7 +51,9 @@ const isManageModbusServer = ref(false)
 const showDeleteDialog = ref(false)
 const selectedModbusServer = ref(null)
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
+const titleAlert = ref('')
+const bodyAlert = ref('')
+const alertType = ref('info')
 
 
 // ==========================================
@@ -126,8 +128,16 @@ const handleSaveModbusServer = async modbusServerData => {
     await nextTick()
 
     showAlertDialog.value = true
-    alertMessage.value = 'Success manage Modbus Server'
+    titleAlert.value = 'Success manage Modbus Server'
+    bodyAlert.value = 'Modbus server has been created'
+alertType.value = 'info'
   } else {
+        showAlertDialog.value = true
+    titleAlert.value = 'Failed manage Modbus Server'
+    bodyAlert.value = 'Modbus server failed to be deleted'
+alertType.value = 'delete'
+
+
     console.error('Failed to save modbusServer:', result.error || result.errors)
   }
 }
@@ -148,7 +158,7 @@ const handleDeleteModbusServer = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete Modbus Server'
+    titleAlert.value = 'Success delete Modbus Server'
 
   } else {
     console.error('Failed to delete user:', result.error)
@@ -321,8 +331,6 @@ onMounted(() => {
       @modbus-server-data="handleSaveModbusServer"
     />
   </section>
-  <AlertDialog
-    v-model:is-dialog-visible="showAlertDialog"
-    :title-alert="alertMessage"
-  />
+   <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
+    :type="alertType" />
 </template>

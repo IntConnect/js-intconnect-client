@@ -191,7 +191,7 @@ watch([page, itemsPerPage], loadMachines)
             <template #item.actions="{ item }">
               <div class="d-flex gap-2">
                 <VBtn color="success" icon size="small" variant="text"
-                  :to="{ name: 'machines-manage-id', params: { id: item.id } }">
+                  :to="{ name: 'machines-show-id', params: { id: item.id } }">
                   <VIcon icon="tabler-eye" size="20" />
                    <VTooltip activator="parent" location="top">
                 <span>Show</span>

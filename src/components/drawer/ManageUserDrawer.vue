@@ -41,8 +41,8 @@ const id = ref('')
 const username = ref('')
 const name = ref('')
 const email = ref('')
-const password = ref('Password2412@$!@')
-const confirmPassword = ref('Password2412@$!@')
+const password = ref('')
+const confirmPassword = ref('')
 const roleId = ref('')
 
 // Password visibility
@@ -193,7 +193,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit User' : 'Register User'"
+      :title="isEditMode ? 'Edit User' : 'Create User'"
       @cancel="closeNavigationDrawer"
     />
 

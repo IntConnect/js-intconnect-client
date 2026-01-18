@@ -676,7 +676,6 @@ declare module 'vue' {
     readonly useManageRegister: UnwrapRef<typeof import('./src/composables/useManageRegister.js')['useManageRegister']>
     readonly useManageReportDocumentTemplate: UnwrapRef<typeof import('./src/composables/useManageReportDocumentTemplate.js')['useManageReportDocumentTemplate']>
     readonly useManageRole: UnwrapRef<typeof import('./src/composables/useManageRole.js')['useManageRole']>
-    readonly useManageSmtpServer: UnwrapRef<typeof import('./src/composables/useManageSmtpServer.js')['useManageSmtpServer']>
     readonly useManageSystemSetting: UnwrapRef<typeof import('./src/composables/useManageSystemSetting.js')['useManageSystemSetting']>
     readonly useManageUser: UnwrapRef<typeof import('./src/composables/useManageUser.js')['useManageUser']>
     readonly useManualRefHistory: UnwrapRef<typeof import('@vueuse/core')['useManualRefHistory']>

@@ -95,6 +95,7 @@ const tableHighlightBg = computed(() =>
 
 // WebSocket Alarm Connection
 const alarmSocket = ref(null)
+const readyState = ref(0)
 const alarms = ref([])
 const showAlarmOverlay = ref(false)
 const activeAlarm = ref(null)
@@ -132,10 +133,13 @@ const connectAlarmWebSocket = () => {
     alarmSocket.value = new WebSocket('ws://localhost:8181/ws')
 
     alarmSocket.value.onopen = () => {
+          readyState.value = alarmSocket.value.readyState // 1
+
       console.log('Alarm WebSocket Connected')
     }
 
     alarmSocket.value.onmessage = (event) => {
+      console.log(alarmSocket.value.readyState)
       try {
         const data = JSON.parse(event.data)
 console.log(data)
@@ -189,11 +193,15 @@ console.log(data)
 
     alarmSocket.value.onerror = (error) => {
       console.error('Alarm WebSocket Error:', error)
+          readyState.value = alarmSocket.value.readyState
+
     }
 
     alarmSocket.value.onclose = () => {
       console.log('Alarm WebSocket Disconnected')
       // Reconnect after 5 seconds
+          readyState.value = alarmSocket.value.readyState // 3
+
       setTimeout(() => {
         if (alarmSocket.value?.readyState === 3) { // 3 = CLOSED
           connectAlarmWebSocket()
@@ -600,12 +608,12 @@ const gridMinHeight = computed(() => {
       <!-- RIGHT -->
       <VCol cols="6" md="6" sm="6" class="d-flex flex-column">
         <VRow class="match-height flex-grow-1">
-          <VCol cols="12" class="py-3">
+          <VCol cols="12" class="">
             <StateCards v-if="machineState !== null" :machine="machineState" :running-times="runningTimes"
               :is-edit-mode="false" />
           </VCol>
 
-          <VCol cols="12" class="py-3">
+          <VCol cols="12" class="">
             <VRow>
               <VCol cols="12">
                 <RealtimeTable :realtime-data="realtimeData" :last-update="lastUpdate" />
@@ -626,18 +634,20 @@ const gridMinHeight = computed(() => {
               <span class="text-h6">System Alarms</span>
               <VBadge v-if="openAlarms.length > 0" :content="openAlarms.length" color="error" class="ml-3" />
             </div>
-            <VChip v-if="alarmSocket?.readyState === 1" color="success" size="small" variant="tonal">
-              <VIcon icon="tabler-wifi" size="16" class="mr-1" />
-              Connected
-            </VChip>
-            <VChip v-else-if="alarmSocket?.readyState === 0" color="warning" size="small" variant="tonal">
-              <VIcon icon="tabler-loader" size="16" class="mr-1" />
-              Connecting
-            </VChip>
-            <VChip v-else color="error" size="small" variant="tonal">
-              <VIcon icon="tabler-wifi-off" size="16" class="mr-1" />
-              Disconnected
-            </VChip>
+           <VChip v-if="readyState === 1" color="success" size="small" variant="tonal">
+  <VIcon icon="tabler-wifi" size="16" class="mr-1" />
+  Connected
+</VChip>
+
+<VChip v-else-if="readyState === 0" color="warning" size="small" variant="tonal">
+  <VIcon icon="tabler-loader" size="16" class="mr-1" />
+  Connecting
+</VChip>
+
+<VChip v-else color="error" size="small" variant="tonal">
+  <VIcon icon="tabler-wifi-off" size="16" class="mr-1" />
+  Disconnected
+</VChip>
           </VCardTitle>
 
           <VDivider />
@@ -720,7 +730,7 @@ const gridMinHeight = computed(() => {
     </VRow>
 
     <VRow>
-      <VCol cols="12" md="12" sm="12" class="pa-0">
+      <VCol cols="12" md="12" sm="12" class="">
         <div v-if="layout.length > 0" :style="{ minHeight: gridMinHeight }">
           <GridLayout v-model:layout="layout" :col-num="12" :row-height="30" :is-resizable="false" :is-draggable="false"
             vertical-compact use-css-transforms :margin="[16, 16]" :container-padding="[0, 0]">

@@ -278,7 +278,7 @@ const gridMinHeight = computed(() => {
 
 <template>
   <div>
-    <VRow style="min-height: 520px" class="match-height">
+    <VRow style="min-height: 500px" class="match-height">
       <!-- LEFT -->
       <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
         <ThreeModelViewer v-if="modelConfigurationReady" class="flex-grow-1"
@@ -286,20 +286,10 @@ const gridMinHeight = computed(() => {
       </VCol>
       <!-- RIGHT -->
       <VCol cols="6" md="6" sm="6" class="d-flex flex-column">
-        <VRow class="match-height flex-grow-1">
-          <VCol cols="12" class="py-3">
             <StateCards v-if="machineState !== null" :machine="machineState" :running-times="runningTimes"
               :is-edit-mode="false" />
-          </VCol>
 
-          <VCol cols="12" class="py-3">
-            <VRow>
-              <VCol cols="12">
                 <RealtimeTable :realtime-data="realtimeData" :last-update="lastUpdate" />
-              </VCol>
-            </VRow>
-          </VCol>
-        </VRow>
       </VCol>
     </VRow>
 

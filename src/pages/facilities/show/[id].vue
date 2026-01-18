@@ -357,9 +357,10 @@ const currentTab = ref(0)
                       dot
                       inline
                     >
-                      {{ machine.name }}
+                                        <span  class="mr-1">{{ machine.name }}</span>
+
                     </VBadge>
-                    <span v-else>{{ machine.name }}</span>
+                    <span v-else class="ml-5">{{ machine.name }}</span>
                   </VTab>
                 </VTabs>
 
