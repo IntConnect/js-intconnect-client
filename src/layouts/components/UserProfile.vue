@@ -100,7 +100,7 @@ watch(parsedJwt, () => {
           <VListItem
             class="text-white"
             link
-            to="/faq"
+            to="/faqs"
           >
             <template #prepend>
               <VIcon
