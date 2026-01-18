@@ -52,12 +52,7 @@ export default [
         icon: { icon: "tabler-topology-star-3" },
         requiredPermission: "MQTT_TOPIC_VIEW",
       },
-      {
-        title: "SMTP Server",
-        to: { name: "smtp-server" },
-        icon: { icon: "tabler-mail" },
-        requiredPermission: "SMTP_SERVER_VIEW",
-      },
+      
       {
         title: "Modbus Server",
         to: { name: "modbus-server" },

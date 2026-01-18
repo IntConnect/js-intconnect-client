@@ -67,7 +67,6 @@ const documentStatus = ref({
 const connectionHealth = ref([
   { name: 'MQTT Broker', status: 'connected', uptime: '99.8%', icon: 'tabler-cooker', color: 'success' },
   { name: 'Modbus Server', status: 'connected', uptime: '98.5%', icon: 'tabler-server-spark', color: 'success' },
-  { name: 'SMTP Server', status: 'connected', uptime: '99.2%', icon: 'tabler-mail', color: 'success' },
   { name: 'Database', status: 'connected', uptime: '99.9%', icon: 'tabler-database', color: 'success' },
 ])
 
