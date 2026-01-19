@@ -1,5 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
+import AlarmLogTrendChart from './operation/AlarmLogTrendChart.vue'
+import RealtimeAverageChart from './operation/RealtimeAverageChart.vue'
 
 // Executive Summary Data
 const systemHealth = ref({
@@ -18,8 +20,8 @@ const kpiData = ref({
   totalBreakdowns: 18,
 })
 
-// Breakdown Trend Data (last 7 days)
-const breakdownTrend = ref([
+// Alarm Log Trend Data (last 7 days)
+const alarmLogTrend = ref([
   { day: 'Mon', count: 3 },
   { day: 'Tue', count: 2 },
   { day: 'Wed', count: 4 },
@@ -36,6 +38,8 @@ const activeIssues = ref([
   { id: 3, machine: 'Pump System 12', type: 'Breakdown', severity: 'critical', time: '1 day ago', status: 'Assigned' },
   { id: 4, machine: 'AHU Unit 07', type: 'Alarm', severity: 'info', time: '1 day ago', status: 'Pending' },
   { id: 5, machine: 'Compressor 05', type: 'Alarm', severity: 'warning', time: '2 days ago', status: 'In Progress' },
+  { id: 6, machine: 'Compressor 05', type: 'Alarm', severity: 'warning', time: '2 days ago', status: 'In Progress' },
+  { id: 7, machine: 'Compressor 05', type: 'Alarm', severity: 'warning', time: '2 days ago', status: 'In Progress' },
 ])
 
 // Recent Activity Timeline
@@ -63,12 +67,7 @@ const documentStatus = ref({
   totalTemplates: 12,
 })
 
-// Connection Health
-const connectionHealth = ref([
-  { name: 'MQTT Broker', status: 'connected', uptime: '99.8%', icon: 'tabler-cooker', color: 'success' },
-  { name: 'Modbus Server', status: 'connected', uptime: '98.5%', icon: 'tabler-server-spark', color: 'success' },
-  { name: 'Database', status: 'connected', uptime: '99.9%', icon: 'tabler-database', color: 'success' },
-])
+
 
 // Configuration Summary
 const configSummary = ref({
@@ -98,9 +97,11 @@ const notifications = ref([
 // Quick Actions
 const quickActions = ref([
   { title: 'Generate Report', icon: 'tabler-file-type-doc', color: 'primary', route: 'generate-reports' },
-  { title: 'View Breakdowns', icon: 'tabler-robot-off', color: 'error', route: 'breakdowns' },
-  { title: 'Check Alarms', icon: 'tabler-bell-minus', color: 'warning', route: 'breakdowns' },
-  { title: 'Audit Logs', icon: 'tabler-adjustments-cog', color: 'info', route: 'audit-logs' },
+  { title: 'View Alarm Log', icon: 'tabler-bell-minus', color: 'error', route: 'breakdowns' },
+  { title: 'Audit Logs', icon: 'tabler-adjustments-cog', color: 'warning', route: 'audit-logs' },
+  { title: 'Check Sheet', icon: 'tabler-file-type-doc', color: 'success', route: 'audit-logs' },
+  { title: 'System Setting', icon: 'tabler-settings-spark', color: 'secondary', route: 'audit-logs' },
+  { title: 'Machine', icon: 'tabler-brand-databricks', color: 'info', route: 'machines' },
 ])
 
 const getSeverityColor = severity => {
@@ -124,7 +125,7 @@ const getNotificationColor = type => {
   return colors[type] || 'default'
 }
 
-const maxBreakdownCount = computed(() => Math.max(...breakdownTrend.value.map(d => d.count)))
+const maxBreakdownCount = computed(() => Math.max(...alarmLogTrend.value.map(d => d.count)))
 
 const {
   systemSetting,
@@ -171,165 +172,40 @@ onMounted(async () => {
           class="flex-grow-1"
         />
       </VCol>
-      <VCol
-        cols="6"
-        lg="4"
+       <VCol
+        cols="12"
         md="4"
       >
-        <VRow>
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between align-center mb-2">
-                  <div class="text-body-1 text-high-emphasis">
-                    System Health
-                  </div>
-                  <VAvatar
-                    color="success"
-                    variant="tonal"
-                    rounded
-                    size="42"
-                  >
-                    <VIcon
-                      icon="tabler-server"
-                      size="26"
-                    />
-                  </VAvatar>
-                </div>
-                <h4 class="text-h4 mb-4">
-                  {{ systemHealth.onlineMachines }}/{{ systemHealth.totalMachines }}
-                </h4>
-                <div class="d-flex flex-column gap-2">
-                  <div class="d-flex justify-space-between">
-                    <span class="text-sm">Online</span>
-                    <span class="text-sm font-weight-medium text-success">{{ systemHealth.onlineMachines }}</span>
-                  </div>
-                  <div class="d-flex justify-space-between">
-                    <span class="text-sm">Offline</span>
-                    <span class="text-sm font-weight-medium text-error">{{ systemHealth.offlineMachines }}</span>
-                  </div>
-                  <div class="d-flex justify-space-between">
-                    <span class="text-sm">Active Alerts</span>
-                    <span class="text-sm font-weight-medium text-warning">{{ systemHealth.activeAlerts }}</span>
-                  </div>
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-
-          <!-- KPI Cards -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between align-center mb-2">
-                  <div class="text-body-1 text-high-emphasis">
-                    System Uptime
-                  </div>
-                  <VAvatar
-                    color="primary"
-                    variant="tonal"
-                    rounded
-                    size="42"
-                  >
-                    <VIcon
-                      icon="tabler-clock"
-                      size="26"
-                    />
-                  </VAvatar>
-                </div>
-                <h4 class="text-h4 mb-1">
-                  {{ kpiData.uptime }}%
-                </h4>
-                <div class="text-sm text-success">
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="16"
-                  />
-                  +2.3% from last month
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between align-center mb-2">
-                  <div class="text-body-1 text-high-emphasis">
-                    MTBF
-                  </div>
-                  <VAvatar
-                    color="info"
-                    variant="tonal"
-                    rounded
-                    size="42"
-                  >
-                    <VIcon
-                      icon="tabler-chart-line"
-                      size="26"
-                    />
-                  </VAvatar>
-                </div>
-                <h4 class="text-h4 mb-1">
-                  {{ kpiData.mtbf }}h
-                </h4>
-                <div class="text-sm text-medium-emphasis">
-                  Mean Time Between Failures
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <VCard>
-              <VCardText>
-                <div class="d-flex justify-space-between align-center mb-2">
-                  <div class="text-body-1 text-high-emphasis">
-                    MTTR
-                  </div>
-                  <VAvatar
-                    color="warning"
-                    variant="tonal"
-                    rounded
-                    size="42"
-                  >
-                    <VIcon
-                      icon="tabler-tool"
-                      size="26"
-                    />
-                  </VAvatar>
-                </div>
-                <h4 class="text-h4 mb-1">
-                  {{ kpiData.mttr }}h
-                </h4>
-                <div class="text-sm text-error">
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="16"
-                  />
-                  +0.5h from last month
-                </div>
-              </VCardText>
-            </VCard>
-          </VCol>
-        </VRow>
+        <VCard class="h-100">
+          <VCardItem>
+            <VCardTitle>Quick Actions</VCardTitle>
+            <VCardSubtitle>Frequently used features</VCardSubtitle>
+          </VCardItem>
+          <VCardText>
+            <div class="d-flex flex-column gap-3">
+              <VBtn
+                v-for="action in quickActions"
+                :key="action.title"
+                :color="action.color"
+                variant="tonal"
+                block
+                size="large"
+              >
+                <VIcon
+                  :icon="action.icon"
+                  start
+                />
+                {{ action.title }}
+              </VBtn>
+            </div>
+          </VCardText>
+        </VCard>
       </VCol>
-      <!-- System Health Overview -->
+     
+  
     </VRow>
 
-    <!-- Breakdown Trend & Active Issues -->
+    <!-- Alarm Log Trend & Active Issues -->
     <VRow class="match-height mb-4">
       <VCol
         cols="12"
@@ -337,36 +213,15 @@ onMounted(async () => {
       >
         <VCard class="h-100">
           <VCardItem>
-            <VCardTitle>Breakdown Trend (Last 7 Days)</VCardTitle>
-            <VCardSubtitle>Daily breakdown incidents tracking</VCardSubtitle>
+            <VCardTitle>Alarm Log Trend (Last 7 Days)</VCardTitle>
+            <VCardSubtitle>Daily alarm log incidents tracking</VCardSubtitle>
           </VCardItem>
           <VCardText>
-            <div class="d-flex align-end justify-space-around gap-4">
-              <div
-                v-for="day in breakdownTrend"
-                :key="day.day"
-                class="d-flex flex-column align-center gap-2"
-              >
-                <div class="text-sm font-weight-medium">
-                  {{ day.count }}
-                </div>
-                <div
-                  class="breakdown-bar"
-                  :style="{ 
-                    height: `${(day.count / maxBreakdownCount) * 120}px`,
-                    backgroundColor: day.count > 3 ? 'rgb(var(--v-theme-error))' : day.count > 1 ? 'rgb(var(--v-theme-warning))' : 'rgb(var(--v-theme-success))'
-                  }"
-                />
-                <div class="text-sm text-medium-emphasis">
-                  {{ day.day }}
-                </div>
-              </div>
-            </div>
+           <AlarmLogTrendChart/>
           </VCardText>
         </VCard>
       </VCol>
-
-      <VCol
+    <VCol
         cols="12"
         md="4"
       >
@@ -378,7 +233,7 @@ onMounted(async () => {
           <VCardText>
             <VList class="py-0">
               <VListItem
-                v-for="issue in activeIssues.slice(0, 5)"
+                v-for="issue in activeIssues.slice(0, 8)"
                 :key="issue.id"
                 class="px-0"
               >
@@ -409,178 +264,14 @@ onMounted(async () => {
 
     <!-- Recent Activity & Quick Actions -->
     <VRow class="match-height mb-4">
-      <VCol
-        cols="12"
-        md="8"
-      >
-        <VCard class="h-100">
-          <VCardItem>
-            <VCardTitle>Recent Activity Timeline</VCardTitle>
-            <VCardSubtitle>Latest system activities and events</VCardSubtitle>
-          </VCardItem>
-          <VCardText>
-            <VTimeline
-              side="end"
-              density="compact"
-              truncate-line="both"
-              align="start"
-            >
-              <VTimelineItem
-                v-for="activity in recentActivities"
-                :key="activity.id"
-                :dot-color="activity.color"
-                size="x-small"
-              >
-                <div class="d-flex justify-space-between align-center">
-                  <div>
-                    <div class="text-sm font-weight-medium">
-                      {{ activity.action }}
-                    </div>
-                    <div class="text-xs text-medium-emphasis">
-                      by {{ activity.user }} • {{ activity.time }}
-                    </div>
-                  </div>
-                  <VIcon
-                    :icon="activity.icon"
-                    size="20"
-                    :color="activity.color"
-                  />
-                </div>
-              </VTimelineItem>
-            </VTimeline>
-          </VCardText>
-        </VCard>
-      </VCol>
-
-      <VCol
-        cols="12"
-        md="4"
-      >
-        <VCard class="h-100">
-          <VCardItem>
-            <VCardTitle>Quick Actions</VCardTitle>
-            <VCardSubtitle>Frequently used features</VCardSubtitle>
-          </VCardItem>
-          <VCardText>
-            <div class="d-flex flex-column gap-3">
-              <VBtn
-                v-for="action in quickActions"
-                :key="action.title"
-                :color="action.color"
-                variant="tonal"
-                block
-                size="large"
-              >
-                <VIcon
-                  :icon="action.icon"
-                  start
-                />
-                {{ action.title }}
-              </VBtn>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-
-    <!-- Administrative Insights -->
-    <VRow class="match-height mb-4">
-      <VCol cols="12">
-        <h3 class="text-h4 mb-2">
-          Administrative Insights
-        </h3>
-      </VCol>
-
-      <VCol
-        cols="12"
-        md="3"
-      >
-        <VCard>
-          <VCardText>
-            <div class="d-flex justify-space-between align-center mb-4">
-              <div class="text-body-1 text-high-emphasis">
-                User Activity
-              </div>
-              <VAvatar
-                color="primary"
-                variant="tonal"
-                rounded
-                size="42"
-              >
-                <VIcon
-                  icon="tabler-users"
-                  size="26"
-                />
-              </VAvatar>
-            </div>
-            <div class="d-flex flex-column gap-3">
-              <div>
-                <div class="text-h5 mb-1">
-                  {{ userActivity.activeUsers }}/{{ userActivity.totalUsers }}
-                </div>
-                <div class="text-xs text-medium-emphasis">
-                  Active Users
-                </div>
-              </div>
-              <VDivider />
-              <div>
-                <div class="text-h6 mb-1">
-                  {{ userActivity.todayLogins }}
-                </div>
-                <div class="text-xs text-medium-emphasis">
-                  Logins Today
-                </div>
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-
-      <VCol
-        cols="12"
-        md="3"
-      >
-        <VCard>
-          <VCardText>
-            <div class="d-flex justify-space-between align-center mb-4">
-              <div class="text-body-1 text-high-emphasis">
-                Documents
-              </div>
-              <VAvatar
-                color="success"
-                variant="tonal"
-                rounded
-                size="42"
-              >
-                <VIcon
-                  icon="tabler-file-type-doc"
-                  size="26"
-                />
-              </VAvatar>
-            </div>
-            <div class="d-flex flex-column gap-3">
-              <div class="d-flex justify-space-between">
-                <span class="text-sm">Reports Today</span>
-                <span class="text-sm font-weight-medium">{{ documentStatus.reportsToday }}</span>
-              </div>
-              <div class="d-flex justify-space-between">
-                <span class="text-sm">Pending Checks</span>
-                <span class="text-sm font-weight-medium text-warning">{{ documentStatus.pendingCheckSheets }}</span>
-              </div>
-              <div class="d-flex justify-space-between">
-                <span class="text-sm">Completed</span>
-                <span class="text-sm font-weight-medium text-success">{{ documentStatus.completedCheckSheets }}</span>
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-      </VCol>
-
-      <VCol
+          <VCol
         cols="12"
         md="6"
       >
-        <VCard class="h-100">
+      <VRow>
+        <VCol cols="12"
+        md="12">
+          <VCard class="h-100">
           <VCardItem>
             <VCardTitle>Configuration Summary</VCardTitle>
             <VCardSubtitle>System configuration overview</VCardSubtitle>
@@ -666,120 +357,250 @@ onMounted(async () => {
             </div>
           </VCardText>
         </VCard>
-      </VCol>
-    </VRow>
-
-    <!-- System Status & Audit Logs -->
-    <VRow class="match-height mb-4">
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <VCard class="h-100">
-          <VCardItem>
-            <VCardTitle>Connection Health</VCardTitle>
-            <VCardSubtitle>System connections status</VCardSubtitle>
-          </VCardItem>
+        </VCol>
+        <VCol cols="12"
+        md="12">
+         <VCard class="h-100">
           <VCardText>
-            <VList class="py-0">
-              <VListItem
-                v-for="connection in connectionHealth"
-                :key="connection.name"
-                class="px-0"
-              >
-                <template #prepend>
-                  <VAvatar
-                    :color="connection.color"
-                    size="40"
-                    class="me-3"
-                  >
-                    <VIcon
-                      :icon="connection.icon"
-                      size="22"
-                    />
-                  </VAvatar>
-                </template>
-                <VListItemTitle class="text-sm font-weight-medium">
-                  {{ connection.name }}
-                </VListItemTitle>
-                <VListItemSubtitle class="text-xs">
-                  Uptime: {{ connection.uptime }}
-                </VListItemSubtitle>
-                <template #append>
-                  <VChip
-                    :color="connection.color"
-                    size="small"
-                    label
-                  >
-                    {{ connection.status }}
-                  </VChip>
-                </template>
-              </VListItem>
-            </VList>
-          </VCardText>
-        </VCard>
-      </VCol>
-
-      <VCol
-        cols="12"
-        md="6"
-      >
-        <VCard class="h-100">
-          <VCardItem>
-            <VCardTitle>Recent Audit Logs</VCardTitle>
-            <VCardSubtitle>Latest system changes</VCardSubtitle>
-          </VCardItem>
-          <VCardText>
-            <VList class="py-0">
-              <VListItem
-                v-for="log in auditLogs"
-                :key="log.id"
-                class="px-0"
-              >
-                <VListItemTitle class="text-sm">
-                  {{ log.action }}
-                </VListItemTitle>
-                <VListItemSubtitle class="text-xs">
-                  {{ log.user }} • {{ log.module }} • {{ log.time }}
-                </VListItemSubtitle>
-              </VListItem>
-            </VList>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-
-    <!-- Notifications Center -->
-    <VRow>
-      <VCol cols="12">
-        <VCard>
-          <VCardItem>
-            <VCardTitle>Notification Center</VCardTitle>
-            <VCardSubtitle>Important alerts and updates</VCardSubtitle>
-          </VCardItem>
-          <VCardText>
-            <div class="d-flex flex-column gap-3">
-              <VAlert
-                v-for="notification in notifications"
-                :key="notification.id"
-                :type="notification.type"
+            <div class="d-flex justify-space-between align-center mb-4">
+              <div class="text-body-1 text-high-emphasis">
+                Documents
+              </div>
+              <VAvatar
+                color="success"
                 variant="tonal"
+                rounded
+                size="42"
               >
-                <div class="d-flex justify-space-between align-center">
-                  <span>{{ notification.message }}</span>
-                  <VChip
-                    size="small"
-                    :color="notification.priority === 'critical' ? 'error' : notification.priority === 'high' ? 'warning' : 'default'"
-                  >
-                    {{ notification.priority }}
-                  </VChip>
-                </div>
-              </VAlert>
+                <VIcon
+                  icon="tabler-file-type-doc"
+                  size="26"
+                />
+              </VAvatar>
+            </div>
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex justify-space-between">
+                <span class="text-sm">Reports Today</span>
+                <span class="text-sm font-weight-medium">{{ documentStatus.reportsToday }}</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span class="text-sm">Pending Checks</span>
+                <span class="text-sm font-weight-medium text-warning">{{ documentStatus.pendingCheckSheets }}</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span class="text-sm">Completed</span>
+                <span class="text-sm font-weight-medium text-success">{{ documentStatus.completedCheckSheets }}</span>
+              </div>
             </div>
           </VCardText>
         </VCard>
+        </VCol>
+        </VRow>
+      </VCol>
+      <VCol
+        cols="12"
+        md="6"
+      >
+        <VCard class="h-100">
+          <VCardItem>
+            <VCardTitle>Recent Activity Timeline</VCardTitle>
+            <VCardSubtitle>Latest system activities and events</VCardSubtitle>
+          </VCardItem>
+          <VCardText>
+            <VTimeline
+              side="end"
+              density="compact"
+              truncate-line="both"
+              align="start"
+            >
+              <VTimelineItem
+                v-for="activity in recentActivities"
+                :key="activity.id"
+                :dot-color="activity.color"
+                size="x-small"
+              >
+                <div class="d-flex justify-space-between align-center">
+                  <div>
+                    <div class="text-sm font-weight-medium">
+                      {{ activity.action }}
+                    </div>
+                    <div class="text-xs text-medium-emphasis">
+                      by {{ activity.user }} • {{ activity.time }}
+                    </div>
+                  </div>
+                  <VIcon
+                    :icon="activity.icon"
+                    size="20"
+                    :color="activity.color"
+                  />
+                </div>
+              </VTimelineItem>
+            </VTimeline>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+     
+    </VRow>
+
+    <!-- Administrative Insights -->
+    <VRow class="match-height">
+      <VCol cols="12">
+        <h3 class="text-h4 mb-2">
+          Administrative Insights
+        </h3>
+      </VCol>
+
+     
+
+    </VRow>
+     <VRow>
+      <VCol
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <VCard class="fill-height">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Filter Machine & Parameter</VCardTitle>
+            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
+          </VCardItem>
+
+          <VCardText>
+            <VRow class="h-100">
+              <VCol
+                class="d-flex flex-row gap-4 align-end"
+                cols="12"
+                lg="12"
+                md="12"
+
+
+
+              >
+                <AppSelect
+                  v-model="selectedMachineIds"
+                  :error="!!formErrors.selected_machine_ids"
+                  :error-messages="formErrors.selected_machine_ids || []"
+                  :items="[]"
+                  :rules="[requiredValidator]"
+                  label="Machine"
+                  placeholder="Select machine"
+                />
+                <AppSelect
+                  v-model="selectedParameterIds"
+                  :error="!!formErrors.selected_parameter_ids"
+                  :error-messages="formErrors.selected_parameter_ids || []"
+                  :items="[]"
+                  :rules="[requiredValidator]"
+                  label="Parameter"
+                  placeholder="Select parameter"
+                />
+                <AppTextField
+                  v-model="interval"
+                  label="Interval (Minutes)"
+                  placeholder="60"
+                />
+                <VBtn
+                  color="error"
+                  type="submit"
+                >
+                  Stop
+                </VBtn>
+                <VBtn type="submit">
+                  Submit
+                </VBtn>
+              </VCol>
+            </VRow>
+
+
+
+
+
+
+
+
+
+
+          </VCardText>
+        </VCard>
       </VCol>
     </VRow>
+   
+    <VRow class="match-height">
+      <VCol
+        class="d-flex"
+        cols="6"
+        lg="6"
+        md="6"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Monthly Average (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+
+                  color="success"
+                  label
+
+
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+
+
+
+              </div>
+            </template>
+          </VCardItem>
+          <VCardText>
+          <RealtimeAverageChart/>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol
+        class="d-flex"
+        cols="6"
+        lg="6"
+        md="6"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Weekly Average (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+                  color="success"
+                  label
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+              </div>
+            </template>
+          </VCardItem>
+
+          <VCardText>
+          <RealtimeAverageChart/>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+
   </div>
 </template>
 

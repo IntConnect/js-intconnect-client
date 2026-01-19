@@ -55,7 +55,9 @@ const isManageChecksheetDocumentTemplateVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedChecksheetDocumentTemplate = ref(null)
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
+const titleAlert = ref('')
+const bodyAlert = ref('')
+const alertType = ref('info')
 
 
 // ==========================================
@@ -130,7 +132,7 @@ const handleSaveChecksheetDocumentTemplate = async reportDocumentTemplateData =>
     await nextTick()
 
     showAlertDialog.value = true
-    alertMessage.value = 'Success manage Checksheet Document Template'
+    alertMessage.value = 'Success manage Check Sheet Document Template'
   } else {
     console.error('Failed to save reportDocumentTemplate:', result.error || result.errors)
   }
@@ -141,7 +143,7 @@ const handleSaveChecksheetDocumentTemplate = async reportDocumentTemplateData =>
  */
 const handleDeleteChecksheetDocumentTemplate = async formData => {
   if (!selectedChecksheetDocumentTemplate.value?.id) {
-    console.warn('No Checksheet Document Template selected for deletion')
+    console.warn('No Check Sheet Document Template selected for deletion')
 
     return
   }
@@ -152,7 +154,7 @@ const handleDeleteChecksheetDocumentTemplate = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete Checksheet Document Template'
+    alertMessage.value = 'Success delete Check Sheet Document Template'
 
   } else {
     console.error('Failed to delete user:', result.error)
@@ -217,7 +219,7 @@ onMounted(() => {
             color="primary"
             @click="openManageChecksheetDocumentTemplateDrawer"
           >
-            New Checksheet Document Template
+            New Check Sheet Document Template
           </VBtn>
         </div>
       </VCardText>
@@ -244,7 +246,7 @@ onMounted(() => {
         :loading="loading"
         class="text-no-wrap"
         hide-default-footer
-        no-data-text="No Checksheet Document Template found"
+        no-data-text="No Check Sheet Document Template found"
       >
         <!-- ID Column -->
         <template #item.id="{ index }">
@@ -313,7 +315,7 @@ onMounted(() => {
       }]"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
-      title="Delete Checksheet Document Template"
+      title="Delete Check Sheet Document Template"
       @submit="handleDeleteChecksheetDocumentTemplate"
     />
 
@@ -327,8 +329,6 @@ onMounted(() => {
       @check-sheet-document-template-data="handleSaveChecksheetDocumentTemplate"
     />
   </section>
-  <AlertDialog
-    v-model:is-dialog-visible="showAlertDialog"
-    :body-alert="alertMessage"
-  />
+   <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
+    :type="alertType" />
 </template>

@@ -32,7 +32,7 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 500" :model-value="props.modelValue">
+  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 600" :model-value="props.modelValue">
     <DialogCloseBtn @click="closeDialog" />
 
     <VCard class="pa-4">

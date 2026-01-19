@@ -1,5 +1,4 @@
 <script setup>
-import ManageRegisterDrawer from "@/components/drawer/ManageRegisterDrawer.vue"
 import AlertDialog from "@/components/general/AlertDialog.vue"
 import DeleteDialog from "@/components/general/DeleteDialog.vue"
 import { useManageRegister } from "@/composables/useManageRegister"
@@ -16,7 +15,7 @@ const {
   registerDependency,
   loading,
   actionLoading,
-  fetchRegisters,
+  fetchRegistersPagination,
   fetchRegisterDependency,
   saveRegister,
   deleteRegister,
@@ -51,7 +50,6 @@ const sortBy = ref("id")
 const sortOrder = ref("asc")
 
 // UI States
-const isManageRegister = ref(false)
 const showDeleteDialog = ref(false)
 const selectedRegister = ref(null)
 const showAlertDialog = ref(false)
@@ -66,7 +64,7 @@ const alertMessage = ref('')
  * Load registers from API
  */
 const loadRegister = async () => {
-  await fetchRegisters({
+  await fetchRegistersPagination({
     page: page.value,
     size: itemsPerPage.value,
     query: searchQuery.value,
@@ -75,20 +73,12 @@ const loadRegister = async () => {
   })
 }
 
-/**
- * Open drawer for adding new register
- */
-const openManageRegister = () => {
-  selectedRegister.value = null
-  clearFormErrors()
-  isManageRegister.value = true
-}
+
 
 /**
  * Close add/edit drawer
  */
 const closeManageRegister = () => {
-  isManageRegister.value = false
   selectedRegister.value = null
   clearFormErrors()
 }
@@ -99,7 +89,6 @@ const closeManageRegister = () => {
 const handleEdit = register => {
   selectedRegister.value = { ...register }
   clearFormErrors()
-  isManageRegister.value = true
 }
 
 /**
@@ -217,8 +206,7 @@ onMounted(async () => {
           <VBtn
             :loading="actionLoading"
             color="primary"
-            @click="openManageRegister"
-          >
+                       :to="{ name: 'register-create'}">
             New Register
           </VBtn>
         </div>
@@ -274,7 +262,7 @@ onMounted(async () => {
               icon
               size="small"
               variant="text"
-              @click="handleEdit(item)"
+                :to="{ name: 'register-edit', params: { id: item.id } }"
             >
               <VIcon
                 icon="tabler-pencil"
@@ -324,16 +312,7 @@ onMounted(async () => {
       @submit="handleDeleteRegister"
     />
 
-    <!-- Add/Edit Register Drawer -->
-    <ManageRegisterDrawer
-      v-model:is-drawer-open="isManageRegister"
-      :form-errors="formErrors"
-      :loading="actionLoading"
-      :register-data="selectedRegister"
-      :register-dependency="registerDependency"
-      @close="closeManageRegister"
-      @register-data="handleSaveRegister"
-    />
+  
   </section>
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"

@@ -135,7 +135,7 @@ const handleUpdateAction = async (note) => {
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable :key="alarmLogs.length" :headers="headers" :items="alarmLogs" :items-per-page="itemsPerPage"
+      <VDataTable :key="alarmLogs.length" :headers="headers" :items="alarmLogs ?? []" :items-per-page="itemsPerPage"
         :loading="actionLoading" class="text-no-wrap" hide-default-footer no-data-text="No alarm logs found"
         expand-on-click>
         <!-- ID Column -->
@@ -196,9 +196,9 @@ const handleUpdateAction = async (note) => {
             Actions
           </div>
         </template>
-        <template #item .actions="{ item }">
+        <template #item.actions="{ item }">
           <div class="d-flex justify-center gap-1">
-            <VBtn v-if="item.status !== 'Finished' && item.is_active" icon color="success" variant="text"
+            <VBtn v-if="item?.status !== 'Finished' && item?.is_active" icon color="success" variant="text"
               @click="handleUpdate(item)">
               <VIcon icon="tabler-check" size="18" />
               <VTooltip activator="parent" location="top">

@@ -49,6 +49,7 @@ export const useManageAlarmLog = () => {
 
       const result = handleApiError(apiError, { formErrors, errorMessage })
       if (!result.success) return result
+      console.log(alarmLogs)
       applyPaginationResponse(
         {
           entries: alarmLogs,

@@ -62,4 +62,25 @@ export default [
       requiredPermission: "FACILITY_EDIT", // optional
     },
   },
+   {
+    path: "/registers/create",
+    name: "register-create",
+    component: () => import("@/pages/registers/manage/[id].vue"),
+    meta: {
+      layout: "default",
+
+      requiresAuth: true,
+      requiredPermission: "FACILITY_CREATE", // optional
+    },
+  },
+  {
+    path: "/registers/:id/edit",
+    name: "register-edit",
+    component: () => import("@/pages/registers/manage/[id].vue"),
+    meta: {
+      layout: "default",
+      requiresAuth: true,
+      requiredPermission: "FACILITY_EDIT", // optional
+    },
+  },
 ];

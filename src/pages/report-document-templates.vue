@@ -51,7 +51,9 @@ const isManageReportDocumentTemplateVisible = ref(false)
 const showDeleteDialog = ref(false)
 const selectedReportDocumentTemplate = ref(null)
 const showAlertDialog = ref(false)
-const alertMessage = ref('')
+const titleAlert = ref('')
+const bodyAlert = ref('')
+const alertType = ref('info')
 
 
 // ==========================================
@@ -127,6 +129,7 @@ const handleSaveReportDocumentTemplate = async reportDocumentTemplateData => {
 
     showAlertDialog.value = true
     alertMessage.value = 'Success manage Report Document Templates'
+    bodyAlert.value = 'Report Document Templates has been managed'
   } else {
     console.error('Failed to save reportDocumentTemplate:', result.error || result.errors)
   }
@@ -323,8 +326,6 @@ onMounted(() => {
       @report-document-template-data="handleSaveReportDocumentTemplate"
     />
   </section>
-  <AlertDialog
-    v-model:is-dialog-visible="showAlertDialog"
-    :body-alert="alertMessage"
-  />
+  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
+    :type="alertType" />
 </template>

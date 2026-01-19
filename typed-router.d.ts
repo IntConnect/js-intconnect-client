@@ -46,6 +46,7 @@ declare module 'vue-router/auto-routes' {
     'parameters-manage-id': RouteRecordInfo<'parameters-manage-id', '/parameters/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'permissions': RouteRecordInfo<'permissions', '/permissions', Record<never, never>, Record<never, never>>,
     'registers': RouteRecordInfo<'registers', '/registers', Record<never, never>, Record<never, never>>,
+    'registers-manage-id': RouteRecordInfo<'registers-manage-id', '/registers/manage/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'report-document-templates': RouteRecordInfo<'report-document-templates', '/report-document-templates', Record<never, never>, Record<never, never>>,
     'system-settings': RouteRecordInfo<'system-settings', '/system-settings', Record<never, never>, Record<never, never>>,
     'system-settings-dashboard-settings': RouteRecordInfo<'system-settings-dashboard-settings', '/system-settings/dashboard-settings', Record<never, never>, Record<never, never>>,
