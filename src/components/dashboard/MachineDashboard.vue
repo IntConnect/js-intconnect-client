@@ -308,6 +308,8 @@ watch(
       })
     })
     realtimeData.value = newData
+          modelViewerRef.value.updateParameterMarkers(newData)
+
   },
   { deep: true },
 )
@@ -619,7 +621,7 @@ const gridMinHeight = computed(() => {
       </div>
     </VOverlay>
 
-    <VRow style="min-height: 520px" class="match-height">
+    <VRow  class="match-height">
       <!-- LEFT -->
       <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
        
@@ -632,10 +634,10 @@ const gridMinHeight = computed(() => {
                         :clickable="false"
                       
   :camera-position="{
-            x: processedMachine.camera_x || 0,
-            y: processedMachine.camera_y || 0,
-            z: processedMachine.camera_z || 0
-          }"                        container-height="90vh"
+            x: processedMachine.camera_x,
+            y: processedMachine.camera_y,
+            z: processedMachine.camera_z + 7
+          }"                        container-height="80vh"
           :parameters="processedMachine.parameters"
           :registers="processedMachine.registers"
             @register-click="handleRegisterClick"
@@ -646,18 +648,11 @@ const gridMinHeight = computed(() => {
       <!-- RIGHT -->
       <VCol cols="6" md="6" sm="6" class="d-flex flex-column">
         <VRow class="match-height flex-grow-1">
-          <VCol cols="12" class="">
+          <VCol cols="12">
             <StateCards v-if="machineState !== null" :machine="machineState" :running-times="runningTimes"
               :is-edit-mode="false" />
-          </VCol>
-
-          <VCol cols="12" class="">
-            <VRow>
-              <VCol cols="12">
                 <RealtimeTable :realtime-data="realtimeData" :last-update="lastUpdate" />
               </VCol>
-            </VRow>
-          </VCol>
         </VRow>
       </VCol>
     </VRow>

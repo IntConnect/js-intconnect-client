@@ -208,6 +208,8 @@ markers: {
       },
     },
    tooltip: {
+      theme: isDark.value ? 'dark' : 'light',
+
   shared: true,
   intersect: false,
   x: {

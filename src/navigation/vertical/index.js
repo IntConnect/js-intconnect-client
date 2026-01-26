@@ -42,20 +42,20 @@ export default [
     children: [
       {
         title: "MQTT Broker",
-        to: { name: "mqtt-broker" },
+        to: { name: "mqtt-brokers" },
         icon: { icon: "tabler-cooker" },
         requiredPermission: "MQTT_BROKER_VIEW",
       },
       {
         title: "MQTT Topic",
-        to: { name: "mqtt-topic" },
+        to: { name: "mqtt-topics" },
         icon: { icon: "tabler-topology-star-3" },
         requiredPermission: "MQTT_TOPIC_VIEW",
       },
-      
+     
       {
         title: "Modbus Server",
-        to: { name: "modbus-server" },
+        to: { name: "modbus-servers" },
         icon: { icon: "tabler-server-spark" },
         requiredPermission: "MODBUS_SERVER_VIEW",
       },

@@ -93,7 +93,7 @@ watch(parsedJwt, () => {
               />
             </template>
 
-            <VListItemTitle class="text-white">
+            <VListItemTitle>
               Profile
             </VListItemTitle>
           </VListItem>
@@ -110,7 +110,7 @@ watch(parsedJwt, () => {
               />
             </template>
 
-            <VListItemTitle class="text-white">
+            <VListItemTitle>
               FAQ
             </VListItemTitle>
           </VListItem>

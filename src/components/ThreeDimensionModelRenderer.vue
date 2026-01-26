@@ -131,6 +131,9 @@ const removeMarker = (marker) => {
 // ==========================================
 // Create marker/label using ThreeMeshUI
 // ==========================================
+// ==========================================
+// Create marker/label using ThreeMeshUI
+// ==========================================
 const createMarker = (parameterName, parameterValue, position, isRegister = false, registerData = null) => {
   if (!scene) return null
 
@@ -168,7 +171,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     })
 
     const headerText = new ThreeMeshUI.Text({
-      content: '● ' + parameterName.toUpperCase(),
+      content: parameterName.toUpperCase(),
       fontSize: 0.18,
       fontColor: new THREE.Color(0xffffff),
     })
@@ -275,68 +278,166 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     container.userData.particles = particles
     container.userData.valueText = valueText
     container.userData.animPhase = Math.random() * Math.PI * 2
+    container.userData.parameterName = parameterName
+
 
   } else {
-    // ========== PARAMETER MARKER - CLEAN & MINIMAL ==========
+    // ========== PARAMETER MARKER - MODERN GLASSMORPHISM CARD ==========
     
+    // Main glass panel
     const mainPanel = new ThreeMeshUI.Block({
-      width: 2.8,
-      height: 1.2,
-      padding: 0.12,
-      borderRadius: 0.1,
+      width: 3.2,
+      height: 1.4,
+      padding: 0.15,
+      borderRadius: 0.12,
       justifyContent: 'center',
       alignContent: 'center',
-      backgroundColor: new THREE.Color(0x263238),
-      backgroundOpacity: 0.85,
+      backgroundColor: new THREE.Color(0x1a1a2e),
+      backgroundOpacity: 0.75,
       fontFamily: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.json',
       fontTexture: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.png',
     })
 
-    // Name label
-    const nameText = new ThreeMeshUI.Text({
-      content: parameterName,
-      fontSize: 0.16,
-      fontColor: new THREE.Color(0xb0bec5),
+    // Top badge with parameter name
+    const badgeContainer = new ThreeMeshUI.Block({
+      width: 2.8,
+      height: 0.35,
+      margin: 0.03,
+      padding: 0.06,
+      borderRadius: 0.18,
+      justifyContent: 'center',
+      alignContent: 'center',
+      backgroundColor: new THREE.Color(0x2d3436),
+      backgroundOpacity: 0.8,
     })
 
-    // Value dengan separator
-    const separatorText = new ThreeMeshUI.Text({
-      content: '—',
-      fontSize: 0.12,
-      fontColor: new THREE.Color(0x546e7a),
+    const nameText = new ThreeMeshUI.Text({
+      content: parameterName.toUpperCase(),
+      fontSize: 0.13,
+      fontColor: new THREE.Color(0xa0a0a0),
+    })
+    badgeContainer.add(nameText)
+
+    // Value container with icon-like prefix
+    const valueWrapper = new ThreeMeshUI.Block({
+      width: 2.8,
+      height: 0.65,
+      margin: 0.03,
+      padding: 0.08,
+      borderRadius: 0.08,
+      justifyContent: 'center',
+      alignContent: 'center',
+      backgroundColor: new THREE.Color(0x16213e),
+      backgroundOpacity: 0.5,
     })
 
     const valueText = new ThreeMeshUI.Text({
       content: String(parameterValue),
-      fontSize: 0.28,
+      fontSize: 0.38,
       fontColor: new THREE.Color(0xffffff),
     })
+    valueWrapper.add(valueText)
 
-    mainPanel.add(nameText, separatorText, valueText)
+    mainPanel.add(badgeContainer, valueWrapper)
     container.add(mainPanel)
 
-    // Subtle border line
-    const borderGeometry = new THREE.RingGeometry(1.5, 1.52, 32)
-    const borderMaterial = new THREE.MeshBasicMaterial({
-      color: 0x455a64,
+    // Frosted glass border effect
+    const glassRingGeometry = new THREE.RingGeometry(1.7, 1.73, 40)
+    const glassRingMaterial = new THREE.MeshBasicMaterial({
+      color: 0x4a5568,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.4,
       side: THREE.DoubleSide,
     })
-    const border = new THREE.Mesh(borderGeometry, borderMaterial)
-    border.position.z = -0.05
-    container.add(border)
+    const glassRing = new THREE.Mesh(glassRingGeometry, glassRingMaterial)
+    glassRing.position.z = -0.05
+    container.add(glassRing)
 
-    // Minimal dot indicator
-    const dotGeometry = new THREE.CircleGeometry(0.08, 16)
-    const dotMaterial = new THREE.MeshBasicMaterial({
-      color: 0x78909c,
+    // Inner glow ring
+    const innerGlowGeometry = new THREE.RingGeometry(1.65, 1.68, 40)
+    const innerGlowMaterial = new THREE.MeshBasicMaterial({
+      color: 0x667eea,
+      transparent: true,
+      opacity: 0.15,
+      side: THREE.DoubleSide,
+    })
+    const innerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial)
+    innerGlow.position.z = -0.04
+    container.add(innerGlow)
+
+    // Corner brackets for tech aesthetic
+    const bracketMaterial = new THREE.MeshBasicMaterial({
+      color: 0x667eea,
       transparent: true,
       opacity: 0.5,
     })
-    const dot = new THREE.Mesh(dotGeometry, dotMaterial)
-    dot.position.set(-1.2, 0.5, -0.03)
-    container.add(dot)
+
+    // Top-left bracket
+    const tlShape = new THREE.Shape()
+    tlShape.moveTo(0, 0)
+    tlShape.lineTo(0.4, 0)
+    tlShape.lineTo(0.4, 0.05)
+    tlShape.lineTo(0.05, 0.05)
+    tlShape.lineTo(0.05, 0.4)
+    tlShape.lineTo(0, 0.4)
+    tlShape.lineTo(0, 0)
+    
+    const tlGeometry = new THREE.ShapeGeometry(tlShape)
+    const tlBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+    tlBracket.position.set(-1.5, 0.6, -0.02)
+    container.add(tlBracket)
+
+    // Top-right bracket
+    const trBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+    trBracket.rotation.z = Math.PI / 2
+    trBracket.position.set(1.5, 0.6, -0.02)
+    container.add(trBracket)
+
+    // Bottom-right bracket
+    const brBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+    brBracket.rotation.z = Math.PI
+    brBracket.position.set(1.5, -0.6, -0.02)
+    container.add(brBracket)
+
+    // Bottom-left bracket
+    const blBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+    blBracket.rotation.z = -Math.PI / 2
+    blBracket.position.set(-1.5, -0.6, -0.02)
+    container.add(blBracket)
+
+    // Status indicator dots
+    const dotGeometry = new THREE.CircleGeometry(0.05, 16)
+    const dotPositions = [
+      { x: -1.3, y: -0.6, color: 0x667eea },
+      { x: -1.15, y: -0.6, color: 0x764ba2 },
+      { x: -1.0, y: -0.6, color: 0x667eea },
+    ]
+
+    dotPositions.forEach(pos => {
+      const dotMat = new THREE.MeshBasicMaterial({
+        color: pos.color,
+        transparent: true,
+        opacity: 0.6,
+      })
+      const dot = new THREE.Mesh(dotGeometry, dotMat)
+      dot.position.set(pos.x, pos.y, -0.01)
+      container.add(dot)
+    })
+
+    // Subtle animated line accent
+    const lineGeometry = new THREE.PlaneGeometry(2.6, 0.02)
+    const lineMaterial = new THREE.MeshBasicMaterial({
+      color: 0x667eea,
+      transparent: true,
+      opacity: 0.3,
+    })
+    const accentLine = new THREE.Mesh(lineGeometry, lineMaterial)
+    accentLine.position.set(0, -0.35, -0.01)
+    container.add(accentLine)
+
+    // Store reference for potential animations
+    container.userData.valueText = valueText
+    container.userData.parameterName = parameterName
   }
   
   scene.add(container)
@@ -651,6 +752,8 @@ const initViewer = async () => {
     return
   }
 
+  console.log(props.cameraPosition)
+
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(width, height)
@@ -926,10 +1029,6 @@ const animate = () => {
     }
   }
   
-  // Update semua markers untuk menghadap kamera (billboard effect)
-  registerMarkers.forEach(marker => {
-    marker.quaternion.copy(camera.quaternion)
-  })
 
   try {
     ThreeMeshUI.update()
@@ -1190,6 +1289,28 @@ defineExpose({
     parameterMarker = createMarker(name, value, pos, false)
     return parameterMarker
   },
+  updateParameterMarkers: (updatedParameters) => {
+    if (!scene || !isInitialized.value) return
+    
+    // Update parameter markers yang sudah ada
+    scene.children.forEach(child => {
+      if (child.userData && child.userData.valueText && child.userData.isRegisterMarker) {
+        console.log(child.userData.parameterName)
+        // Cari parameter yang match
+        const matchParam = updatedParameters.find(p => {
+          return p.parameter == child.userData.parameterName
+        })
+        console.log(updatedParameters)
+        console.log(matchParam)
+        
+        if (matchParam) {
+          child.userData.valueText.set({ content: String(matchParam.value) })
+        }
+      }
+    })
+  },
+  
+
 })
 </script>
 
