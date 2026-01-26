@@ -158,6 +158,7 @@ const handleDeleteUser = async formData => {
     titleAlert.value = 'Action failed'
     bodyAlert.value = 'User failed to be deleted'
     alertType.value = 'error'
+
     // Optional: Show error notification
   }
 }
@@ -184,25 +185,25 @@ onMounted(() => {
   loadUsers()
 })
 
-const resolveBadgeRole = (role) => {
+const resolveBadgeRole = role => {
   switch (role) {
-    case "Administrator":
-      return "primary"
-      break;
-    case "Manager":
-      return "secondary"
-      break;
-    case "Supervisor":
-      return "info"
-      break;
-    case "Maintenance":
-      return "warning"
-      break;
-    case "Operator":
-      return "default"
-      break;
-    default:
-      break;
+  case "Administrator":
+    return "primary"
+    break
+  case "Manager":
+    return "secondary"
+    break
+  case "Supervisor":
+    return "info"
+    break
+  case "Maintenance":
+    return "warning"
+    break
+  case "Operator":
+    return "default"
+    break
+  default:
+    break
   }
 }
 </script>
@@ -214,14 +215,26 @@ const resolveBadgeRole = (role) => {
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
-          <AppSelect v-model="itemsPerPage" :items="ITEMS_PER_PAGE_OPTIONS" style="inline-size: 5.5rem;" />
+          <AppSelect
+            v-model="itemsPerPage"
+            :items="ITEMS_PER_PAGE_OPTIONS"
+            style="inline-size: 5.5rem;"
+          />
         </div>
 
         <!-- Right side controls -->
         <div class="d-flex gap-2 align-center flex-wrap">
-          <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
-            style="inline-size: 15.625rem;" />
-          <VBtn :loading="actionLoading" color="primary" @click="openAddUserDrawer">
+          <AppTextField
+            v-model="searchQuery"
+            clearable
+            placeholder="Search something..."
+            style="inline-size: 15.625rem;"
+          />
+          <VBtn
+            :loading="actionLoading"
+            color="primary"
+            @click="openAddUserDrawer"
+          >
             New User
           </VBtn>
         </div>
@@ -230,13 +243,26 @@ const resolveBadgeRole = (role) => {
       <VDivider />
 
       <!-- Error Alert -->
-      <VAlert v-if="error" class="mx-4 mt-4" closable type="error" @click:close="clearErrors">
+      <VAlert
+        v-if="error"
+        class="mx-4 mt-4"
+        closable
+        type="error"
+        @click:close="clearErrors"
+      >
         {{ error }}
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable :headers="TABLE_HEADERS" :items="users" :items-per-page="itemsPerPage" :loading="loading"
-        class="text-no-wrap" hide-default-footer no-data-text="No users found">
+      <VDataTable
+        :headers="TABLE_HEADERS"
+        :items="users"
+        :items-per-page="itemsPerPage"
+        :loading="loading"
+        class="text-no-wrap"
+        hide-default-footer
+        no-data-text="No users found"
+      >
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
@@ -244,7 +270,10 @@ const resolveBadgeRole = (role) => {
 
         <!-- Role Column -->
         <template #item.role="{ item }">
-          <VChip :color="resolveBadgeRole(item.role?.name)" size="small">
+          <VChip
+            :color="resolveBadgeRole(item.role?.name)"
+            size="small"
+          >
             {{ item.role?.name || 'N/A' }}
           </VChip>
         </template>
@@ -252,15 +281,39 @@ const resolveBadgeRole = (role) => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <VBtn color="info" icon size="small" variant="text" @click="handleEdit(item)">
-              <VIcon icon="tabler-pencil" size="20" />
-                  <VTooltip activator="parent" location="top">
+            <VBtn
+              color="info"
+              icon
+              size="small"
+              variant="text"
+              @click="handleEdit(item)"
+            >
+              <VIcon
+                icon="tabler-pencil"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Edit</span>
               </VTooltip>
             </VBtn>
-            <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
-              <VIcon icon="tabler-trash" size="20" />
-                 <VTooltip activator="parent" location="top">
+            <VBtn
+              color="error"
+              icon
+              size="small"
+              variant="text"
+              @click="openDeleteDialog(item)"
+            >
+              <VIcon
+                icon="tabler-trash"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Delete</span>
               </VTooltip>
             </VBtn>
@@ -269,25 +322,45 @@ const resolveBadgeRole = (role) => {
 
         <!-- Bottom Pagination -->
         <template #bottom>
-          <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalItems"
+          />
         </template>
       </VDataTable>
     </VCard>
 
     <!-- Delete Dialog -->
-    <DeleteDialog v-model="showDeleteDialog" :fields="[{
-      key: 'reason',
-      label: 'Reason',
-      placeholder: 'Type your reason...',
-      type: 'text',
-      formErrors: formErrors,
-    }]" :loading="actionLoading" message="Please provide a reason for deletion" title="Delete User"
-      @submit="handleDeleteUser" />
+    <DeleteDialog
+      v-model="showDeleteDialog"
+      :fields="[{
+        key: 'reason',
+        label: 'Reason',
+        placeholder: 'Type your reason...',
+        type: 'text',
+        formErrors: formErrors,
+      }]"
+      :loading="actionLoading"
+      message="Please provide a reason for deletion"
+      title="Delete User"
+      @submit="handleDeleteUser"
+    />
 
     <!-- Add/Edit User Drawer -->
-    <ManageUserDrawer v-model:is-drawer-open="isManageUserDrawerVisible" :form-errors="formErrors"
-      :loading="actionLoading" :user-data="selectedUser" @close="closeAddUserDrawer" @user-data="handleSaveUser" />
+    <ManageUserDrawer
+      v-model:is-drawer-open="isManageUserDrawerVisible"
+      :form-errors="formErrors"
+      :loading="actionLoading"
+      :user-data="selectedUser"
+      @close="closeAddUserDrawer"
+      @user-data="handleSaveUser"
+    />
   </section>
-  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
-    :type="alertType" />
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :body-alert="bodyAlert"
+    :title-alert="titleAlert"
+    :type="alertType"
+  />
 </template>

@@ -36,6 +36,7 @@ const TABLE_HEADERS = [
   { title: 'IP Address', key: 'ip_address', sortable: false },
   { title: 'User Agent', key: 'user_agent', sortable: false },
 ]
+
 const recentActivities = ref([])
 const parsedJwtToken = ref({})
 
@@ -56,6 +57,7 @@ onMounted(async () => {
   await fetchUser(parsedJwtToken.value.id)
   if (user.value) {
     const userData = user.value.entry
+
     formData.value.name = userData.name
     formData.value.username = userData.username
     formData.value.email = userData.email
@@ -93,7 +95,7 @@ const changeAvatar = event => {
 }
 
 const resetAvatar = () => {
-    avatarPreview.value = user.value.entry.avatar_path === '' ? avatar1 : useStaticFile(user.value.entry.avatar_path) 
+  avatarPreview.value = user.value.entry.avatar_path === '' ? avatar1 : useStaticFile(user.value.entry.avatar_path) 
   formData.value.avatar = null
 }
 

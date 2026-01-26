@@ -40,6 +40,7 @@ const isDark = computed(() => {
   if (configStore.theme === 'system') {
     return theme.global.current.value.dark
   }
+  
   return configStore.theme === 'dark'
 })
 
@@ -53,36 +54,36 @@ const glassCardStyle = computed(() => ({
     : 'rgba(16, 185, 129, 0.3)',
   boxShadow: isDark.value
     ? '0 20px 60px rgba(16, 185, 129, 0.15)'
-    : '0 8px 32px rgba(16, 185, 129, 0.12)'
+    : '0 8px 32px rgba(16, 185, 129, 0.12)',
 }))
 
 const textPrimaryClass = computed(() => 
-  isDark.value ? 'text-white' : 'text-grey-darken-3'
+  isDark.value ? 'text-white' : 'text-grey-darken-3',
 )
 
 const textSecondaryClass = computed(() => 
-  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1'
+  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1',
 )
 
 const textMutedClass = computed(() => 
-  isDark.value ? 'text-grey' : 'text-grey-lighten-1'
+  isDark.value ? 'text-grey' : 'text-grey-lighten-1',
 )
 
 const getStatusIcon = status => {
   switch(status) {
-    case 'active': return 'tabler-circle-check-filled'
-    case 'warning': return 'tabler-alert-circle'
-    case 'inactive': return 'tabler-circle-x'
-    default: return 'tabler-circle'
+  case 'active': return 'tabler-circle-check-filled'
+  case 'warning': return 'tabler-alert-circle'
+  case 'inactive': return 'tabler-circle-x'
+  default: return 'tabler-circle'
   }
 }
 
 const getStatusColor = status => {
   switch(status) {
-    case 'active': return 'success'
-    case 'warning': return 'warning'
-    case 'inactive': return 'default'
-    default: return 'info'
+  case 'active': return 'success'
+  case 'warning': return 'warning'
+  case 'inactive': return 'default'
+  default: return 'info'
   }
 }
 
@@ -202,7 +203,7 @@ const formatDateTime = dateString => {
                   variant="tonal"
                   class="status-chip"
                 >
-                 Normal
+                  Normal
                 </VChip>
               </div>
 

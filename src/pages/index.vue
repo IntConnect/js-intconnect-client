@@ -32,7 +32,10 @@ onMounted(async () => {
     <VProgressCircular indeterminate />
   </VRow>
 
-  <MachineDashboard v-else-if="dashboardMode === 'Machine'" :system-setting="systemSetting"/>
+  <MachineDashboard
+    v-else-if="dashboardMode === 'Machine'"
+    :system-setting="systemSetting"
+  />
 
   <ExecutiveDashboard v-else-if="dashboardMode === 'Executive'" />
 

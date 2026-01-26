@@ -17,10 +17,12 @@ const {
 const parsedJwt = computed(() => {
   return parseJwt(rawJwt.value)
 })
+
 const avatarPath = ref('')
+
 watch(parsedJwt, () => {
-  if(!parsedJwt) return null
- avatarPath.value =  parsedJwt.value.avatar_path === '' ? avatar1 : useStaticFile(parsedJwt.value.avatar_path) 
+  if(!parsedJwt.value) return null
+  avatarPath.value =  parsedJwt.value.avatar_path === '' ? avatar1 : useStaticFile(parsedJwt.value.avatar_path) 
 })
 </script>
 

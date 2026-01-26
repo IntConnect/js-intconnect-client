@@ -8,6 +8,8 @@ import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import TablePagination from "@core/components/TablePagination.vue"
 import { onMounted, ref, watch } from 'vue'
+
+
 // ==========================================
 // Composable
 // ==========================================
@@ -154,7 +156,7 @@ const handleDeleteMqttBroker = async formData => {
     closeDeleteDialog()
     showAlertDialog.value = true
     alertMessage.value = SuccessDelete('MQTT Broker')
-alertBody.value = ActionSuccess
+    alertBody.value = ActionSuccess
   } else {
     console.error('Failed to delete user:', result.error)
 
@@ -295,7 +297,10 @@ onMounted(() => {
                 icon="tabler-pencil"
                 size="20"
               />
-               <VTooltip activator="parent" location="top">
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Edit</span>
               </VTooltip>
             </VBtn>
@@ -310,7 +315,10 @@ onMounted(() => {
                 icon="tabler-trash"
                 size="20"
               />
-               <VTooltip activator="parent" location="top">
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Delete</span>
               </VTooltip>
             </VBtn>
@@ -337,7 +345,7 @@ onMounted(() => {
         placeholder: 'Type your reason...',
         type: 'text',
       }]"
-        :form-errors="formErrors"
+      :form-errors="formErrors"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete MQTT Broker"
@@ -358,6 +366,5 @@ onMounted(() => {
     v-model:is-dialog-visible="showAlertDialog"
     :title-alert="alertMessage"
     :body-alert="alertBody"
-
   />
 </template>

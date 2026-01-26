@@ -1,13 +1,18 @@
 <script setup>
-import pages1 from '@images/pages/1.png';
-import pages2 from '@images/pages/2.webp';
-import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
+import pages1 from '@images/pages/1.png'
+import pages2 from '@images/pages/2.webp'
+import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
 </script>
 
 <template>
   <VCol cols="12">
     <VCard>
-      <VImg :src="UserProfileHeaderBg" cover max-height="250" min-height="125" />
+      <VImg
+        :src="UserProfileHeaderBg"
+        cover
+        max-height="250"
+        min-height="125"
+      />
 
       <VCardText class="d-flex align-bottom flex-sm-row flex-column justify-center gap-x-6">
         <div class="user-profile-info w-100 mt-16 pt-6 pt-sm-0 mt-sm-0">
@@ -18,7 +23,10 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
           <div class="d-flex align-center justify-center justify-sm-space-between flex-wrap gap-5">
             <div class="d-flex flex-wrap justify-center justify-sm-start flex-grow-1 gap-6">
               <span class="d-flex gap-x-2 align-center">
-                <VIcon icon="tabler-map-pin" size="24" />
+                <VIcon
+                  icon="tabler-map-pin"
+                  size="24"
+                />
                 <div class="text-body-1 font-weight-medium">
                   Jl. Raya Kawasan Industri Indotaisei, Sektor 1A, Blok Q1, Kalihurip, Cikampek, Karawang, West Java
                   41373
@@ -26,7 +34,10 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
               </span>
 
               <span class="d-flex gap-x-2 align-center">
-                <VIcon icon="tabler-calendar" size="24" />
+                <VIcon
+                  icon="tabler-calendar"
+                  size="24"
+                />
                 <div class="text-body-1 font-weight-medium">
                   Development Initiated in 20 November 2025
                 </div>
@@ -38,15 +49,26 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
     </VCard>
   </VCol>
   <VRow class="d-flex flex-row match-height mb-5">
-    <VCol cols="12" lg="4" md="4">
+    <VCol
+      cols="12"
+      lg="4"
+      md="4"
+    >
       <VCard class="mt-5">
-        <VImg :src="pages1" cover style="max-height: 250px;" />
+        <VImg
+          :src="pages1"
+          cover
+          style="max-height: 250px;"
+        />
 
         <VCardItem>
           <VCardTitle class="d-flex justify-space-between">
             <span>Dashboard Settings</span>
 
-            <VBtn variant="tonal" to="system-settings/dashboard-settings">
+            <VBtn
+              variant="tonal"
+              to="system-settings/dashboard-settings"
+            >
               Manage
             </VBtn>
           </VCardTitle>
@@ -55,31 +77,37 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png';
         <VCardText>
           Centralized control for dashboard configuration and customization.
         </VCardText>
-
       </VCard>
-
     </VCol>
-    <VCol cols="12" lg="4" md="4">
+    <VCol
+      cols="12"
+      lg="4"
+      md="4"
+    >
       <VCard class="mt-5">
-        <VImg :src="pages2" cover style="max-height: 250px;" />
+        <VImg
+          :src="pages2"
+          cover
+          style="max-height: 250px;"
+        />
 
         <VCardItem>
           <VCardTitle class="d-flex justify-space-between">
             <span>Listener Settings</span>
 
-            <VBtn variant="tonal" to="system-settings/listener-settings">
+            <VBtn
+              variant="tonal"
+              to="system-settings/listener-settings"
+            >
               Manage
             </VBtn>
           </VCardTitle>
-
         </VCardItem>
 
         <VCardText>
           Configure and manage listener parameters for real-time data processing.
         </VCardText>
-
       </VCard>
-
     </VCol>
   </VRow>
 </template>

@@ -1,22 +1,22 @@
-import { useApi } from "@/composables/useApi";
-import { ref } from "vue";
+import { useApi } from "@/composables/useApi"
+import { ref } from "vue"
 
 export const useFetchTelemetry = () => {
   // --------------------
   // State
   // --------------------
-  const telemetries = ref([]);
-  const totalItems = ref(0);
-  const currentPage = ref(1);
-  const pageSize = ref(10);
-  const totalPages = ref(0);
-  const errorMessage = ref("");
-  const actionLoading = ref(false);
-  const fetchTelemetriesReportError = ref({});
+  const telemetries = ref([])
+  const totalItems = ref(0)
+  const currentPage = ref(1)
+  const pageSize = ref(10)
+  const totalPages = ref(0)
+  const errorMessage = ref("")
+  const actionLoading = ref(false)
+  const fetchTelemetriesReportError = ref({})
 
   const clearErrors = () => {
-    errorMessage.value = null;
-  };
+    errorMessage.value = null
+  }
 
   // --------------------
   // Main API Methods
@@ -28,12 +28,12 @@ export const useFetchTelemetry = () => {
     startDate,
     endDate,
   }) => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        "/telemetries/report"
+        "/telemetries/report",
       )
         .post({
           report_document_template_id: reportDocumentTemplateId,
@@ -41,22 +41,22 @@ export const useFetchTelemetry = () => {
           start_date: startDate,
           end_date: endDate,
         })
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { errorMessage });
-      if (!result.success) return result;
-      telemetries.value = response.value;
+      const result = handleApiError(apiError, { errorMessage })
+      if (!result.success) return result
+      telemetries.value = response.value
       console.log(response.value)
 
       return {
         success: true,
-      };
+      }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const fetchTelemetriesInterval = async ({
     interval,
@@ -64,12 +64,12 @@ export const useFetchTelemetry = () => {
     startingHour,
     parameterIds,
   }) => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        "/telemetries/interval"
+        "/telemetries/interval",
       )
         .post({
           interval,
@@ -77,21 +77,21 @@ export const useFetchTelemetry = () => {
           starting_hour: startingHour,
           parameter_ids: parameterIds,
         })
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { errorMessage });
-      if (!result.success) return result;
-      telemetries.value = response.value;
+      const result = handleApiError(apiError, { errorMessage })
+      if (!result.success) return result
+      telemetries.value = response.value
 
       return {
         success: true,
-      };
+      }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   return {
     telemetries,
@@ -106,5 +106,5 @@ export const useFetchTelemetry = () => {
     fetchTelemetriesReport,
     fetchTelemetriesInterval,
     clearErrors,
-  };
-};
+  }
+}

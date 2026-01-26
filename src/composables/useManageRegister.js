@@ -1,28 +1,28 @@
-import { useApi } from '@/composables/useApi';
-import { ref } from 'vue';
+import { useApi } from '@/composables/useApi'
+import { ref } from 'vue'
 
 export const useManageRegister = () => {
   // --------------------
   // State
   // --------------------
-  const registers = ref([]);
-  const register = ref({});
-  const registerDependency = ref({});
-  const totalItems = ref(0);
-  const currentPage = ref(1);
-  const pageSize = ref(10);
-  const totalPages = ref(0);
+  const registers = ref([])
+  const register = ref({})
+  const registerDependency = ref({})
+  const totalItems = ref(0)
+  const currentPage = ref(1)
+  const pageSize = ref(10)
+  const totalPages = ref(0)
 
-  const errorMessage = ref(null);
-  const formErrors = ref({});
-  const actionLoading = ref(false);
+  const errorMessage = ref(null)
+  const formErrors = ref({})
+  const actionLoading = ref(false)
 
-  const clearFormErrors = () => (formErrors.value = {});
+  const clearFormErrors = () => (formErrors.value = {})
 
   const clearErrors = () => {
-    errorMessage.value = null;
-    formErrors.value = {};
-  };
+    errorMessage.value = null
+    formErrors.value = {}
+  }
 
   // --------------------
   // Main API Methods
@@ -35,20 +35,20 @@ export const useManageRegister = () => {
     sort = "id",
     order = "asc",
   }) => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
         createUrl("/registers/pagination", {
           query: { page, size, query, sort, order },
-        })
+        }),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
       applyPaginationResponse(
         {
           entries: registers,
@@ -57,170 +57,170 @@ export const useManageRegister = () => {
           pageSize,
           totalPages,
         },
-        response.value
-      );
+        response.value,
+      )
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const fetchRegisters = async ({ isAutomatic = null }) => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
         createUrl("/registers", {
           query: { is_automatic: isAutomatic },
-        })
+        }),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
-      registers.value = response.value;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      registers.value = response.value
 
       return {
         success: true,
-      };
+      }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const fetchRegister = async (id) => {
-    clearErrors();
-    actionLoading.value = true;
+  const fetchRegister = async id => {
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/registers/${id}`, {})
+        createUrl(`/registers/${id}`, {}),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
+      const result = handleApiError(apiError, { formErrors, errorMessage })
 
-      if (!result.success) return result;
-      register.value = response.value;
+      if (!result.success) return result
+      register.value = response.value
 
       return {
         success: true,
-      };
+      }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const fetchRegisterDependency = async () => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl("/registers/dependency", {})
+        createUrl("/registers/dependency", {}),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
-      registerDependency.value = response.value;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      registerDependency.value = response.value
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const createRegister = async (registerData) => {
-    actionLoading.value = true;
-    clearFormErrors();
+  const createRegister = async registerData => {
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi("/registers")
         .post(registerData)
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const updateRegister = async (registerId, registerData) => {
-    actionLoading.value = true;
-    clearFormErrors();
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(
-        `/registers/${registerId}`
+        `/registers/${registerId}`,
       )
         .put(registerData)
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
+      const result = handleApiError(apiError, { formErrors, errorMessage })
 
-      if (!result.success) return result;
+      if (!result.success) return result
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-   const manageRegisterValue = async (registerId, registerData) => {
-    actionLoading.value = true;
-    clearFormErrors();
+  const manageRegisterValue = async (registerId, registerData) => {
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(
-        `/registers/value/${registerId}`
+        `/registers/value/${registerId}`,
       )
         .put(registerData)
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
+      const result = handleApiError(apiError, { formErrors, errorMessage })
 
-      if (!result.success) return result;
+      if (!result.success) return result
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
 
  
   const deleteRegister = async (registerId, reason = "") => {
-    actionLoading.value = true;
-    clearFormErrors();
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(
-        `/registers/${registerId}`
+        `/registers/${registerId}`,
       )
         .delete({ reason })
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
       applyPaginationResponse(
         {
@@ -230,30 +230,30 @@ export const useManageRegister = () => {
           pageSize,
           totalPages,
         },
-        response.value
-      );
+        response.value,
+      )
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const saveRegister = async (registerData) => {
+  const saveRegister = async registerData => {
     if (registerData.id) {
-      const { id, ...payload } = registerData;
+      const { id, ...payload } = registerData
 
-      return updateRegister(id, payload);
+      return updateRegister(id, payload)
     }
 
-    return createRegister(registerData);
-  };
+    return createRegister(registerData)
+  }
 
-  const getRegisterById = (registerId) => {
-    return registers.value.find((register) => register.id === registerId);
-  };
+  const getRegisterById = registerId => {
+    return registers.value.find(register => register.id === registerId)
+  }
 
   return {
     register,
@@ -279,5 +279,5 @@ export const useManageRegister = () => {
     clearFormErrors,
     clearErrors,
     getRegisterById,
-  };
-};
+  }
+}

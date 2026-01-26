@@ -29,7 +29,7 @@ const props = defineProps({
     type: String,
     default: '#3b82f6',
   },
-   mode: {
+  mode: {
     type: String,
     default: 'monthly', // realtime | weekly | monthly
   },
@@ -48,7 +48,7 @@ const isDark = computed(() => {
     return vuetifyTheme.global.current.value.dark
   }
   
-return configStore.theme === 'dark'
+  return configStore.theme === 'dark'
 })
 
 const colorVariables = themeColors => {
@@ -61,7 +61,9 @@ const colorVariables = themeColors => {
 // Convert hex to RGB
 const hexToRgb = hex => {
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i
+
   hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b)
+
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   
   return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null
@@ -70,22 +72,22 @@ const hexToRgb = hex => {
 
 const xCategories = computed(() => {
   switch (props.mode) {
-    case 'realtime':
-      // timestamp → HH:mm:ss
-      return props.chartData.map(item =>
-        new Date(new Date()).toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        })
-      )
+  case 'realtime':
+    // timestamp → HH:mm:ss
+    return props.chartData.map(item =>
+      new Date(new Date()).toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+    )
 
-    case 'weekly':
-      return props.chartData.map(item => `Week ${item.week}`)
+  case 'weekly':
+    return props.chartData.map(item => `Week ${item.week}`)
 
-    case 'monthly':
-    default:
-      return props.chartData.map(item => item.name)
+  case 'monthly':
+  default:
+    return props.chartData.map(item => item.name)
   }
 })
 
@@ -169,33 +171,33 @@ const chartOptions = computed(() => {
       },
     },
     xaxis: {
-  categories: xCategories.value,
-  type: props.mode === 'realtime' ? 'category' : 'category',
-  axisBorder: { show: false },
-  axisTicks: { show: false },
-  labels: {
-    rotate: props.mode === 'realtime' ? -45 : 0,
-    style: {
-      colors: themeSecondaryTextColor,
-      fontSize: '12px',
-      fontWeight: 500,
+      categories: xCategories.value,
+      type: props.mode === 'realtime' ? 'category' : 'category',
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      labels: {
+        rotate: props.mode === 'realtime' ? -45 : 0,
+        style: {
+          colors: themeSecondaryTextColor,
+          fontSize: '12px',
+          fontWeight: 500,
+        },
+      },
+      crosshairs: {
+        show: true,
+        position: 'front',
+        stroke: {
+          width: 1,
+          dashArray: 3,
+        },
+      },
     },
-  },
-  crosshairs: {
-    show: true,
-    position: 'front',
-    stroke: {
-      width: 1,
-      dashArray: 3,
+    markers: {
+      size: 0,
+      hover: {
+        size: 6,
+      },
     },
-  },
-},
-markers: {
-  size: 0,
-  hover: {
-    size: 6,
-  },
-},
 
     yaxis: {
       labels: {
@@ -207,19 +209,20 @@ markers: {
         formatter: value => `${value.toFixed(1)} kW`,
       },
     },
-   tooltip: {
+    tooltip: {
       theme: isDark.value ? 'dark' : 'light',
 
-  shared: true,
-  intersect: false,
-  x: {
-    formatter: value => {
-      if (props.mode === 'realtime') return `Time: ${value}`
-      if (props.mode === 'weekly') return value
-      return value
+      shared: true,
+      intersect: false,
+      x: {
+        formatter: value => {
+          if (props.mode === 'realtime') return `Time: ${value}`
+          if (props.mode === 'weekly') return value
+          
+          return value
+        },
+      },
     },
-  },
-},
 
     responsive: [{
       breakpoint: 1200,
@@ -243,7 +246,10 @@ onMounted(async () => {
     class="efficiency-chart-wrapper"
     :class="isDark ? 'dark-theme' : 'light-theme'"
   >
-    <div class="chart-background-glow" :style="{ '--chart-color': chartColor }" />
+    <div
+      class="chart-background-glow"
+      :style="{ '--chart-color': chartColor }"
+    />
     
     <div class="chart-content">
       <VueApexCharts 

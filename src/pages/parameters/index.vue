@@ -199,10 +199,12 @@ onMounted(() => {
             placeholder="Search something..."
             style="inline-size: 15.625rem;"
           />
-            <VBtn color="primary"
-            :to="{ name: 'parameter-create'}">
-              New Parameter
-            </VBtn>
+          <VBtn
+            color="primary"
+            :to="{ name: 'parameter-create'}"
+          >
+            New Parameter
+          </VBtn>
         </div>
       </VCardText>
 
@@ -238,21 +240,24 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-              <VBtn
-                color="info"
-                icon
-                size="small"
-                variant="text"
-                :to="{ name: 'parameter-edit', params: { id: item.id } }"
+            <VBtn
+              color="info"
+              icon
+              size="small"
+              variant="text"
+              :to="{ name: 'parameter-edit', params: { id: item.id } }"
+            >
+              <VIcon
+                icon="tabler-pencil"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
               >
-                <VIcon
-                  icon="tabler-pencil"
-                  size="20"
-                />
-                <VTooltip activator="parent" location="top">
                 <span>Edit</span>
               </VTooltip>
-              </VBtn>
+            </VBtn>
             <VBtn
               color="warning"
               icon
@@ -264,7 +269,10 @@ onMounted(() => {
                 icon="tabler-math"
                 size="20"
               />
-              <VTooltip activator="parent" location="top">
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Operations</span>
               </VTooltip>
             </VBtn>
@@ -279,7 +287,10 @@ onMounted(() => {
                 icon="tabler-trash"
                 size="20"
               />
-               <VTooltip activator="parent" location="top">
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Delete</span>
               </VTooltip>
             </VBtn>
@@ -306,7 +317,7 @@ onMounted(() => {
         placeholder: 'Type your reason...',
         type: 'text'
       }]"
-        :form-errors="formErrors"
+      :form-errors="formErrors"
       :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete Parameter"

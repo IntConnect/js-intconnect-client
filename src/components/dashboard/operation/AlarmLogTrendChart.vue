@@ -43,7 +43,9 @@ const colorVariables = themeColors => {
 // Convert hex to RGB
 const hexToRgb = hex => {
   const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i
+
   hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b)
+
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   
   return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null
@@ -279,35 +281,54 @@ onMounted(async () => {
     <div class="stats-grid mb-4">
       <div class="stat-card active">
         <div class="stat-icon">
-          <VIcon icon="tabler-alert-circle" size="20" />
+          <VIcon
+            icon="tabler-alert-circle"
+            size="20"
+          />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ statistics.active }}</div>
-          <div class="stat-label">Active</div>
+          <div class="stat-value">
+            {{ statistics.active }}
+          </div>
+          <div class="stat-label">
+            Active
+          </div>
         </div>
       </div>
       
       <div class="stat-card resolved">
         <div class="stat-icon">
-          <VIcon icon="tabler-progress-check" size="20" />
+          <VIcon
+            icon="tabler-progress-check"
+            size="20"
+          />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ statistics.resolved }}</div>
-          <div class="stat-label">Resolved</div>
+          <div class="stat-value">
+            {{ statistics.resolved }}
+          </div>
+          <div class="stat-label">
+            Resolved
+          </div>
         </div>
       </div>
       
       <div class="stat-card finished">
         <div class="stat-icon">
-          <VIcon icon="tabler-circle-check" size="20" />
+          <VIcon
+            icon="tabler-circle-check"
+            size="20"
+          />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ statistics.finished }}</div>
-          <div class="stat-label">Finished</div>
+          <div class="stat-value">
+            {{ statistics.finished }}
+          </div>
+          <div class="stat-label">
+            Finished
+          </div>
         </div>
       </div>
-      
-      
     </div>
 
     <!-- Chart Container -->

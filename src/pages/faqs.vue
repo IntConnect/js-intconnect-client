@@ -2,6 +2,7 @@
 import sittingGirlWithLaptop from '@images/illustrations/sitting-girl-with-laptop.png'
 
 const faqSearchQuery = ref('')
+
 const faqs = ref([
   {
     faqTitle: 'Umum',

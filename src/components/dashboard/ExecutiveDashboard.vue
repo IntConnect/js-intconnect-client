@@ -172,7 +172,7 @@ onMounted(async () => {
           class="flex-grow-1"
         />
       </VCol>
-       <VCol
+      <VCol
         cols="12"
         md="4"
       >
@@ -201,8 +201,6 @@ onMounted(async () => {
           </VCardText>
         </VCard>
       </VCol>
-     
-  
     </VRow>
 
     <!-- Alarm Log Trend & Active Issues -->
@@ -217,11 +215,11 @@ onMounted(async () => {
             <VCardSubtitle>Daily alarm log incidents tracking</VCardSubtitle>
           </VCardItem>
           <VCardText>
-           <AlarmLogTrendChart/>
+            <AlarmLogTrendChart />
           </VCardText>
         </VCard>
       </VCol>
-    <VCol
+      <VCol
         cols="12"
         md="4"
       >
@@ -264,137 +262,141 @@ onMounted(async () => {
 
     <!-- Recent Activity & Quick Actions -->
     <VRow class="match-height mb-4">
-          <VCol
+      <VCol
         cols="12"
         md="6"
       >
-      <VRow>
-        <VCol cols="12"
-        md="12">
-          <VCard class="h-100">
-          <VCardItem>
-            <VCardTitle>Configuration Summary</VCardTitle>
-            <VCardSubtitle>System configuration overview</VCardSubtitle>
-          </VCardItem>
-          <VCardText>
-            <div class="d-flex justify-space-around align-center">
-              <div class="text-center">
-                <VAvatar
-                  color="primary"
-                  variant="tonal"
-                  size="56"
-                  class="mb-2"
-                >
-                  <VIcon
-                    icon="tabler-building-factory-2"
-                    size="30"
-                  />
-                </VAvatar>
-                <div class="text-h5 mb-1">
-                  {{ configSummary.facilities }}
+        <VRow>
+          <VCol
+            cols="12"
+            md="12"
+          >
+            <VCard class="h-100">
+              <VCardItem>
+                <VCardTitle>Configuration Summary</VCardTitle>
+                <VCardSubtitle>System configuration overview</VCardSubtitle>
+              </VCardItem>
+              <VCardText>
+                <div class="d-flex justify-space-around align-center">
+                  <div class="text-center">
+                    <VAvatar
+                      color="primary"
+                      variant="tonal"
+                      size="56"
+                      class="mb-2"
+                    >
+                      <VIcon
+                        icon="tabler-building-factory-2"
+                        size="30"
+                      />
+                    </VAvatar>
+                    <div class="text-h5 mb-1">
+                      {{ configSummary.facilities }}
+                    </div>
+                    <div class="text-xs text-medium-emphasis">
+                      Facilities
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <VAvatar
+                      color="success"
+                      variant="tonal"
+                      size="56"
+                      class="mb-2"
+                    >
+                      <VIcon
+                        icon="tabler-brand-databricks"
+                        size="30"
+                      />
+                    </VAvatar>
+                    <div class="text-h5 mb-1">
+                      {{ configSummary.machines }}
+                    </div>
+                    <div class="text-xs text-medium-emphasis">
+                      Machines
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <VAvatar
+                      color="info"
+                      variant="tonal"
+                      size="56"
+                      class="mb-2"
+                    >
+                      <VIcon
+                        icon="tabler-binary-tree-2"
+                        size="30"
+                      />
+                    </VAvatar>
+                    <div class="text-h5 mb-1">
+                      {{ configSummary.parameters }}
+                    </div>
+                    <div class="text-xs text-medium-emphasis">
+                      Parameters
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <VAvatar
+                      color="warning"
+                      variant="tonal"
+                      size="56"
+                      class="mb-2"
+                    >
+                      <VIcon
+                        icon="tabler-topology-star-3"
+                        size="30"
+                      />
+                    </VAvatar>
+                    <div class="text-h5 mb-1">
+                      {{ configSummary.mqttTopics }}
+                    </div>
+                    <div class="text-xs text-medium-emphasis">
+                      MQTT Topics
+                    </div>
+                  </div>
                 </div>
-                <div class="text-xs text-medium-emphasis">
-                  Facilities
+              </VCardText>
+            </VCard>
+          </VCol>
+          <VCol
+            cols="12"
+            md="12"
+          >
+            <VCard class="h-100">
+              <VCardText>
+                <div class="d-flex justify-space-between align-center mb-4">
+                  <div class="text-body-1 text-high-emphasis">
+                    Documents
+                  </div>
+                  <VAvatar
+                    color="success"
+                    variant="tonal"
+                    rounded
+                    size="42"
+                  >
+                    <VIcon
+                      icon="tabler-file-type-doc"
+                      size="26"
+                    />
+                  </VAvatar>
                 </div>
-              </div>
-              <div class="text-center">
-                <VAvatar
-                  color="success"
-                  variant="tonal"
-                  size="56"
-                  class="mb-2"
-                >
-                  <VIcon
-                    icon="tabler-brand-databricks"
-                    size="30"
-                  />
-                </VAvatar>
-                <div class="text-h5 mb-1">
-                  {{ configSummary.machines }}
+                <div class="d-flex flex-column gap-3">
+                  <div class="d-flex justify-space-between">
+                    <span class="text-sm">Reports Today</span>
+                    <span class="text-sm font-weight-medium">{{ documentStatus.reportsToday }}</span>
+                  </div>
+                  <div class="d-flex justify-space-between">
+                    <span class="text-sm">Pending Checks</span>
+                    <span class="text-sm font-weight-medium text-warning">{{ documentStatus.pendingCheckSheets }}</span>
+                  </div>
+                  <div class="d-flex justify-space-between">
+                    <span class="text-sm">Completed</span>
+                    <span class="text-sm font-weight-medium text-success">{{ documentStatus.completedCheckSheets }}</span>
+                  </div>
                 </div>
-                <div class="text-xs text-medium-emphasis">
-                  Machines
-                </div>
-              </div>
-              <div class="text-center">
-                <VAvatar
-                  color="info"
-                  variant="tonal"
-                  size="56"
-                  class="mb-2"
-                >
-                  <VIcon
-                    icon="tabler-binary-tree-2"
-                    size="30"
-                  />
-                </VAvatar>
-                <div class="text-h5 mb-1">
-                  {{ configSummary.parameters }}
-                </div>
-                <div class="text-xs text-medium-emphasis">
-                  Parameters
-                </div>
-              </div>
-              <div class="text-center">
-                <VAvatar
-                  color="warning"
-                  variant="tonal"
-                  size="56"
-                  class="mb-2"
-                >
-                  <VIcon
-                    icon="tabler-topology-star-3"
-                    size="30"
-                  />
-                </VAvatar>
-                <div class="text-h5 mb-1">
-                  {{ configSummary.mqttTopics }}
-                </div>
-                <div class="text-xs text-medium-emphasis">
-                  MQTT Topics
-                </div>
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-        </VCol>
-        <VCol cols="12"
-        md="12">
-         <VCard class="h-100">
-          <VCardText>
-            <div class="d-flex justify-space-between align-center mb-4">
-              <div class="text-body-1 text-high-emphasis">
-                Documents
-              </div>
-              <VAvatar
-                color="success"
-                variant="tonal"
-                rounded
-                size="42"
-              >
-                <VIcon
-                  icon="tabler-file-type-doc"
-                  size="26"
-                />
-              </VAvatar>
-            </div>
-            <div class="d-flex flex-column gap-3">
-              <div class="d-flex justify-space-between">
-                <span class="text-sm">Reports Today</span>
-                <span class="text-sm font-weight-medium">{{ documentStatus.reportsToday }}</span>
-              </div>
-              <div class="d-flex justify-space-between">
-                <span class="text-sm">Pending Checks</span>
-                <span class="text-sm font-weight-medium text-warning">{{ documentStatus.pendingCheckSheets }}</span>
-              </div>
-              <div class="d-flex justify-space-between">
-                <span class="text-sm">Completed</span>
-                <span class="text-sm font-weight-medium text-success">{{ documentStatus.completedCheckSheets }}</span>
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
-        </VCol>
+              </VCardText>
+            </VCard>
+          </VCol>
         </VRow>
       </VCol>
       <VCol
@@ -439,8 +441,6 @@ onMounted(async () => {
           </VCardText>
         </VCard>
       </VCol>
-
-     
     </VRow>
 
     <!-- Administrative Insights -->
@@ -450,11 +450,8 @@ onMounted(async () => {
           Administrative Insights
         </h3>
       </VCol>
-
-     
-
     </VRow>
-     <VRow>
+    <VRow>
       <VCol
         cols="12"
         lg="12"
@@ -473,9 +470,6 @@ onMounted(async () => {
                 cols="12"
                 lg="12"
                 md="12"
-
-
-
               >
                 <AppSelect
                   v-model="selectedMachineIds"
@@ -511,17 +505,11 @@ onMounted(async () => {
                 </VBtn>
               </VCol>
             </VRow>
-
-
-
-
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
-   <VRow class="match-height">
-      
-
+    <VRow class="match-height">
       <VCol
         class="d-flex"
         cols="12"
@@ -551,7 +539,7 @@ onMounted(async () => {
           </VCardItem>
 
           <VCardText>
-            <RealtimeAverageChart mode="realtime"/>
+            <RealtimeAverageChart mode="realtime" />
           </VCardText>
         </VCard>
       </VCol>
@@ -574,8 +562,6 @@ onMounted(async () => {
 
                   color="success"
                   label
-
-
                 >
                   <VIcon
                     icon="tabler-arrow-up"
@@ -584,14 +570,11 @@ onMounted(async () => {
                   />
                   <span>22</span>
                 </VChip>
-
-
-
               </div>
             </template>
           </VCardItem>
           <VCardText>
-          <RealtimeAverageChart/>
+            <RealtimeAverageChart />
           </VCardText>
         </VCard>
       </VCol>
@@ -625,12 +608,11 @@ onMounted(async () => {
           </VCardItem>
 
           <VCardText>
-          <RealtimeAverageChart/>
+            <RealtimeAverageChart />
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
-
   </div>
 </template>
 

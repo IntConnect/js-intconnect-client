@@ -15,6 +15,7 @@ const props = defineProps({
     type: String,
     default: 'Data visualization',
   },
+
   // ✅ Added colors prop with default
   colors: {
     type: Array,

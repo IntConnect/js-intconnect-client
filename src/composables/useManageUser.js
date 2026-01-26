@@ -1,27 +1,27 @@
-import { useApi } from "@/composables/useApi";
-import { ref } from "vue";
+import { useApi } from "@/composables/useApi"
+import { ref } from "vue"
 
 export const useManageUser = () => {
   // --------------------
   // State
   // --------------------
-  const user = ref({});
-  const users = ref([]);
-  const totalItems = ref(0);
-  const currentPage = ref(1);
-  const pageSize = ref(10);
-  const totalPages = ref(0);
+  const user = ref({})
+  const users = ref([])
+  const totalItems = ref(0)
+  const currentPage = ref(1)
+  const pageSize = ref(10)
+  const totalPages = ref(0)
 
-  const errorMessage = ref(null);
-  const formErrors = ref({});
-  const actionLoading = ref(false);
+  const errorMessage = ref(null)
+  const formErrors = ref({})
+  const actionLoading = ref(false)
 
-  const clearFormErrors = () => (formErrors.value = {});
+  const clearFormErrors = () => (formErrors.value = {})
 
   const clearErrors = () => {
-    errorMessage.value = null;
-    formErrors.value = {};
-  };
+    errorMessage.value = null
+    formErrors.value = {}
+  }
 
   // --------------------
   // Main API Methods
@@ -34,20 +34,20 @@ export const useManageUser = () => {
     sort = "id",
     order = "asc",
   }) => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
         createUrl("/users/pagination", {
           query: { page, size, query, sort, order },
-        })
+        }),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
       applyPaginationResponse(
         {
@@ -57,75 +57,76 @@ export const useManageUser = () => {
           pageSize,
           totalPages,
         },
-        response.value
-      );
+        response.value,
+      )
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const fetchUser = async (id) => {
-    clearErrors();
-    actionLoading.value = true;
+  const fetchUser = async id => {
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/users/${id}`, {})
+        createUrl(`/users/${id}`, {}),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
-      user.value = response.value;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      user.value = response.value
 
       return {
         success: true,
-      };
+      }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const fetchProfile = async () => {
-    clearErrors();
-    actionLoading.value = true;
+    clearErrors()
+    actionLoading.value = true
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/users/profile`, {})
+        createUrl(`/users/profile`, {}),
       )
         .get()
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
-      user.value = response.value;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      user.value = response.value
 
       return {
         success: true,
-      };
+      }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const createUser = async (userData) => {
-    actionLoading.value = true;
-    clearFormErrors();
+  const createUser = async userData => {
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi("/users")
         .post(userData)
-        .json();
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+        .json()
+
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
       applyPaginationResponse(
         {
@@ -135,29 +136,30 @@ export const useManageUser = () => {
           pageSize,
           totalPages,
         },
-        response.value
-      );
-      return { success: true };
+        response.value,
+      )
+      
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const updateUser = async (userId, userData) => {
-    actionLoading.value = true;
-    clearFormErrors();
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(
-        `/users/${userId}`
+        `/users/${userId}`,
       )
         .put(userData)
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
 
       applyPaginationResponse(
         {
@@ -167,54 +169,54 @@ export const useManageUser = () => {
           pageSize,
           totalPages,
         },
-        response.value
-      );
+        response.value,
+      )
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const updateProfile = async (userData) => {
-    actionLoading.value = true;
-    clearFormErrors();
+  const updateProfile = async userData => {
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(`/users/profile`)
         .put(userData)
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
-      const token = response.value?.entry?.token;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
+      const token = response.value?.entry?.token
       if (token) {
-        useCookie("access_token").value = token;
+        useCookie("access_token").value = token
       }
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
   const deleteUser = async (userId, reason = "") => {
-    actionLoading.value = true;
-    clearFormErrors();
+    actionLoading.value = true
+    clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(
-        `/users/${userId}`
+        `/users/${userId}`,
       )
         .delete({ reason })
-        .json();
+        .json()
 
-      const result = handleApiError(apiError, { formErrors, errorMessage });
-      if (!result.success) return result;
+      const result = handleApiError(apiError, { formErrors, errorMessage })
+      if (!result.success) return result
       applyPaginationResponse(
         {
           entries: users,
@@ -223,26 +225,26 @@ export const useManageUser = () => {
           pageSize,
           totalPages,
         },
-        response.value
-      );
+        response.value,
+      )
 
-      return { success: true };
+      return { success: true }
     } catch (_) {
-      return { success: false, error: "Unknown error" };
+      return { success: false, error: "Unknown error" }
     } finally {
-      actionLoading.value = false;
+      actionLoading.value = false
     }
-  };
+  }
 
-  const saveUser = async (userData) => {
+  const saveUser = async userData => {
     if (userData.id) {
-      const { id, ...payload } = userData;
+      const { id, ...payload } = userData
 
-      return updateUser(id, payload);
+      return updateUser(id, payload)
     }
 
-    return createUser(userData);
-  };
+    return createUser(userData)
+  }
 
   return {
     user,
@@ -265,5 +267,5 @@ export const useManageUser = () => {
     saveUser,
     clearFormErrors,
     clearErrors,
-  };
-};
+  }
+}

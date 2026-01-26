@@ -326,6 +326,10 @@ onMounted(() => {
       @report-document-template-data="handleSaveReportDocumentTemplate"
     />
   </section>
-  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
-    :type="alertType" />
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :body-alert="bodyAlert"
+    :title-alert="titleAlert"
+    :type="alertType"
+  />
 </template>

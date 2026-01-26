@@ -12,13 +12,14 @@ const props = defineProps({
   systemSetting: {
     type: Object,
     required: false,
-    default: () => { }
-  }
+    default: () => { },
+  },
 })
 
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
+
 const {
   saveDashboardWidget,
 } = useManageDashboardWidget()
@@ -85,6 +86,7 @@ const processedMachine = computed(() => {
   if (rawProcessedMachine) {
     connectMQTT(rawProcessedMachine)
   }
+  
   return rawProcessedMachine
 })
 
@@ -117,8 +119,9 @@ watch(
         : [row.config.dataSourceIds],
     }))
   },
-  { immediate: true }
+  { immediate: true },
 )
+
 // Computed
 const availableParameters = computed(() => parameters.value || [])
 
@@ -149,7 +152,9 @@ onMounted(async () => {
   let actionResult = await fetchMachine(id)
   await nextTick()
 })
+
 const lineSeriesStore = ref({})
+
 watch(
   mqttData,
   newVal => {
@@ -164,6 +169,7 @@ watch(
       }
 
       const series = lineSeriesStore.value[param.code]
+
       // Sliding window
       if (series.length >= 20) {
         series.shift()
@@ -205,7 +211,7 @@ const getWidgetProps = computed(() => {
             name: p.name,
             data: lineSeriesStore.value[p.code] ?? [],
           }
-        })
+        }),
       }
     }
 
@@ -213,6 +219,7 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
+      
       return {
         title: widget.title,
         subtitle: parameter?.name || widget.subtitle,
@@ -228,6 +235,7 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
+      
       return {
         header: widget.title,
         subHeader: widget.subtitle,
@@ -238,8 +246,8 @@ const getWidgetProps = computed(() => {
       }
     }
 
-      if (widget.type === 'bar') {
-        return {
+    if (widget.type === 'bar') {
+      return {
         title: widget.title,
         subtitle: widget.subtitle,
         realtimeData: widget.dataSourceIds.map(id => {
@@ -250,7 +258,7 @@ const getWidgetProps = computed(() => {
             name: p.name,
             data: lineSeriesStore.value[p.code] ?? [],
           }
-        })
+        }),
       }
     }
 
@@ -278,44 +286,108 @@ const gridMinHeight = computed(() => {
 
 <template>
   <div>
-    <VRow style="min-height: 500px" class="match-height">
+    <VRow
+      style="min-height: 500px"
+      class="match-height"
+    >
       <!-- LEFT -->
-      <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
-        <ThreeModelViewer v-if="modelConfigurationReady" class="flex-grow-1"
-          :model-path="processedMachine?.model_path" />
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+        class="d-flex flex-column"
+      >
+        <ThreeModelViewer
+          v-if="modelConfigurationReady"
+          class="flex-grow-1"
+          :model-path="processedMachine?.model_path"
+        />
       </VCol>
       <!-- RIGHT -->
-      <VCol cols="6" md="6" sm="6" class="d-flex flex-column">
-            <StateCards v-if="machineState !== null" :machine="machineState" :running-times="runningTimes"
-              :is-edit-mode="false" />
+      <VCol
+        cols="6"
+        md="6"
+        sm="6"
+        class="d-flex flex-column"
+      >
+        <StateCards
+          v-if="machineState !== null"
+          :machine="machineState"
+          :running-times="runningTimes"
+          :is-edit-mode="false"
+        />
 
-                <RealtimeTable :realtime-data="realtimeData" :last-update="lastUpdate" />
+        <RealtimeTable
+          :realtime-data="realtimeData"
+          :last-update="lastUpdate"
+        />
       </VCol>
     </VRow>
 
     <VRow>
-      <VCol cols="12" md="12" sm="12" class="pa-0">
-        <div v-if="layout.length > 0" :style="{ minHeight: gridMinHeight }">
-          <GridLayout v-model:layout="layout" :col-num="12" :row-height="30" :is-resizable="false" :is-draggable="false"
-            vertical-compact use-css-transforms :margin="[16, 16]" :container-padding="[0, 0]">
-            <GridItem v-for="widget in layout" :key="widget.i" :x="widget.x" :y="widget.y" :w="widget.w" :h="widget.h"
-              :i="widget.i" class="grid-item-wrapper">
+      <VCol
+        cols="12"
+        md="12"
+        sm="12"
+        class="pa-0"
+      >
+        <div
+          v-if="layout.length > 0"
+          :style="{ minHeight: gridMinHeight }"
+        >
+          <GridLayout
+            v-model:layout="layout"
+            :col-num="12"
+            :row-height="30"
+            :is-resizable="false"
+            :is-draggable="false"
+            vertical-compact
+            use-css-transforms
+            :margin="[16, 16]"
+            :container-padding="[0, 0]"
+          >
+            <GridItem
+              v-for="widget in layout"
+              :key="widget.i"
+              :x="widget.x"
+              :y="widget.y"
+              :w="widget.w"
+              :h="widget.h"
+              :i="widget.i"
+              class="grid-item-wrapper"
+            >
               <div class="preview-content text-center">
-                <component :is="chartComponentMap[widget.type]" v-if="isDataReady && chartComponentMap[widget.type]"
-                  v-bind="getWidgetProps(widget)" />
+                <component
+                  :is="chartComponentMap[widget.type]"
+                  v-if="isDataReady && chartComponentMap[widget.type]"
+                  v-bind="getWidgetProps(widget)"
+                />
 
-                <div v-else class="text-caption text-grey">
+                <div
+                  v-else
+                  class="text-caption text-grey"
+                >
                   Loading data...
                 </div>
               </div>
             </GridItem>
           </GridLayout>
         </div>
-        <VCard v-else class="empty-state-card text-center py-16 mt-5">
+        <VCard
+          v-else
+          class="empty-state-card text-center py-16 mt-5"
+        >
           <VCardText>
             <div class="mb-4">
-              <VAvatar color="success" variant="tonal" size="120">
-                <VIcon icon="tabler-chart-dots" size="64" />
+              <VAvatar
+                color="success"
+                variant="tonal"
+                size="120"
+              >
+                <VIcon
+                  icon="tabler-chart-dots"
+                  size="64"
+                />
               </VAvatar>
             </div>
             <h3 class="text-h4 font-weight-bold mb-2">

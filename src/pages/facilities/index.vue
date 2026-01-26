@@ -149,14 +149,25 @@ onMounted(() => {
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
-          <AppSelect v-model="itemsPerPage" :items="ITEMS_PER_PAGE_OPTIONS" style="inline-size: 5.5rem;" />
+          <AppSelect
+            v-model="itemsPerPage"
+            :items="ITEMS_PER_PAGE_OPTIONS"
+            style="inline-size: 5.5rem;"
+          />
         </div>
 
         <!-- Right side controls -->
         <div class="d-flex gap-2 align-center flex-wrap">
-          <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
-            style="inline-size: 15.625rem;" />
-          <VBtn color="primary" :to="{ name: 'facility-create' }">
+          <AppTextField
+            v-model="searchQuery"
+            clearable
+            placeholder="Search something..."
+            style="inline-size: 15.625rem;"
+          />
+          <VBtn
+            color="primary"
+            :to="{ name: 'facility-create' }"
+          >
             New Facility
           </VBtn>
         </div>
@@ -165,13 +176,27 @@ onMounted(() => {
       <VDivider />
 
       <!-- Error Alert -->
-      <VAlert v-if="error" class="mx-4 mt-4" closable type="error" @click:close="clearErrors">
+      <VAlert
+        v-if="error"
+        class="mx-4 mt-4"
+        closable
+        type="error"
+        @click:close="clearErrors"
+      >
         {{ error }}
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable :key="facilities.length" :headers="TABLE_HEADERS" :items="facilities" :items-per-page="itemsPerPage"
-        :loading="loading" class="text-no-wrap" hide-default-footer no-data-text="No Facility found">
+      <VDataTable
+        :key="facilities.length"
+        :headers="TABLE_HEADERS"
+        :items="facilities"
+        :items-per-page="itemsPerPage"
+        :loading="loading"
+        class="text-no-wrap"
+        hide-default-footer
+        no-data-text="No Facility found"
+      >
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
@@ -180,13 +205,25 @@ onMounted(() => {
 
         <template #item.thumbnail="{ item }">
           <template v-if="item.thumbnail_path !== ''">
-            <a :href="useStaticFile(item.thumbnail_path)" target="_blank">
-              <VBtn color="success" icon="tabler-photo-scan" rounded variant="tonal" />
+            <a
+              :href="useStaticFile(item.thumbnail_path)"
+              target="_blank"
+            >
+              <VBtn
+                color="success"
+                icon="tabler-photo-scan"
+                rounded
+                variant="tonal"
+              />
             </a>
           </template>
           <template v-else>
             <div class="pa-2 me-3">
-              <VAlert color="error" icon="tabler-alert-triangle" variant="tonal">
+              <VAlert
+                color="error"
+                icon="tabler-alert-triangle"
+                variant="tonal"
+              >
                 There is no thumbnail
               </VAlert>
             </div>
@@ -197,51 +234,95 @@ onMounted(() => {
         <!-- Actions Column -->
         <template #item.actions="{ item }">
           <div class="d-flex gap-2">
-            <VBtn color="success" icon size="small" variant="text"
-              :to="{ name: 'facilities-show-id', params: { id: item.id } }">
-              <VIcon icon="tabler-eye" size="20" />
-              <VTooltip activator="parent" location="top">
+            <VBtn
+              color="success"
+              icon
+              size="small"
+              variant="text"
+              :to="{ name: 'facilities-show-id', params: { id: item.id } }"
+            >
+              <VIcon
+                icon="tabler-eye"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Show</span>
               </VTooltip>
             </VBtn>
 
-            <VBtn color="info" icon size="small" variant="text"
-              :to="{ name: 'facility-edit', params: { id: item.id } }">
-              <VIcon icon="tabler-pencil" size="20" />
-              <VTooltip activator="parent" location="top">
+            <VBtn
+              color="info"
+              icon
+              size="small"
+              variant="text"
+              :to="{ name: 'facility-edit', params: { id: item.id } }"
+            >
+              <VIcon
+                icon="tabler-pencil"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Edit</span>
               </VTooltip>
             </VBtn>
 
-            <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
-
-              <VIcon icon="tabler-trash" size="20" />
-              <VTooltip activator="parent" location="top">
+            <VBtn
+              color="error"
+              icon
+              size="small"
+              variant="text"
+              @click="openDeleteDialog(item)"
+            >
+              <VIcon
+                icon="tabler-trash"
+                size="20"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Delete</span>
               </VTooltip>
             </VBtn>
-
           </div>
         </template>
 
         <!-- Bottom Pagination -->
         <template #bottom>
-          <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalItems"
+          />
         </template>
       </VDataTable>
     </VCard>
 
     <!-- Delete Dialog -->
-    <DeleteDialog v-model="showDeleteDialog" :fields="[{
-      key: 'reason',
-      label: 'Reason',
-      placeholder: 'Type your reason...',
-      type: 'text',
+    <DeleteDialog
+      v-model="showDeleteDialog"
+      :fields="[{
+        key: 'reason',
+        label: 'Reason',
+        placeholder: 'Type your reason...',
+        type: 'text',
       
-    }]"
-    :form-errors="formErrors"
-     :loading="actionLoading" message="Please provide a reason for deletion" title="Delete Facility"
-      @submit="handleDeleteFacility" />
+      }]"
+      :form-errors="formErrors"
+      :loading="actionLoading"
+      message="Please provide a reason for deletion"
+      title="Delete Facility"
+      @submit="handleDeleteFacility"
+    />
   </section>
-  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="alertBody" />
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :body-alert="alertBody"
+  />
 </template>

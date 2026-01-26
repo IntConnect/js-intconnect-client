@@ -244,6 +244,7 @@ const mqttStatusSummary = computed(() => {
     if (!broker) return
 
     const key = `${broker.host_name}:${broker.ws_port}`
+
     summary[key] = connection.mqttStatus?.value || 'disconnected'
   })
 
@@ -357,10 +358,12 @@ const currentTab = ref(0)
                       dot
                       inline
                     >
-                                        <span  class="mr-1">{{ machine.name }}</span>
-
+                      <span class="mr-1">{{ machine.name }}</span>
                     </VBadge>
-                    <span v-else class="ml-5">{{ machine.name }}</span>
+                    <span
+                      v-else
+                      class="ml-5"
+                    >{{ machine.name }}</span>
                   </VTab>
                 </VTabs>
 

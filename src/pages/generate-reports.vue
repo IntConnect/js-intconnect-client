@@ -37,6 +37,7 @@ const selectedReportDocumentTemplateId = ref(1)
 
 const flatRows = computed(() => {
   if (telemetries.value.length == 0) return []
+  
   return telemetries.value.entries?.flatMap(group =>
     group.entries.map(e => ({
       ...e,
@@ -98,21 +99,22 @@ onMounted(async () => {
 
 const handleExportIntoPDF = async () => {
   const logoBase64 = await loadImageAsBase64('/public/images/kalbeNutritionalLogo.png')
+
   console.log(flatRows.value)
   exportAlarmLogPDF({
-  data: flatRows.value,
-  logoBase64: logoBase64,
-  company: {
-    name: 'PT Kalbe Morinaga Indonesia',
-    address: '  Jl. Raya Kawasan Industri Indotaisei, Sektor 1A, Blok Q1, Kalihurip, Cikampek, Karawang, West Java 41373',
-  },
-  filters: {
-    'Date Range': '26 Jan 2026 01:06 - 01:18',
-    'Machine': 'Chiller',
-  },
-  generatedBy: 'Admin (admin@company.com)',
-  documentNumber: 'DOC-ALARM-2026-001',
-})
+    data: flatRows.value,
+    logoBase64: logoBase64,
+    company: {
+      name: 'PT Kalbe Morinaga Indonesia',
+      address: '  Jl. Raya Kawasan Industri Indotaisei, Sektor 1A, Blok Q1, Kalihurip, Cikampek, Karawang, West Java 41373',
+    },
+    filters: {
+      'Date Range': '26 Jan 2026 01:06 - 01:18',
+      'Machine': 'Chiller',
+    },
+    generatedBy: 'Admin (admin@company.com)',
+    documentNumber: 'DOC-ALARM-2026-001',
+  })
 }
 </script>
 
@@ -208,21 +210,22 @@ const handleExportIntoPDF = async () => {
           />
         </div>
         <div class="d-flex flex-row gap-2 justify-end w-100 align-end flex-wrap ">
-          <VBtn color="primary" :onClick="handleExportIntoPDF">
-      Export Into PDF
-    </VBtn>
-    <VBtn color="info">
+          <VBtn
+            color="primary"
+            :on-click="handleExportIntoPDF"
+          >
+            Export Into PDF
+          </VBtn>
+          <VBtn color="info">
             Export Into XLSX
-
-    </VBtn>
-</div>
+          </VBtn>
+        </div>
         <VDataTable
           :headers="headers"
           :items="flatRows"
           :group-by="[{ key: 'timestamp' }]"
           item-value="id"
         >
-    
           <template #data-table-group="{ props, item, count }">
             <td colspan="12">
               <VBtn

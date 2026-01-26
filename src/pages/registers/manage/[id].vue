@@ -164,6 +164,7 @@ const setPositionFromClick = () => {
     bodyAlert.value = 'Fill Name First!'
     titleAlert.value = "Invalid Input"
     alertType.value = 'error'
+    
     return
   }
   
@@ -174,7 +175,7 @@ const setPositionFromClick = () => {
   }
 }
 
-const handlePositionClick = (data) => {
+const handlePositionClick = data => {
   // Set position
   positionX.value = Number(data.position.x.toFixed(4))
   positionY.value = Number(data.position.y.toFixed(4))
@@ -242,6 +243,7 @@ const onSubmit = () => {
 watch(machineId, async value => {
   if (!value) {
     modelPath.value = ''
+    
     return
   }
 
@@ -275,15 +277,26 @@ watch(machineId, async value => {
   </VCol>
   
   <div class="mb-6 d-flex justify-center">
-    <AppStepper v-model:current-step="currentStep" :items="numberedSteps" align="start" />
+    <AppStepper
+      v-model:current-step="currentStep"
+      :items="numberedSteps"
+      align="start"
+    />
   </div>
 
   <VRow>
     <VCol cols="12">
       <VCard>
         <VCardText>
-          <VForm ref="refForm" lazy-validation @submit.prevent="onSubmit">
-            <VWindow v-model="currentStep" class="disable-tab-transition">
+          <VForm
+            ref="refForm"
+            lazy-validation
+            @submit.prevent="onSubmit"
+          >
+            <VWindow
+              v-model="currentStep"
+              class="disable-tab-transition"
+            >
               <!-- STEP 1: Register Details -->
               <VWindowItem>
                 <VCol>
@@ -379,10 +392,18 @@ watch(machineId, async value => {
               <VWindowItem>
                 <VRow>
                   <VCol cols="8">
-                    <VAlert v-if="!machineId" type="info" class="mb-4">
+                    <VAlert
+                      v-if="!machineId"
+                      type="info"
+                      class="mb-4"
+                    >
                       Please select a machine first in Step 1
                     </VAlert>
-                    <VAlert v-else-if="!modelPath" type="warning" class="mb-4">
+                    <VAlert
+                      v-else-if="!modelPath"
+                      type="warning"
+                      class="mb-4"
+                    >
                       Selected machine doesn't have a 3D model
                     </VAlert>
                     <template v-else>
@@ -418,7 +439,9 @@ watch(machineId, async value => {
                     </VCol>
                     
                     <VCol cols="12">
-                      <h4 class="mt-1 mb-1">Position</h4>
+                      <h4 class="mt-1 mb-1">
+                        Position
+                      </h4>
                     </VCol>
 
                     <VCol cols="12">
@@ -449,7 +472,9 @@ watch(machineId, async value => {
                     <VDivider class="my-2" />
                     
                     <VCol cols="12">
-                      <h4 class="mt-1 mb-1">Rotation</h4>
+                      <h4 class="mt-1 mb-1">
+                        Rotation
+                      </h4>
                     </VCol>
                     <VCol cols="12">
                       <AppTextField 
@@ -483,10 +508,16 @@ watch(machineId, async value => {
               <VWindowItem>
                 <VRow>
                   <VCol cols="12">
-                    <h4 class="text-h5 mb-4">Summary</h4>
+                    <h4 class="text-h5 mb-4">
+                      Summary
+                    </h4>
                   </VCol>
                   <VCol cols="12">
-                    <VAlert type="info" variant="tonal" class="mb-4">
+                    <VAlert
+                      type="info"
+                      variant="tonal"
+                      class="mb-4"
+                    >
                       Please review all information carefully before submitting.
                     </VAlert>
                   </VCol>
@@ -541,7 +572,9 @@ watch(machineId, async value => {
 
                   <VCol cols="12">
                     <VDivider class="my-3" />
-                    <h4 class="text-h6 mb-2">Position</h4>
+                    <h4 class="text-h6 mb-2">
+                      Position
+                    </h4>
                   </VCol>
 
                   <VCol cols="4">
@@ -567,7 +600,9 @@ watch(machineId, async value => {
                   </VCol>
 
                   <VCol cols="12">
-                    <h4 class="text-h6 mt-4 mb-2">Rotation</h4>
+                    <h4 class="text-h6 mt-4 mb-2">
+                      Rotation
+                    </h4>
                   </VCol>
 
                   <VCol cols="4">
@@ -602,17 +637,32 @@ watch(machineId, async value => {
                 variant="tonal" 
                 @click="currentStep--"
               >
-                <VIcon class="flip-in-rtl" icon="tabler-arrow-left" start />
+                <VIcon
+                  class="flip-in-rtl"
+                  icon="tabler-arrow-left"
+                  start
+                />
                 Previous
               </VBtn>
               
-              <VBtn v-if="numberedSteps.length - 1 === currentStep" color="success" @click="onSubmit">
+              <VBtn
+                v-if="numberedSteps.length - 1 === currentStep"
+                color="success"
+                @click="onSubmit"
+              >
                 Submit
               </VBtn>
               
-              <VBtn v-else @click="currentStep++">
+              <VBtn
+                v-else
+                @click="currentStep++"
+              >
                 Next
-                <VIcon class="flip-in-rtl" end icon="tabler-arrow-right" />
+                <VIcon
+                  class="flip-in-rtl"
+                  end
+                  icon="tabler-arrow-right"
+                />
               </VBtn>
             </div>
           </VForm>

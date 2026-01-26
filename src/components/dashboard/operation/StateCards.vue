@@ -53,6 +53,7 @@ const isDark = computed(() => {
   if (configStore.theme === 'system') {
     return theme.global.current.value.dark
   }
+  
   return configStore.theme === 'dark'
 })
 
@@ -68,29 +69,30 @@ const glassCardStyle = computed(() => {
         : 'rgba(16, 185, 129, 0.4)',
       boxShadow: isDark.value
         ? '0 20px 60px rgba(16, 185, 129, 0.2)'
-        : '0 8px 32px rgba(16, 185, 129, 0.15)'
+        : '0 8px 32px rgba(16, 185, 129, 0.15)',
     }
   }
+  
   return {
     background: isDark.value 
       ? 'rgba(30, 41, 59, 0.4)'
       : 'rgba(241, 245, 249, 0.6)',
     borderColor: isDark.value 
       ? 'rgba(71, 85, 105, 0.3)'
-      : 'rgba(203, 213, 225, 0.5)'
+      : 'rgba(203, 213, 225, 0.5)',
   }
 })
 
 const textPrimaryClass = computed(() => 
-  isDark.value ? 'text-white' : 'text-grey-darken-3'
+  isDark.value ? 'text-white' : 'text-grey-darken-3',
 )
 
 const textSecondaryClass = computed(() => 
-  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1'
+  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1',
 )
 
 const textMutedClass = computed(() => 
-  isDark.value ? 'text-grey' : 'text-grey-lighten-1'
+  isDark.value ? 'text-grey' : 'text-grey-lighten-1',
 )
 
 // Dialog state
@@ -217,7 +219,10 @@ const handleRemoveParameter = itemId => {
             />
           </div>
             
-          <div class="scrollable-container" :class="isDark ? '' : 'scrollable-light'">
+          <div
+            class="scrollable-container"
+            :class="isDark ? '' : 'scrollable-light'"
+          >
             <div class="running-time-grid">
               <!-- Add Parameter Card (Only in Edit Mode) -->
               <VCard
@@ -283,7 +288,7 @@ const handleRemoveParameter = itemId => {
                     }"
                   >
                     <VIcon
-                      icon='tabler-wifi'
+                      icon="tabler-wifi"
                       size="20"
                       :style="{ color: item.color }"
                     />

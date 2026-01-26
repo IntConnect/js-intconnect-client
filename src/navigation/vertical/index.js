@@ -130,4 +130,4 @@ export default [
     icon: { icon: "tabler-bell-minus" },
     requiredPermission: "ALARM_LOG_VIEW",
   },
-];
+]

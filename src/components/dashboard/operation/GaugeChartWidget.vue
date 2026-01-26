@@ -11,12 +11,12 @@ const props = defineProps({
   header: {
     type: String,
     required: false,
-    default: ""
+    default: "",
   },
   subHeader: {
     type: String,
     required: false,
-    default: ""
+    default: "",
   },
 })
 
@@ -144,7 +144,11 @@ const chartOptions = computed(() => ({
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center gap-2">
           <div class="header-icon-wrapper">
-            <VIcon icon="tabler-gauge" size="20" class="header-icon" />
+            <VIcon
+              icon="tabler-gauge"
+              size="20"
+              class="header-icon"
+            />
           </div>
           <div class="text-left">
             <h6 class="text-h5 text-white font-weight-bold mb-0 text-left">
@@ -155,12 +159,17 @@ const chartOptions = computed(() => ({
         </div>
 
         <!-- Status Badge -->
-        <VChip size="small" :style="{
-          background: copStatus.bgColor,
-          color: copStatus.color,
-          borderColor: copStatus.borderColor,
-          border: '1px solid'
-        }" class="font-weight-bold status-chip" :prepend-icon="copStatus.icon">
+        <VChip
+          size="small"
+          :style="{
+            background: copStatus.bgColor,
+            color: copStatus.color,
+            borderColor: copStatus.borderColor,
+            border: '1px solid'
+          }"
+          class="font-weight-bold status-chip"
+          :prepend-icon="copStatus.icon"
+        >
           {{ copStatus.label }}
         </VChip>
       </div>
@@ -169,7 +178,12 @@ const chartOptions = computed(() => ({
     <!-- Gauge Chart -->
     <VCardText class="py-3">
       <div class="gauge-container">
-        <VueApexCharts :height="250" :options="chartOptions" :series="series" type="radialBar" />
+        <VueApexCharts
+          :height="250"
+          :options="chartOptions"
+          :series="series"
+          type="radialBar"
+        />
 
 
         <!-- Min Max Labels -->

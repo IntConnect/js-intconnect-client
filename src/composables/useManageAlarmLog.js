@@ -92,7 +92,7 @@ export const useManageAlarmLog = () => {
     }
   }
 
-   const fetchAlarmLogsByMachineId = async machineId => {
+  const fetchAlarmLogsByMachineId = async machineId => {
     clearErrors()
     actionLoading.value = true
 
@@ -120,13 +120,13 @@ export const useManageAlarmLog = () => {
 
  
   const updateAlarmLog = async alarmLogData => {
-       actionLoading.value = true
+    actionLoading.value = true
     clearFormErrors()
 
     try {
       const { data: response, error: apiError } = await useApi(`/alarm-logs/${alarmLogData.id}`)
         .put({
-          note: alarmLogData.note
+          note: alarmLogData.note,
         })
         .json()
 

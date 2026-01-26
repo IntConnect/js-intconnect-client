@@ -8,7 +8,7 @@ const props = defineProps({
   modelValue: { type: Boolean, required: true }, // v-model untuk visible
   formErrors: {
     type: Object,
-    default: () => []
+    default: () => [],
   },
   fields: {
     type: Array,
@@ -32,7 +32,10 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 600" :model-value="props.modelValue">
+  <VDialog
+    :width="$vuetify.display.smAndDown ? 'auto' : 600"
+    :model-value="props.modelValue"
+  >
     <DialogCloseBtn @click="closeDialog" />
 
     <VCard class="pa-4">
@@ -43,7 +46,10 @@ const handleSubmit = () => {
             {{ props.title }}
           </h4>
         </VCardTitle>
-        <p v-if="props.message" class="text-body-1 mb-0">
+        <p
+          v-if="props.message"
+          class="text-body-1 mb-0"
+        >
           {{ props.message }}
         </p>
       </VCardItem>
@@ -51,18 +57,37 @@ const handleSubmit = () => {
       <VCardText class="pt-6">
         <VForm @submit.prevent="handleSubmit">
           <VRow>
-            <VCol v-for="field in props.fields" :key="field.key" cols="12">
-              <AppTextField v-model="description" :label="field.label" :error="props.formErrors[field.key]"
-                :error-messages="props.formErrors[field.key]" :placeholder="field.placeholder"
-                :type="field.type || 'text'" />
+            <VCol
+              v-for="field in props.fields"
+              :key="field.key"
+              cols="12"
+            >
+              <AppTextField
+                v-model="description"
+                :label="field.label"
+                :error="props.formErrors[field.key]"
+                :error-messages="props.formErrors[field.key]"
+                :placeholder="field.placeholder"
+                :type="field.type || 'text'"
+              />
             </VCol>
 
             <!-- 👉 Actions -->
-            <VCol cols="12" class="text-center">
-              <VBtn class="me-4" type="submit">
+            <VCol
+              cols="12"
+              class="text-center"
+            >
+              <VBtn
+                class="me-4"
+                type="submit"
+              >
                 Submit
               </VBtn>
-              <VBtn color="secondary" variant="tonal" @click="closeDialog">
+              <VBtn
+                color="secondary"
+                variant="tonal"
+                @click="closeDialog"
+              >
                 Cancel
               </VBtn>
             </VCol>

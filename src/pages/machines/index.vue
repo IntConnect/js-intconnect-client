@@ -146,15 +146,26 @@ watch([page, itemsPerPage], loadMachines)
             <!-- Items per page selector -->
             <div class="d-flex gap-2 align-center">
               <span class="text-body-1">Show</span>
-              <AppSelect :items="ITEMS_PER_PAGE_OPTIONS" :model-value="itemsPerPage" style="inline-size: 5.5rem;"
-                @update:model-value="itemsPerPage = parseInt($event, 10)" />
+              <AppSelect
+                :items="ITEMS_PER_PAGE_OPTIONS"
+                :model-value="itemsPerPage"
+                style="inline-size: 5.5rem;"
+                @update:model-value="itemsPerPage = parseInt($event, 10)"
+              />
             </div>
 
             <!-- Right side controls -->
             <div class="d-flex gap-2 align-center flex-wrap">
-              <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
-                style="inline-size: 15.625rem;" />
-              <VBtn color="primary" :to="{ name: 'machine-create' }">
+              <AppTextField
+                v-model="searchQuery"
+                clearable
+                placeholder="Search something..."
+                style="inline-size: 15.625rem;"
+              />
+              <VBtn
+                color="primary"
+                :to="{ name: 'machine-create' }"
+              >
                 New Machine
               </VBtn>
             </div>
@@ -163,8 +174,14 @@ watch([page, itemsPerPage], loadMachines)
           <VDivider />
 
           <!-- Data Table -->
-          <VDataTable :headers="TABLE_HEADERS" :items="machines" :items-per-page="itemsPerPage" :loading="actionLoading"
-            class="text-no-wrap" no-data-text="No machines found">
+          <VDataTable
+            :headers="TABLE_HEADERS"
+            :items="machines"
+            :items-per-page="itemsPerPage"
+            :loading="actionLoading"
+            class="text-no-wrap"
+            no-data-text="No machines found"
+          >
             <!-- ID Column -->
             <template #item.id="{ index }">
               {{ (page - 1) * itemsPerPage + index + 1 }}
@@ -190,56 +207,113 @@ watch([page, itemsPerPage], loadMachines)
             <!-- Actions Column -->
             <template #item.actions="{ item }">
               <div class="d-flex gap-2">
-                <VBtn color="success" icon size="small" variant="text"
-                  :to="{ name: 'machines-show-id', params: { id: item.id } }">
-                  <VIcon icon="tabler-eye" size="20" />
-                   <VTooltip activator="parent" location="top">
-                <span>Show</span>
-              </VTooltip>
+                <VBtn
+                  color="success"
+                  icon
+                  size="small"
+                  variant="text"
+                  :to="{ name: 'machines-show-id', params: { id: item.id } }"
+                >
+                  <VIcon
+                    icon="tabler-eye"
+                    size="20"
+                  />
+                  <VTooltip
+                    activator="parent"
+                    location="top"
+                  >
+                    <span>Show</span>
+                  </VTooltip>
                 </VBtn>
-                <VBtn color="warning" icon size="small" variant="text"
-                  :to="{ name: 'machines-dashboard-id', params: { id: item.id } }">
-                  <VIcon icon="tabler-dashboard" size="20" />
-                   <VTooltip activator="parent" location="top">
-                <span>Dashboard</span>
-              </VTooltip>
+                <VBtn
+                  color="warning"
+                  icon
+                  size="small"
+                  variant="text"
+                  :to="{ name: 'machines-dashboard-id', params: { id: item.id } }"
+                >
+                  <VIcon
+                    icon="tabler-dashboard"
+                    size="20"
+                  />
+                  <VTooltip
+                    activator="parent"
+                    location="top"
+                  >
+                    <span>Dashboard</span>
+                  </VTooltip>
                 </VBtn>
-                <VBtn color="info" icon size="small" variant="text"
-                  :to="{ name: 'machine-edit', params: { id: item.id } }">
-                  <VIcon icon="tabler-pencil" size="20" />
-                   <VTooltip activator="parent" location="top">
-                <span>Edit</span>
-              </VTooltip>
+                <VBtn
+                  color="info"
+                  icon
+                  size="small"
+                  variant="text"
+                  :to="{ name: 'machine-edit', params: { id: item.id } }"
+                >
+                  <VIcon
+                    icon="tabler-pencil"
+                    size="20"
+                  />
+                  <VTooltip
+                    activator="parent"
+                    location="top"
+                  >
+                    <span>Edit</span>
+                  </VTooltip>
                 </VBtn>
-                <VBtn color="error" icon size="small" variant="text" @click="openDeleteDialog(item)">
-                  <VIcon icon="tabler-trash" size="20" />
-                   <VTooltip activator="parent" location="top">
-                <span>Delete</span>
-              </VTooltip>
+                <VBtn
+                  color="error"
+                  icon
+                  size="small"
+                  variant="text"
+                  @click="openDeleteDialog(item)"
+                >
+                  <VIcon
+                    icon="tabler-trash"
+                    size="20"
+                  />
+                  <VTooltip
+                    activator="parent"
+                    location="top"
+                  >
+                    <span>Delete</span>
+                  </VTooltip>
                 </VBtn>
               </div>
             </template>
 
             <!-- Bottom Pagination -->
             <template #bottom>
-              <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
+              <TablePagination
+                v-model:page="page"
+                :items-per-page="itemsPerPage"
+                :total-items="totalItems"
+              />
             </template>
           </VDataTable>
         </VCard>
 
         <!-- Delete Dialog -->
-        <DeleteDialog v-model="showDeleteDialog" 
-        :fields="[{
-          key: 'reason',
-          label: 'Reason',
-          placeholder: 'Type your reason...',
-          type: 'text',
-        }]" 
-        :form-errors="formErrors"
-         message="Please provide a reason for deletion" title="Delete Machine" @submit="handleDeleteMachine" />
+        <DeleteDialog
+          v-model="showDeleteDialog" 
+          :fields="[{
+            key: 'reason',
+            label: 'Reason',
+            placeholder: 'Type your reason...',
+            type: 'text',
+          }]" 
+          :form-errors="formErrors"
+          message="Please provide a reason for deletion"
+          title="Delete Machine"
+          @submit="handleDeleteMachine"
+        />
       </section>
     </VCol>
   </VRow>
-  <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
-    :type="alertType" />
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :body-alert="bodyAlert"
+    :title-alert="titleAlert"
+    :type="alertType"
+  />
 </template>

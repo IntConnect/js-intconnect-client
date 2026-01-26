@@ -1,8 +1,22 @@
 <template>
-  <div v-if="containerRef || true" ref="containerRef" class="model-viewer-container" :style="{ width: '100%', height: containerHeight }">
-    <div v-if="isLoading" class="loading-overlay">
-      <VProgressCircular indeterminate color="primary" size="64" />
-      <p class="mt-4">Loading 3D Model...</p>
+  <div
+    v-if="containerRef || true"
+    ref="containerRef"
+    class="model-viewer-container"
+    :style="{ width: '100%', height: containerHeight }"
+  >
+    <div
+      v-if="isLoading"
+      class="loading-overlay"
+    >
+      <VProgressCircular
+        indeterminate
+        color="primary"
+        size="64"
+      />
+      <p class="mt-4">
+        Loading 3D Model...
+      </p>
     </div>
   </div>
 </template>
@@ -68,7 +82,7 @@ const props = defineProps({
   isRegisterMarker: {
     type: Boolean,
     default: false,
-  }
+  },
 })
 
 const emit = defineEmits(['camera-update', 'position-click', 'marker-created', 'register-click'])
@@ -97,11 +111,12 @@ const mouse = new THREE.Vector2()
 // ==========================================
 // Helper: Remove marker from scene
 // ==========================================
-const removeMarker = (marker) => {
+const removeMarker = marker => {
   if (!marker || !scene) return
 
   while (marker.children.length > 0) {
     const child = marker.children[0]
+
     marker.remove(child)
     
     if (child.geometry) child.geometry.dispose()
@@ -138,6 +153,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
   if (!scene) return null
 
   const container = new THREE.Group()
+
   container.position.copy(position)
 
   if (isRegister) {
@@ -175,6 +191,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
       fontSize: 0.18,
       fontColor: new THREE.Color(0xffffff),
     })
+
     headerContainer.add(headerText)
 
     // Value display dengan highlight
@@ -195,6 +212,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
       fontSize: 0.35,
       fontColor: new THREE.Color(0x4fc3f7),
     })
+
     valueContainer.add(valueText)
 
     // Click hint
@@ -211,13 +229,16 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     const glowRings = []
     for (let i = 0; i < 2; i++) {
       const ringGeometry = new THREE.RingGeometry(1.2 + i * 0.3, 1.3 + i * 0.3, 32)
+
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0x2196f3,
         transparent: true,
         opacity: i === 0 ? 0.4 : 0.3,
         side: THREE.DoubleSide,
       })
+
       const ring = new THREE.Mesh(ringGeometry, ringMaterial)
+
       ring.position.z = -0.1
       container.add(ring)
       glowRings.push(ring)
@@ -231,6 +252,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2
       const radius = 1.5 + Math.random() * 0.5
+
       positions[i * 3] = Math.cos(angle) * radius
       positions[i * 3 + 1] = Math.sin(angle) * radius
       positions[i * 3 + 2] = (Math.random() - 0.5) * 0.3
@@ -247,11 +269,13 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     })
     
     const particles = new THREE.Points(particleGeometry, particleMaterial)
+
     particles.position.z = -0.05
     container.add(particles)
 
     // Corner accents
     const accentGeometry = new THREE.PlaneGeometry(0.3, 0.3)
+
     const accentMaterial = new THREE.MeshBasicMaterial({
       color: 0x2196f3,
       transparent: true,
@@ -267,6 +291,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     
     corners.forEach(corner => {
       const accent = new THREE.Mesh(accentGeometry, accentMaterial.clone())
+
       accent.position.set(corner.x, corner.y, -0.08)
       container.add(accent)
     })
@@ -316,6 +341,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
       fontSize: 0.13,
       fontColor: new THREE.Color(0xa0a0a0),
     })
+
     badgeContainer.add(nameText)
 
     // Value container with icon-like prefix
@@ -336,6 +362,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
       fontSize: 0.38,
       fontColor: new THREE.Color(0xffffff),
     })
+
     valueWrapper.add(valueText)
 
     mainPanel.add(badgeContainer, valueWrapper)
@@ -343,25 +370,31 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
 
     // Frosted glass border effect
     const glassRingGeometry = new THREE.RingGeometry(1.7, 1.73, 40)
+
     const glassRingMaterial = new THREE.MeshBasicMaterial({
       color: 0x4a5568,
       transparent: true,
       opacity: 0.4,
       side: THREE.DoubleSide,
     })
+
     const glassRing = new THREE.Mesh(glassRingGeometry, glassRingMaterial)
+
     glassRing.position.z = -0.05
     container.add(glassRing)
 
     // Inner glow ring
     const innerGlowGeometry = new THREE.RingGeometry(1.65, 1.68, 40)
+
     const innerGlowMaterial = new THREE.MeshBasicMaterial({
       color: 0x667eea,
       transparent: true,
       opacity: 0.15,
       side: THREE.DoubleSide,
     })
+
     const innerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial)
+
     innerGlow.position.z = -0.04
     container.add(innerGlow)
 
@@ -374,6 +407,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
 
     // Top-left bracket
     const tlShape = new THREE.Shape()
+
     tlShape.moveTo(0, 0)
     tlShape.lineTo(0.4, 0)
     tlShape.lineTo(0.4, 0.05)
@@ -384,29 +418,34 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     
     const tlGeometry = new THREE.ShapeGeometry(tlShape)
     const tlBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+
     tlBracket.position.set(-1.5, 0.6, -0.02)
     container.add(tlBracket)
 
     // Top-right bracket
     const trBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+
     trBracket.rotation.z = Math.PI / 2
     trBracket.position.set(1.5, 0.6, -0.02)
     container.add(trBracket)
 
     // Bottom-right bracket
     const brBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+
     brBracket.rotation.z = Math.PI
     brBracket.position.set(1.5, -0.6, -0.02)
     container.add(brBracket)
 
     // Bottom-left bracket
     const blBracket = new THREE.Mesh(tlGeometry, bracketMaterial.clone())
+
     blBracket.rotation.z = -Math.PI / 2
     blBracket.position.set(-1.5, -0.6, -0.02)
     container.add(blBracket)
 
     // Status indicator dots
     const dotGeometry = new THREE.CircleGeometry(0.05, 16)
+
     const dotPositions = [
       { x: -1.3, y: -0.6, color: 0x667eea },
       { x: -1.15, y: -0.6, color: 0x764ba2 },
@@ -419,19 +458,24 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
         transparent: true,
         opacity: 0.6,
       })
+
       const dot = new THREE.Mesh(dotGeometry, dotMat)
+
       dot.position.set(pos.x, pos.y, -0.01)
       container.add(dot)
     })
 
     // Subtle animated line accent
     const lineGeometry = new THREE.PlaneGeometry(2.6, 0.02)
+
     const lineMaterial = new THREE.MeshBasicMaterial({
       color: 0x667eea,
       transparent: true,
       opacity: 0.3,
     })
+
     const accentLine = new THREE.Mesh(lineGeometry, lineMaterial)
+
     accentLine.position.set(0, -0.35, -0.01)
     container.add(accentLine)
 
@@ -441,6 +485,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
   }
   
   scene.add(container)
+  
   return container
 }
 
@@ -461,7 +506,7 @@ const createRegisterMarkers = () => {
     const pos = new THREE.Vector3(
       register.position_x || 0,
       register.position_y || 0,
-      register.position_z || 0
+      register.position_z || 0,
     )
     
     const marker = createMarker(
@@ -469,7 +514,7 @@ const createRegisterMarkers = () => {
       register.value || 0,
       pos,
       true, // isRegister
-      register // registerData
+      register, // registerData
     )
     
     if (marker) {
@@ -481,7 +526,7 @@ const createRegisterMarkers = () => {
 // ==========================================
 // Handle click pada canvas untuk register markers
 // ==========================================
-const handleCanvasClick = (event) => {
+const handleCanvasClick = event => {
   if (!renderer || !camera || !scene) return
   
   const rect = renderer.domElement.getBoundingClientRect()
@@ -517,6 +562,7 @@ const handleCanvasClick = (event) => {
                 const easeOut = 1 - Math.pow(1 - progress, 3)
                 
                 const scale = startScale + (targetScale - startScale) * easeOut
+
                 ring.scale.set(scale, scale, 1)
                 ring.material.opacity = startOpacity * (1 - progress)
                 
@@ -535,6 +581,7 @@ const handleCanvasClick = (event) => {
           // 2. Flash effect on particles
           if (obj.userData.particles) {
             const originalSize = obj.userData.particles.material.size
+
             obj.userData.particles.material.size = originalSize * 3
             obj.userData.particles.material.opacity = 1
             
@@ -546,6 +593,7 @@ const handleCanvasClick = (event) => {
           
           // 3. Emit event
           emit('register-click', obj.userData.registerData)
+          
           return
         }
         obj = obj.parent
@@ -557,7 +605,7 @@ const handleCanvasClick = (event) => {
 // ==========================================
 // Handle hover effect untuk register markers
 // ==========================================
-const handleCanvasMouseMove = (event) => {
+const handleCanvasMouseMove = event => {
   if (!renderer || !camera || !scene) return
   
   const rect = renderer.domElement.getBoundingClientRect()
@@ -638,7 +686,7 @@ const updateMarkerPosition = () => {
     parameterMarker.position.set(
       props.markerPosition.x,
       props.markerPosition.y,
-      props.markerPosition.z
+      props.markerPosition.z,
     )
   }
 }
@@ -651,7 +699,7 @@ const updateMarkerRotation = () => {
     parameterMarker.rotation.set(
       THREE.MathUtils.degToRad(props.markerRotation.x),
       THREE.MathUtils.degToRad(props.markerRotation.y),
-      THREE.MathUtils.degToRad(props.markerRotation.z)
+      THREE.MathUtils.degToRad(props.markerRotation.z),
     )
   }
 }
@@ -659,7 +707,7 @@ const updateMarkerRotation = () => {
 // ==========================================
 // Enable/Disable clickable mode
 // ==========================================
-const setClickable = (enabled) => {
+const setClickable = enabled => {
   if (!renderer) return
 
   if (clickHandler) {
@@ -671,7 +719,7 @@ const setClickable = (enabled) => {
     const raycasterLocal = new THREE.Raycaster()
     const mouseLocal = new THREE.Vector2()
 
-    clickHandler = (event) => {
+    clickHandler = event => {
       const rect = renderer.domElement.getBoundingClientRect()
 
       mouseLocal.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
@@ -686,9 +734,11 @@ const setClickable = (enabled) => {
         const point = hit.point.clone()
 
         const normal = hit.face.normal.clone()
+
         normal.transformDirection(hit.object.matrixWorld)
 
         const rotation = new THREE.Euler()
+
         rotation.setFromVector3(normal)
 
         emit('position-click', {
@@ -723,11 +773,13 @@ const setClickable = (enabled) => {
 const initViewer = async () => {
   if (isDestroying.value || isLoading.value || !isMounted.value) {
     console.warn('Component not ready for initialization')
+    
     return
   }
 
   if (!containerRef.value || !props.modelPath) {
     console.warn('Container or modelPath not ready')
+    
     return
   }
 
@@ -740,6 +792,7 @@ const initViewer = async () => {
   if (!containerRef.value) {
     console.warn('Container removed during cleanup')
     isLoading.value = false
+    
     return
   }
 
@@ -749,6 +802,7 @@ const initViewer = async () => {
   if (width === 0 || height === 0) {
     console.warn('Container has no dimensions yet')
     isLoading.value = false
+    
     return
   }
 
@@ -768,6 +822,7 @@ const initViewer = async () => {
       renderer.dispose()
       renderer = null
       isLoading.value = false
+      
       return
     }
 
@@ -781,12 +836,13 @@ const initViewer = async () => {
     scene.background = new THREE.Color(modelBackgroundColor)
 
     const aspectRatio = width / height
+
     camera = new THREE.PerspectiveCamera(75, aspectRatio, 0.1, 1000)
     
     camera.position.set(
       props.cameraPosition.x,
       props.cameraPosition.y,
-      props.cameraPosition.z
+      props.cameraPosition.z,
     )
     camera.updateProjectionMatrix()
 
@@ -808,16 +864,20 @@ const initViewer = async () => {
     }
 
     const pmremGenerator = new THREE.PMREMGenerator(renderer)
+
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture
 
     const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1)
+
     scene.add(hemisphereLight)
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+
     directionalLight.position.set(5, 10, 7.5)
     scene.add(directionalLight)
 
     const loader = new GLTFLoader()
+
     const modelUrl = props.modelPath.startsWith('blob:') || props.modelPath.startsWith('http')
       ? props.modelPath
       : useStaticFile(props.modelPath)
@@ -826,12 +886,13 @@ const initViewer = async () => {
 
     loader.load(
       modelUrl,
-      (gltf) => {
+      gltf => {
         if (isDestroying.value || !isMounted.value || !containerRef.value || !scene || !camera || !renderer || !controls) {
           console.warn('Component unmounted during model load - aborting')
           if (!isDestroying.value) {
             isLoading.value = false
           }
+          
           return
         }
 
@@ -852,6 +913,7 @@ const initViewer = async () => {
             if (!isDestroying.value) {
               isLoading.value = false
             }
+            
             return
           }
           
@@ -890,8 +952,9 @@ const initViewer = async () => {
               const markerPos = new THREE.Vector3(
                 props.markerPosition.x,
                 props.markerPosition.y,
-                props.markerPosition.z
+                props.markerPosition.z,
               )
+
               parameterMarker = createMarker(props.markerName, props.markerValue, markerPos, props.isRegisterMarker)
               if (parameterMarker) {
                 updateMarkerRotation()
@@ -909,6 +972,7 @@ const initViewer = async () => {
           if(props.parameters && props.parameters.length > 0) {
             for (const element of props.parameters) {
               const pos = new THREE.Vector3(element.position_x, element.position_y, element.position_z)
+
               createMarker(element.name, 0, pos, false)
             }
             updateMarkerPosition()
@@ -933,15 +997,15 @@ const initViewer = async () => {
           }
         }
       },
-      (progress) => {
+      progress => {
         // Progress handler
       },
-      (error) => {
+      error => {
         console.error('Error loading 3D model:', error)
         if (isLoading.value) {
           isLoading.value = false
         }
-      }
+      },
     )
   } catch (error) {
     console.error('Error initializing viewer:', error)
@@ -984,6 +1048,7 @@ const animate = () => {
         
         // Scale pulse
         const scale = 1 + Math.sin(marker.userData.animPhase * 2) * 0.05
+
         ring1.scale.set(scale, scale, 1)
         ring2.scale.set(scale * 0.95, scale * 0.95, 1)
       }
@@ -1007,9 +1072,11 @@ const animate = () => {
       // Value text glow effect (hovered state)
       if (marker.userData.isHovered && marker.userData.valueText) {
         const glowIntensity = Math.sin(time * 5) * 0.3 + 0.7
+
         // Color cycling effect saat hover
         const hue = (time * 0.5) % 1
         const color = new THREE.Color().setHSL(hue, 0.8, 0.6)
+
         // marker.userData.valueText.set({ fontColor: color }) // Optional: color cycling
       }
     }
@@ -1145,7 +1212,7 @@ watch(() => props.modelPath, (newPath, oldPath) => {
   }
 }, { immediate: false })
 
-watch(() => props.cameraPosition, (newPos) => {
+watch(() => props.cameraPosition, newPos => {
   if (camera && !props.editable) {
     camera.position.set(newPos.x, newPos.y, newPos.z)
     camera.updateProjectionMatrix()
@@ -1155,7 +1222,7 @@ watch(() => props.cameraPosition, (newPos) => {
   }
 }, { deep: true })
 
-watch(() => props.clickable, (enabled) => {
+watch(() => props.clickable, enabled => {
   if (isInitialized.value) {
     setClickable(enabled)
   }
@@ -1173,15 +1240,16 @@ watch(() => props.markerRotation, () => {
   }
 }, { deep: true })
 
-watch(() => props.showMarker, (show) => {
+watch(() => props.showMarker, show => {
   if (!isInitialized.value) return
   
   if (show && props.markerName && props.markerValue && !parameterMarker) {
     const markerPos = new THREE.Vector3(
       props.markerPosition.x,
       props.markerPosition.y,
-      props.markerPosition.z
+      props.markerPosition.z,
     )
+
     parameterMarker = createMarker(props.markerName, props.markerValue, markerPos, false)
     updateMarkerRotation()
   } else if (!show && parameterMarker) {
@@ -1241,7 +1309,7 @@ onUnmounted(() => {
 })
 
 // Setup click handler for register markers after mount
-watch(() => isInitialized.value, (initialized) => {
+watch(() => isInitialized.value, initialized => {
   if (initialized && renderer && renderer.domElement) {
     renderer.domElement.addEventListener('click', handleCanvasClick)
     renderer.domElement.addEventListener('mousemove', handleCanvasMouseMove)
@@ -1286,20 +1354,25 @@ defineExpose({
       removeMarker(parameterMarker)
     }
     const pos = new THREE.Vector3(position.x, position.y, position.z)
+
     parameterMarker = createMarker(name, value, pos, false)
+    
     return parameterMarker
   },
-  updateParameterMarkers: (updatedParameters) => {
+  updateParameterMarkers: updatedParameters => {
     if (!scene || !isInitialized.value) return
     
     // Update parameter markers yang sudah ada
     scene.children.forEach(child => {
       if (child.userData && child.userData.valueText && child.userData.isRegisterMarker) {
         console.log(child.userData.parameterName)
+
+
         // Cari parameter yang match
         const matchParam = updatedParameters.find(p => {
           return p.parameter == child.userData.parameterName
         })
+
         console.log(updatedParameters)
         console.log(matchParam)
         

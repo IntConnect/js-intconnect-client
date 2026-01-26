@@ -82,6 +82,7 @@ watch(
   [() => props.rolePermissions?.id, () => permissions.value],
   ([roleId, permissionsVal]) => {
     if (!Array.isArray(permissionsVal['entries'])) return []
+
     // ADD MODE
     if (!roleId) {
       id.value = ''
@@ -91,17 +92,20 @@ watch(
         ...p,
         checked: false,
       }))
+      
       return
     }
 
     // EDIT MODE
     const role = props.rolePermissions
+
     id.value = role.id
     name.value = role.name
     description.value = role.description
 
     ungroupedPermissions.value = permissionsVal.entries.map(permission => {
       const rolePermission = role.permissions.find(p => p.code === permission.code)
+      
       return {
         ...permission,
         checked: !!rolePermission,
@@ -161,8 +165,11 @@ const onReset = () => {
 </script>
 
 <template>
-  <VDialog :model-value="props.isDialogVisible" :width="$vuetify.display.smAndDown ? 'auto' : 900"
-    @update:model-value="onReset">
+  <VDialog
+    :model-value="props.isDialogVisible"
+    :width="$vuetify.display.smAndDown ? 'auto' : 900"
+    @update:model-value="onReset"
+  >
     <!-- 👉 Dialog close btn -->
     <DialogCloseBtn @click="onReset" />
 
@@ -179,8 +186,17 @@ const onReset = () => {
         <!-- 👉 Form -->
         <VForm ref="refPermissionForm">
           <!-- 👉 Role name -->
-          <AppTextField v-model="name" label="Role Name" placeholder="Enter Role Name" />
-          <AppTextField v-model="description" class="my-3" label="Description" placeholder="Enter Description" />
+          <AppTextField
+            v-model="name"
+            label="Role Name"
+            placeholder="Enter Role Name"
+          />
+          <AppTextField
+            v-model="description"
+            class="my-3"
+            label="Description"
+            placeholder="Enter Description"
+          />
 
           <h5 class="text-h5 my-6">
             Role Permissions
@@ -198,14 +214,21 @@ const onReset = () => {
               </td>
               <td colspan="4">
                 <div class="d-flex justify-end">
-                  <VCheckbox :indeterminate="isIndeterminate" :model-value="isSelectAll" label="Select All"
-                    @update:model-value="isSelectAll = $event" />
+                  <VCheckbox
+                    :indeterminate="isIndeterminate"
+                    :model-value="isSelectAll"
+                    label="Select All"
+                    @update:model-value="isSelectAll = $event"
+                  />
                 </div>
               </td>
             </tr>
 
             <!-- 👉 Other permission loop -->
-            <template v-for="group in groupedPermissions" :key="group.category">
+            <template
+              v-for="group in groupedPermissions"
+              :key="group.category"
+            >
               <tr>
                 <td>
                   <h6 class="text-h6">
@@ -214,9 +237,15 @@ const onReset = () => {
                 </td>
 
                 <!-- Permission checkboxes -->
-                <td v-for="permission in group.permissions" :key="permission.id">
+                <td
+                  v-for="permission in group.permissions"
+                  :key="permission.id"
+                >
                   <div class="d-flex justify-end text-danger">
-                    <VCheckbox v-model="permission.checked" :label="permission.name" />
+                    <VCheckbox
+                      v-model="permission.checked"
+                      :label="permission.name"
+                    />
                   </div>
                 </td>
               </tr>
@@ -229,7 +258,11 @@ const onReset = () => {
               Submit
             </VBtn>
 
-            <VBtn color="secondary" variant="tonal" @click="onReset">
+            <VBtn
+              color="secondary"
+              variant="tonal"
+              @click="onReset"
+            >
               Cancel
             </VBtn>
           </div>

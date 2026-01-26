@@ -180,13 +180,13 @@ export function exportAlarmLogPDF({
   const tableBody = []
 
   data.forEach(entry => {
-      tableBody.push([
-        entry.timestamp,
-        entry.machine_name,
-        entry.machine_code,
-        entry.parameter_name,
-        entry.value ?? '-',
-      ])
+    tableBody.push([
+      entry.timestamp,
+      entry.machine_name,
+      entry.machine_code,
+      entry.parameter_name,
+      entry.value ?? '-',
+    ])
   })
 
   /* =========================
@@ -212,7 +212,7 @@ export function exportAlarmLogPDF({
       textColor: 20,
       fontStyle: 'bold',
     },
-    didDrawPage: (data) => {
+    didDrawPage: data => {
       /* =========================
        * FOOTER
        * ========================= */
@@ -225,7 +225,7 @@ export function exportAlarmLogPDF({
       doc.text(
         `Document No: ${documentNumber}`,
         10,
-        pageHeight - 10
+        pageHeight - 10,
       )
 
       // Page X of Y kanan bawah
@@ -233,7 +233,7 @@ export function exportAlarmLogPDF({
         `Page ${pageCurrent} of ${pageCount}`,
         pageWidth - 10,
         pageHeight - 10,
-        { align: 'right' }
+        { align: 'right' },
       )
     },
   })
@@ -248,16 +248,20 @@ export function exportAlarmLogPDF({
 export function loadImageAsBase64(url) {
   return new Promise((resolve, reject) => {
     const img = new Image()
+
     img.crossOrigin = 'anonymous' // penting jika dari domain lain
     img.onload = () => {
       const canvas = document.createElement('canvas')
+
       canvas.width = img.width
       canvas.height = img.height
 
       const ctx = canvas.getContext('2d')
+
       ctx.drawImage(img, 0, 0)
 
       const base64 = canvas.toDataURL('image/png')
+
       resolve(base64)
     }
     img.onerror = reject

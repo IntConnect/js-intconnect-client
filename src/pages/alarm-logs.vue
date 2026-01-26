@@ -40,12 +40,12 @@ const loadAlarmLogs = async () => {
 
 const getStatusColor = status => {
   switch (status) {
-    case false: return 'success'
-    case true: return 'warning'
-    case 'Open': return 'error'
-    case 'Resolved': return 'info'
-    case 'Acknowledged': return 'success'
-    default: return 'info'
+  case false: return 'success'
+  case true: return 'warning'
+  case 'Open': return 'error'
+  case 'Resolved': return 'info'
+  case 'Acknowledged': return 'success'
+  default: return 'info'
   }
 }
 
@@ -88,7 +88,7 @@ const handleUpdate = alarmLog => {
   showNoteDialog.value = true
 }
 
-const handleUpdateAction = async (note) => {
+const handleUpdateAction = async note => {
   let actionResult = await updateAlarmLog({
     id: selectedAlarmLog.value.id,
     note: note,
@@ -97,8 +97,6 @@ const handleUpdateAction = async (note) => {
     showNoteDialog.value = false
   }
 }
-
-
 </script>
 
 
@@ -117,33 +115,55 @@ const handleUpdateAction = async (note) => {
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
-          <AppSelect v-model="itemsPerPage" :items="ITEMS_PER_PAGE_OPTIONS" style="inline-size: 5.5rem;" />
+          <AppSelect
+            v-model="itemsPerPage"
+            :items="ITEMS_PER_PAGE_OPTIONS"
+            style="inline-size: 5.5rem;"
+          />
         </div>
 
         <!-- Right side controls -->
         <div class="d-flex gap-2 align-center flex-wrap">
-          <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
-            style="inline-size: 15.625rem;" />
+          <AppTextField
+            v-model="searchQuery"
+            clearable
+            placeholder="Search something..."
+            style="inline-size: 15.625rem;"
+          />
         </div>
       </VCardText>
 
       <VDivider />
 
       <!-- Error Alert -->
-      <VAlert v-if="errorMessage" class="mx-4 mt-4" closable type="error" @click:close="clearErrors">
+      <VAlert
+        v-if="errorMessage"
+        class="mx-4 mt-4"
+        closable
+        type="error"
+        @click:close="clearErrors"
+      >
         {{ errorMessage }}
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable :key="alarmLogs.length" :headers="headers" :items="alarmLogs ?? []" :items-per-page="itemsPerPage"
-        :loading="actionLoading" class="text-no-wrap" hide-default-footer no-data-text="No alarm logs found"
-        expand-on-click>
+      <VDataTable
+        :key="alarmLogs.length"
+        :headers="headers"
+        :items="alarmLogs ?? []"
+        :items-per-page="itemsPerPage"
+        :loading="actionLoading"
+        class="text-no-wrap"
+        hide-default-footer
+        no-data-text="No alarm logs found"
+        expand-on-click
+      >
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
         <template #item.machine_name="{ item }">
-          {{ item.parameter?.mqtt_topic?.machine?.name ?  item.parameter?.mqtt_topic?.machine?.name  : item.parameter?.machine?.name }}
+          {{ item.parameter?.mqtt_topic?.machine?.name ? item.parameter?.mqtt_topic?.machine?.name : item.parameter?.machine?.name }}
         </template>
         <template #item.parameter_name="{ item }">
           {{ item.parameter?.name }}
@@ -151,7 +171,10 @@ const handleUpdateAction = async (note) => {
 
         <template #expanded-row="{ item, columns }">
           <tr>
-            <td :colspan="columns.length" class="pa-3">
+            <td
+              :colspan="columns.length"
+              class="pa-3"
+            >
               <h2>Note</h2>
               <p class="d-flex text-wrap">
                 {{ item.note }}
@@ -161,12 +184,20 @@ const handleUpdateAction = async (note) => {
         </template>
 
         <template #item.is_active="{ item }">
-          <VChip :color="getStatusColor(item.is_active)" variant="tonal" class="status-chip">
+          <VChip
+            :color="getStatusColor(item.is_active)"
+            variant="tonal"
+            class="status-chip"
+          >
             {{ item.is_active ? 'Active' : 'Inactive' }}
           </VChip>
         </template>
         <template #item.status="{ item }">
-          <VChip :color="getStatusColor(item.status)" variant="tonal" class="status-chip">
+          <VChip
+            :color="getStatusColor(item.status)"
+            variant="tonal"
+            class="status-chip"
+          >
             {{ item.status }}
           </VChip>
         </template>
@@ -189,7 +220,6 @@ const handleUpdateAction = async (note) => {
         </template>
         <template #item.acknowledged_at="{ item }">
           {{ item.acknowledged_at ? format(new Date(item.acknowledged_at), 'dd MMM yyyy HH:mm:ss') : "" }}
-
         </template>
         <template #header.actions>
           <div class="text-center w-100">
@@ -198,32 +228,52 @@ const handleUpdateAction = async (note) => {
         </template>
         <template #item.actions="{ item }">
           <div class="d-flex justify-center gap-1">
-            <VBtn v-if="item?.status !== 'Finished' && item?.is_active" icon color="success" variant="text"
-              @click="handleUpdate(item)">
-              <VIcon icon="tabler-check" size="18" />
-              <VTooltip activator="parent" location="top">
+            <VBtn
+              v-if="item?.status !== 'Finished' && item?.is_active"
+              icon
+              color="success"
+              variant="text"
+              @click="handleUpdate(item)"
+            >
+              <VIcon
+                icon="tabler-check"
+                size="18"
+              />
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Acknowledged</span>
               </VTooltip>
             </VBtn>
-            
           </div>
         </template>
 
 
         <!-- Bottom Pagination -->
         <template #bottom>
-          <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalItems"
+          />
         </template>
       </VDataTable>
     </VCard>
   </section>
   <!-- Delete Dialog -->
-  <DeleteDialog v-model="showNoteDialog" :fields="[{
-    key: 'note',
-    label: 'Note',
-    placeholder: 'Type your note...',
-    type: 'text',
-    formErrors: formErrors
-  }]" :loading="actionLoading" message="Please provide a note before acknowledged issue" title="Acknowledged Issue"
-    @submit="handleUpdateAction" />
+  <DeleteDialog
+    v-model="showNoteDialog"
+    :fields="[{
+      key: 'note',
+      label: 'Note',
+      placeholder: 'Type your note...',
+      type: 'text',
+      formErrors: formErrors
+    }]"
+    :loading="actionLoading"
+    message="Please provide a note before acknowledged issue"
+    title="Acknowledged Issue"
+    @submit="handleUpdateAction"
+  />
 </template>

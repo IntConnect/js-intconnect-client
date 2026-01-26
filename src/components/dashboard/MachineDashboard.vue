@@ -16,15 +16,17 @@ const props = defineProps({
   systemSetting: {
     type: Object,
     required: false,
-    default: () => { }
-  }
+    default: () => { },
+  },
 })
 
 const {
   saveDashboardWidget,
 } = useManageDashboardWidget()
+
 const isRegisterDialogOpen = ref(false)
 const selectedRegister = ref({})
+
 const chartComponentMap = {
   gauge: GaugeChartWidget,
   line: EnergyLineChart,
@@ -52,20 +54,22 @@ const {
   getFormattedValueById,
   lastUpdate,
 } = useMqttConnection()
+
 const modelViewerRef = ref(null)
 
-const handleRegisterClick = (registerData) => {
+const handleRegisterClick = registerData => {
   isRegisterDialogOpen.value = true
   selectedRegister.value = registerData
 }
+
 const selectedParameterIds = ref([])
 const interval = ref([])
 
-const handleRegisterValueUpdate = (value) => {
+const handleRegisterValueUpdate = value => {
   console.log(value)
   isRegisterDialogOpen.value =false
   manageRegisterValue(selectedRegister.value.id, {
-    value: value
+    value: value,
   })
 }
 
@@ -88,6 +92,7 @@ const isDark = computed(() => {
   if (configStore.theme === 'system') {
     return theme.global.current.value.dark
   }
+  
   return configStore.theme === 'dark'
 })
 
@@ -95,25 +100,25 @@ const isDark = computed(() => {
 const overlayBgColor = computed(() => 
   isDark.value 
     ? 'rgba(211, 47, 47, 0.15)' 
-    : 'rgba(211, 47, 47, 0.08)'
+    : 'rgba(211, 47, 47, 0.08)',
 )
 
 const cardBorderColor = computed(() =>
   isDark.value
     ? 'rgb(211, 47, 47)'
-    : 'rgb(244, 67, 54)'
+    : 'rgb(244, 67, 54)',
 )
 
 const alarmDetailsBg = computed(() =>
   isDark.value
     ? 'rgba(255, 255, 255, 0.05)'
-    : 'rgba(0, 0, 0, 0.03)'
+    : 'rgba(0, 0, 0, 0.03)',
 )
 
 const tableHighlightBg = computed(() =>
   isDark.value
     ? 'rgba(211, 47, 47, 0.05)'
-    : 'rgba(211, 47, 47, 0.03)'
+    : 'rgba(211, 47, 47, 0.03)',
 )
 
 // WebSocket Alarm Connection
@@ -156,18 +161,20 @@ const connectAlarmWebSocket = () => {
     alarmSocket.value = new WebSocket('ws://localhost:8181/ws')
 
     alarmSocket.value.onopen = () => {
-          readyState.value = alarmSocket.value.readyState // 1
+      readyState.value = alarmSocket.value.readyState // 1
 
       console.log('Alarm WebSocket Connected')
     }
 
-    alarmSocket.value.onmessage = (event) => {
+    alarmSocket.value.onmessage = event => {
       console.log(alarmSocket.value.readyState)
       try {
         const data = JSON.parse(event.data)
-console.log(data)
+
+        console.log(data)
         if (data.type === 'CREATED') {
           const parameter = getParameterById(data.parameter_id)
+
           const newAlarm = {
             id: data.id,
             parameter_id: data.parameter_id,
@@ -177,7 +184,7 @@ console.log(data)
             unit: parameter?.unit || '',
             status: data.status,
             timestamp: data.timestamp,
-            acknowledged: false
+            acknowledged: false,
           }
           
           processedAlarmLogs.value.push(newAlarm)
@@ -192,6 +199,7 @@ console.log(data)
           // Play alarm sound
           if (alarmAudio.value) {
             alarmAudio.value()
+
             // Repeat sound 3 times
             setTimeout(() => alarmAudio.value?.(), 600)
             setTimeout(() => alarmAudio.value?.(), 1200)
@@ -200,30 +208,32 @@ console.log(data)
             }, 3000)
           }
         }else{
-         const indexOfUpdatedAlarmLog =  processedAlarmLogs.value.findIndex(alarmLog => alarmLog.parameter_id == data.parameter_id)
-         console.log(indexOfUpdatedAlarmLog)
-         processedAlarmLogs.value[indexOfUpdatedAlarmLog] = {
-          ...processedAlarmLogs.value[indexOfUpdatedAlarmLog],
-          value: data.value,
+          const indexOfUpdatedAlarmLog =  processedAlarmLogs.value.findIndex(alarmLog => alarmLog.parameter_id == data.parameter_id)
+
+          console.log(indexOfUpdatedAlarmLog)
+          processedAlarmLogs.value[indexOfUpdatedAlarmLog] = {
+            ...processedAlarmLogs.value[indexOfUpdatedAlarmLog],
+            value: data.value,
             timestamp: data.timestamp,
             status: data.status,
-         }
+          }
         }
       } catch (error) {
         console.error('Error parsing alarm data:', error)
       }
     }
 
-    alarmSocket.value.onerror = (error) => {
+    alarmSocket.value.onerror = error => {
       console.error('Alarm WebSocket Error:', error)
-          readyState.value = alarmSocket.value.readyState
+      readyState.value = alarmSocket.value.readyState
 
     }
 
     alarmSocket.value.onclose = () => {
       console.log('Alarm WebSocket Disconnected')
+
       // Reconnect after 5 seconds
-          readyState.value = alarmSocket.value.readyState // 3
+      readyState.value = alarmSocket.value.readyState // 3
 
       setTimeout(() => {
         if (alarmSocket.value?.readyState === 3) { // 3 = CLOSED
@@ -236,7 +246,7 @@ console.log(data)
   }
 }
 
-const acknowledgeAlarm = (alarmId) => {
+const acknowledgeAlarm = alarmId => {
   const alarm = alarms.value.find(a => a.id === alarmId)
   if (alarm) {
     alarm.acknowledged = true
@@ -256,25 +266,27 @@ const dismissAlarmOverlay = () => {
   activeAlarm.value = null
 }
 
-const getAlarmSeverityColor = (status) => {
+const getAlarmSeverityColor = status => {
   return status === 'Open' ? 'error' : 'warning'
 }
 
-const formatAlarmTime = (timestamp) => {
+const formatAlarmTime = timestamp => {
   const date = new Date(timestamp)
+  
   return date.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
+    second: '2-digit',
   })
 }
 
-const formatAlarmDate = (timestamp) => {
+const formatAlarmDate = timestamp => {
   const date = new Date(timestamp)
+  
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   })
 }
 
@@ -308,7 +320,7 @@ watch(
       })
     })
     realtimeData.value = newData
-          modelViewerRef.value.updateParameterMarkers(newData)
+    modelViewerRef.value.updateParameterMarkers(newData)
 
   },
   { deep: true },
@@ -317,10 +329,12 @@ watch(
 const processedMachine = computed(() => {
   if (!machine?.value?.entry) return null
   const rawProcessedMachine = machine.value.entry
+
   console.log(rawProcessedMachine)
   if (rawProcessedMachine) {
     connectMQTT(rawProcessedMachine)
   }
+  
   return rawProcessedMachine
 })
 
@@ -353,8 +367,9 @@ watch(
         : [row.config.dataSourceIds],
     }))
   },
-  { immediate: true }
+  { immediate: true },
 )
+
 // Computed
 const availableParameters = computed(() => parameters.value || [])
 
@@ -383,13 +398,15 @@ const isDataReady = computed(() => {
 
 const processedAlarmLogs = ref([])
 const processedParameters = ref([])
+
 onMounted(async () => {
   let machineId = props.systemSetting.entry.value.machine_id
   let actionResult = await fetchMachine(machineId)
   let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId)
   await nextTick()
-  processedAlarmLogs.value = alarmLogs.value.entries.map((alarmLog) => {
+  processedAlarmLogs.value = alarmLogs.value.entries.map(alarmLog => {
     const parameter = getParameterById(alarmLog.parameter_id)
+    
     return {
       id: alarmLog.id,
       parameter_id: alarmLog.parameter_id,
@@ -399,14 +416,14 @@ onMounted(async () => {
       unit: parameter?.unit || '',
       status: alarmLog.status,
       timestamp: alarmLog.created_at,
-      acknowledged: false
+      acknowledged: false,
     }
   }) ?? []
   console.log(processedMachine)
   processedParameters.value = processedMachine.value.mqtt_topic.parameters.map(parameter => {
     return {
       id: parameter.id,
-      title: parameter.code
+      title: parameter.code,
     }
   })
 
@@ -415,6 +432,7 @@ onMounted(async () => {
 })
 
 const lineSeriesStore = ref({})
+
 watch(
   mqttData,
   newVal => {
@@ -429,6 +447,7 @@ watch(
       }
 
       const series = lineSeriesStore.value[param.code]
+
       // Sliding window
       if (series.length >= 20) {
         series.shift()
@@ -470,7 +489,7 @@ const getWidgetProps = computed(() => {
             name: p.name,
             data: lineSeriesStore.value[p.code] ?? [],
           }
-        })
+        }),
       }
     }
 
@@ -478,6 +497,7 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
+      
       return {
         title: widget.title,
         subtitle: parameter?.name || widget.subtitle,
@@ -516,7 +536,7 @@ const getWidgetProps = computed(() => {
             name: p.name,
             data: lineSeriesStore.value[p.code] ?? [],
           }
-        })
+        }),
       }
     }
 
@@ -562,8 +582,15 @@ const gridMinHeight = computed(() => {
         >
           <VCardText class="pa-6">
             <div class="d-flex align-center mb-4">
-              <VAvatar color="error" size="64" class="mr-4 alarm-icon-pulse">
-                <VIcon icon="tabler-alert-triangle" size="40" />
+              <VAvatar
+                color="error"
+                size="64"
+                class="mr-4 alarm-icon-pulse"
+              >
+                <VIcon
+                  icon="tabler-alert-triangle"
+                  size="40"
+                />
               </VAvatar>
               <div class="flex-grow-1">
                 <div class="text-h5 font-weight-bold text-error mb-1">
@@ -583,29 +610,47 @@ const gridMinHeight = computed(() => {
               :style="{ backgroundColor: alarmDetailsBg }"
             >
               <VRow dense>
-                <VCol cols="12" class="mb-2">
-                  <div class="text-caption text-medium-emphasis">Parameter</div>
+                <VCol
+                  cols="12"
+                  class="mb-2"
+                >
+                  <div class="text-caption text-medium-emphasis">
+                    Parameter
+                  </div>
                   <div class="text-h6 font-weight-medium">
                     {{ activeAlarm.parameter_name }}
                   </div>
                 </VCol>
 
                 <VCol cols="6">
-                  <div class="text-caption text-medium-emphasis">Value</div>
+                  <div class="text-caption text-medium-emphasis">
+                    Value
+                  </div>
                   <div class="text-h5 text-error font-weight-bold">
                     {{ activeAlarm.value }} {{ activeAlarm.unit }}
                   </div>
                 </VCol>
 
                 <VCol cols="6">
-                  <div class="text-caption text-medium-emphasis">Status</div>
-                  <VChip color="error" size="small" class="mt-1">
+                  <div class="text-caption text-medium-emphasis">
+                    Status
+                  </div>
+                  <VChip
+                    color="error"
+                    size="small"
+                    class="mt-1"
+                  >
                     {{ activeAlarm.status }}
                   </VChip>
                 </VCol>
 
-                <VCol cols="12" class="mt-2">
-                  <div class="text-caption text-medium-emphasis">Time</div>
+                <VCol
+                  cols="12"
+                  class="mt-2"
+                >
+                  <div class="text-caption text-medium-emphasis">
+                    Time
+                  </div>
                   <div class="text-body-2">
                     {{ formatAlarmDate(activeAlarm.timestamp) }} at {{ formatAlarmTime(activeAlarm.timestamp) }}
                   </div>
@@ -614,45 +659,59 @@ const gridMinHeight = computed(() => {
             </div>
 
             <VDivider class="my-4" />
-
-           
           </VCardText>
         </VCard>
       </div>
     </VOverlay>
 
-    <VRow  class="match-height">
+    <VRow class="match-height">
       <!-- LEFT -->
-      <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
-       
+      <VCol
+        cols="12"
+        lg="6"
+        md="6"
+        class="d-flex flex-column"
+      >
         <ThreeDimensionModelRenderer
   
-                        ref="modelViewerRef"
-                        v-if="processedMachine !== null"
+          v-if="processedMachine !== null"
+          ref="modelViewerRef"
           :model-path="processedMachine.model_path"
                         
-                        :clickable="false"
+          :clickable="false"
                       
-  :camera-position="{
+          :camera-position="{
             x: processedMachine.camera_x,
             y: processedMachine.camera_y,
             z: processedMachine.camera_z + 7
-          }"                        container-height="80vh"
+          }"
+          container-height="80vh"
           :parameters="processedMachine.parameters"
           :registers="processedMachine.registers"
-            @register-click="handleRegisterClick"
-
-                      />
+          @register-click="handleRegisterClick"
+        />
       </VCol>
 
       <!-- RIGHT -->
-      <VCol cols="6" md="6" sm="6" class="d-flex flex-column">
+      <VCol
+        cols="6"
+        md="6"
+        sm="6"
+        class="d-flex flex-column"
+      >
         <VRow class="match-height flex-grow-1">
           <VCol cols="12">
-            <StateCards v-if="machineState !== null" :machine="machineState" :running-times="runningTimes"
-              :is-edit-mode="false" />
-                <RealtimeTable :realtime-data="realtimeData" :last-update="lastUpdate" />
-              </VCol>
+            <StateCards
+              v-if="machineState !== null"
+              :machine="machineState"
+              :running-times="runningTimes"
+              :is-edit-mode="false"
+            />
+            <RealtimeTable
+              :realtime-data="realtimeData"
+              :last-update="lastUpdate"
+            />
+          </VCol>
         </VRow>
       </VCol>
     </VRow>
@@ -663,46 +722,102 @@ const gridMinHeight = computed(() => {
         <VCard>
           <VCardTitle class="d-flex align-center justify-space-between pa-4">
             <div class="d-flex align-center">
-              <VIcon icon="tabler-bell" class="mr-2" color="error" />
+              <VIcon
+                icon="tabler-bell"
+                class="mr-2"
+                color="error"
+              />
               <span class="text-h6">System Alarms</span>
-              <VBadge v-if="openAlarms.length > 0" :content="openAlarms.length" color="error" class="ml-3" />
+              <VBadge
+                v-if="openAlarms.length > 0"
+                :content="openAlarms.length"
+                color="error"
+                class="ml-3"
+              />
             </div>
-           <VChip v-if="readyState === 1" color="success" size="small" variant="tonal">
-  <VIcon icon="tabler-wifi" size="16" class="mr-1" />
-  Connected
-</VChip>
+            <VChip
+              v-if="readyState === 1"
+              color="success"
+              size="small"
+              variant="tonal"
+            >
+              <VIcon
+                icon="tabler-wifi"
+                size="16"
+                class="mr-1"
+              />
+              Connected
+            </VChip>
 
-<VChip v-else-if="readyState === 0" color="warning" size="small" variant="tonal">
-  <VIcon icon="tabler-loader" size="16" class="mr-1" />
-  Connecting
-</VChip>
+            <VChip
+              v-else-if="readyState === 0"
+              color="warning"
+              size="small"
+              variant="tonal"
+            >
+              <VIcon
+                icon="tabler-loader"
+                size="16"
+                class="mr-1"
+              />
+              Connecting
+            </VChip>
 
-<VChip v-else color="error" size="small" variant="tonal">
-  <VIcon icon="tabler-wifi-off" size="16" class="mr-1" />
-  Disconnected
-</VChip>
+            <VChip
+              v-else
+              color="error"
+              size="small"
+              variant="tonal"
+            >
+              <VIcon
+                icon="tabler-wifi-off"
+                size="16"
+                class="mr-1"
+              />
+              Disconnected
+            </VChip>
           </VCardTitle>
 
           <VDivider />
 
           <VCardText class="pa-0">
-            <div v-if="processedAlarmLogs.length === 0" class="text-center py-12">
-              <VAvatar color="success" variant="tonal" size="80" class="mb-4">
-                <VIcon icon="tabler-check" size="40" />
+            <div
+              v-if="processedAlarmLogs.length === 0"
+              class="text-center py-12"
+            >
+              <VAvatar
+                color="success"
+                variant="tonal"
+                size="80"
+                class="mb-4"
+              >
+                <VIcon
+                  icon="tabler-check"
+                  size="40"
+                />
               </VAvatar>
-              <div class="text-h6 text-medium-emphasis mb-2">No Alarms</div>
-              <div class="text-body-2 text-disabled">System is operating normally</div>
+              <div class="text-h6 text-medium-emphasis mb-2">
+                No Alarms
+              </div>
+              <div class="text-body-2 text-disabled">
+                System is operating normally
+              </div>
             </div>
 
-            <VTable v-else class="alarm-table mb-2">
+            <VTable
+              v-else
+              class="alarm-table mb-2"
+            >
               <thead>
                 <tr>
-                  <th width="50"></th>
+                  <th width="50" />
                   <th>Parameter</th>
                   <th>Value</th>
                   <th>Status</th>
                   <th>Timestamp</th>
-                  <th width="120">Action</th>
+                  <th width="120">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -720,37 +835,71 @@ const gridMinHeight = computed(() => {
                   "
                 >
                   <td>
-                    <VIcon :icon="alarm.status === 'Open' ? 'tabler-alert-triangle' : 'tabler-alert-circle'"
+                    <VIcon
+                      :icon="alarm.status === 'Open' ? 'tabler-alert-triangle' : 'tabler-alert-circle'"
                       :color="getAlarmSeverityColor(alarm.status)"
-                      :class="{ 'alarm-icon-pulse': alarm.status === 'Open' && !alarm.acknowledged }" />
+                      :class="{ 'alarm-icon-pulse': alarm.status === 'Open' && !alarm.acknowledged }"
+                    />
                   </td>
                   <td>
-                    <div class="font-weight-medium">{{ alarm.parameter_name }}</div>
-                    <div class="text-caption text-disabled">{{ alarm.parameter_code }}</div>
+                    <div class="font-weight-medium">
+                      {{ alarm.parameter_name }}
+                    </div>
+                    <div class="text-caption text-disabled">
+                      {{ alarm.parameter_code }}
+                    </div>
                   </td>
                   <td>
-                    <span class="font-weight-bold" :class="{ 'text-error': alarm.status === 'Open' }">
+                    <span
+                      class="font-weight-bold"
+                      :class="{ 'text-error': alarm.status === 'Open' }"
+                    >
                       {{ alarm.value }} {{ alarm.unit }}
                     </span>
                   </td>
                   <td>
-                    <VChip :color="getAlarmSeverityColor(alarm.status)" size="small"
-                      :variant="alarm.acknowledged ? 'tonal' : 'flat'">
+                    <VChip
+                      :color="getAlarmSeverityColor(alarm.status)"
+                      size="small"
+                      :variant="alarm.acknowledged ? 'tonal' : 'flat'"
+                    >
                       {{ alarm.status }}
                     </VChip>
                   </td>
                   <td>
-                    <div class="text-body-2">{{ formatAlarmDate(alarm.timestamp) }}</div>
-                    <div class="text-caption text-disabled">{{ formatAlarmTime(alarm.timestamp) }}</div>
+                    <div class="text-body-2">
+                      {{ formatAlarmDate(alarm.timestamp) }}
+                    </div>
+                    <div class="text-caption text-disabled">
+                      {{ formatAlarmTime(alarm.timestamp) }}
+                    </div>
                   </td>
                   <td>
-                    <VBtn v-if="!alarm.acknowledged && alarm.status === 'Open'" size="small" color="error"
-                      variant="tonal" @click="acknowledgeAlarm(alarm.id)">
-                      <VIcon icon="tabler-check" size="18" class="mr-1" />
+                    <VBtn
+                      v-if="!alarm.acknowledged && alarm.status === 'Open'"
+                      size="small"
+                      color="error"
+                      variant="tonal"
+                      @click="acknowledgeAlarm(alarm.id)"
+                    >
+                      <VIcon
+                        icon="tabler-check"
+                        size="18"
+                        class="mr-1"
+                      />
                       ACK
                     </VBtn>
-                    <VChip v-else size="small" color="success" variant="tonal">
-                      <VIcon icon="tabler-check" size="16" class="mr-1" />
+                    <VChip
+                      v-else
+                      size="small"
+                      color="success"
+                      variant="tonal"
+                    >
+                      <VIcon
+                        icon="tabler-check"
+                        size="16"
+                        class="mr-1"
+                      />
                       Acknowledged
                     </VChip>
                   </td>
@@ -763,28 +912,69 @@ const gridMinHeight = computed(() => {
     </VRow>
 
     <VRow>
-      <VCol cols="12" md="12" sm="12" class="">
-        <div v-if="layout.length > 0" :style="{ minHeight: gridMinHeight }">
-          <GridLayout v-model:layout="layout" :col-num="12" :row-height="30" :is-resizable="false" :is-draggable="false"
-            vertical-compact use-css-transforms :margin="[16, 16]" :container-padding="[0, 0]">
-            <GridItem v-for="widget in layout" :key="widget.i" :x="widget.x" :y="widget.y" :w="widget.w" :h="widget.h"
-              :i="widget.i" class="grid-item-wrapper">
+      <VCol
+        cols="12"
+        md="12"
+        sm="12"
+        class=""
+      >
+        <div
+          v-if="layout.length > 0"
+          :style="{ minHeight: gridMinHeight }"
+        >
+          <GridLayout
+            v-model:layout="layout"
+            :col-num="12"
+            :row-height="30"
+            :is-resizable="false"
+            :is-draggable="false"
+            vertical-compact
+            use-css-transforms
+            :margin="[16, 16]"
+            :container-padding="[0, 0]"
+          >
+            <GridItem
+              v-for="widget in layout"
+              :key="widget.i"
+              :x="widget.x"
+              :y="widget.y"
+              :w="widget.w"
+              :h="widget.h"
+              :i="widget.i"
+              class="grid-item-wrapper"
+            >
               <div class="preview-content text-center">
-                <component :is="chartComponentMap[widget.type]" v-if="isDataReady && chartComponentMap[widget.type]"
-                  v-bind="getWidgetProps(widget)" />
+                <component
+                  :is="chartComponentMap[widget.type]"
+                  v-if="isDataReady && chartComponentMap[widget.type]"
+                  v-bind="getWidgetProps(widget)"
+                />
 
-                <div v-else class="text-caption text-grey">
+                <div
+                  v-else
+                  class="text-caption text-grey"
+                >
                   Loading data...
                 </div>
               </div>
             </GridItem>
           </GridLayout>
         </div>
-        <VCard v-else class="empty-state-card text-center py-16 mt-5">
+        <VCard
+          v-else
+          class="empty-state-card text-center py-16 mt-5"
+        >
           <VCardText>
             <div class="mb-4">
-              <VAvatar color="success" variant="tonal" size="120">
-                <VIcon icon="tabler-chart-dots" size="64" />
+              <VAvatar
+                color="success"
+                variant="tonal"
+                size="120"
+              >
+                <VIcon
+                  icon="tabler-chart-dots"
+                  size="64"
+                />
               </VAvatar>
             </div>
             <h3 class="text-h4 font-weight-bold mb-2">
@@ -797,15 +987,14 @@ const gridMinHeight = computed(() => {
         </VCard>
       </VCol>
     </VRow>
-      <VRow class="match-height">
+    <VRow class="match-height">
       <VCol cols="12">
         <h3 class="text-h4">
           Administrative Insights
         </h3>
       </VCol>
-
     </VRow>
-     <VRow>
+    <VRow>
       <VCol
         cols="12"
         lg="12"
@@ -825,17 +1014,15 @@ const gridMinHeight = computed(() => {
                 lg="12"
                 md="12"
               >
-               
                 <AppSelect
                   v-model="selectedParameterIds"
                   :items="processedParameters"
                   :rules="[requiredValidator]"
                   label="Parameter"
                   placeholder="Select parameter"
-                    chips
+                  chips
                   closable-chips
                   multiple
-
                 />
                 <AppTextField
                   v-model="interval"
@@ -853,24 +1040,12 @@ const gridMinHeight = computed(() => {
                 </VBtn>
               </VCol>
             </VRow>
-
-
-
-
-
-
-
-
-
-
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
    
     <VRow class="match-height">
-      
-
       <VCol
         class="d-flex"
         cols="12"
@@ -900,7 +1075,7 @@ const gridMinHeight = computed(() => {
           </VCardItem>
 
           <VCardText>
-            <RealtimeAverageChart mode="realtime"/>
+            <RealtimeAverageChart mode="realtime" />
           </VCardText>
         </VCard>
       </VCol>
@@ -924,8 +1099,6 @@ const gridMinHeight = computed(() => {
 
                   color="success"
                   label
-
-
                 >
                   <VIcon
                     icon="tabler-arrow-up"
@@ -934,14 +1107,11 @@ const gridMinHeight = computed(() => {
                   />
                   <span>22</span>
                 </VChip>
-
-
-
               </div>
             </template>
           </VCardItem>
           <VCardText>
-          <RealtimeAverageChart/>
+            <RealtimeAverageChart />
           </VCardText>
         </VCard>
       </VCol>
@@ -975,20 +1145,18 @@ const gridMinHeight = computed(() => {
           </VCardItem>
 
           <VCardText>
-          <RealtimeAverageChart/>
+            <RealtimeAverageChart />
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
-    
   </div>
   <ManageRegisterValueDialog
-      v-model:is-dialog-visible="isRegisterDialogOpen"
+    v-model:is-dialog-visible="isRegisterDialogOpen"
 
-  :register="selectedRegister"
-  @submit:value="handleRegisterValueUpdate"
+    :register="selectedRegister"
+    @submit:value="handleRegisterValueUpdate"
   />
-
 </template>
 
 <style scoped>

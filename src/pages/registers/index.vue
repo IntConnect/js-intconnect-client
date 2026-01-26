@@ -206,7 +206,8 @@ onMounted(async () => {
           <VBtn
             :loading="actionLoading"
             color="primary"
-                       :to="{ name: 'register-create'}">
+            :to="{ name: 'register-create'}"
+          >
             New Register
           </VBtn>
         </div>
@@ -262,7 +263,7 @@ onMounted(async () => {
               icon
               size="small"
               variant="text"
-                :to="{ name: 'register-edit', params: { id: item.id } }"
+              :to="{ name: 'register-edit', params: { id: item.id } }"
             >
               <VIcon
                 icon="tabler-pencil"
@@ -304,15 +305,13 @@ onMounted(async () => {
         placeholder: 'Type your reason...',
         type: 'text',
       }]"
-        :form-errors="formErrors"
+      :form-errors="formErrors"
 
       :loading="actionLoading"
       message="Please provide a reason for deletion"
       title="Delete Register"
       @submit="handleDeleteRegister"
     />
-
-  
   </section>
   <AlertDialog
     v-model:is-dialog-visible="showAlertDialog"

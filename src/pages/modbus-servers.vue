@@ -130,12 +130,12 @@ const handleSaveModbusServer = async modbusServerData => {
     showAlertDialog.value = true
     titleAlert.value = 'Success manage Modbus Server'
     bodyAlert.value = 'Modbus server has been created'
-alertType.value = 'info'
+    alertType.value = 'info'
   } else {
-        showAlertDialog.value = true
+    showAlertDialog.value = true
     titleAlert.value = 'Failed manage Modbus Server'
     bodyAlert.value = 'Modbus server failed to be deleted'
-alertType.value = 'delete'
+    alertType.value = 'delete'
 
 
     console.error('Failed to save modbusServer:', result.error || result.errors)
@@ -272,7 +272,10 @@ onMounted(() => {
                 icon="tabler-pencil"
                 size="20"
               />
-                  <VTooltip activator="parent" location="top">
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Edit</span>
               </VTooltip>
             </VBtn>
@@ -287,7 +290,10 @@ onMounted(() => {
                 icon="tabler-trash"
                 size="20"
               />
-                  <VTooltip activator="parent" location="top">
+              <VTooltip
+                activator="parent"
+                location="top"
+              >
                 <span>Delete</span>
               </VTooltip>
             </VBtn>
@@ -315,7 +321,7 @@ onMounted(() => {
         type: 'text'
       }]"
       :loading="actionLoading"
-        :form-errors="formErrors"
+      :form-errors="formErrors"
       message="Please provide a reason for deletion"
       title="Delete Modbus Server"
       @submit="handleDeleteModbusServer"
@@ -331,6 +337,10 @@ onMounted(() => {
       @modbus-server-data="handleSaveModbusServer"
     />
   </section>
-   <AlertDialog v-model:is-dialog-visible="showAlertDialog" :body-alert="bodyAlert" :title-alert="titleAlert"
-    :type="alertType" />
+  <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :body-alert="bodyAlert"
+    :title-alert="titleAlert"
+    :type="alertType"
+  />
 </template>

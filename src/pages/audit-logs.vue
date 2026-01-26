@@ -77,7 +77,6 @@ const normalizeCompareData = item => {
     after: after[key] ?? '—',
   }))
 }
-
 </script>
 
 
@@ -96,44 +95,76 @@ const normalizeCompareData = item => {
         <!-- Items per page selector -->
         <div class="d-flex gap-2 align-center">
           <span class="text-body-1">Show</span>
-          <AppSelect v-model="itemsPerPage" :items="ITEMS_PER_PAGE_OPTIONS" style="inline-size: 5.5rem;" />
+          <AppSelect
+            v-model="itemsPerPage"
+            :items="ITEMS_PER_PAGE_OPTIONS"
+            style="inline-size: 5.5rem;"
+          />
         </div>
 
         <!-- Right side controls -->
         <div class="d-flex gap-2 align-center flex-wrap">
-          <AppTextField v-model="searchQuery" clearable placeholder="Search something..."
-            style="inline-size: 15.625rem;" />
+          <AppTextField
+            v-model="searchQuery"
+            clearable
+            placeholder="Search something..."
+            style="inline-size: 15.625rem;"
+          />
         </div>
       </VCardText>
 
       <VDivider />
 
       <!-- Error Alert -->
-      <VAlert v-if="errorMessage" class="mx-4 mt-4" closable type="error" @click:close="clearErrors">
+      <VAlert
+        v-if="errorMessage"
+        class="mx-4 mt-4"
+        closable
+        type="error"
+        @click:close="clearErrors"
+      >
         {{ errorMessage }}
       </VAlert>
 
       <!-- Data Table -->
-      <VDataTable :key="auditLogs.length" :headers="headers" :items="auditLogs" :items-per-page="itemsPerPage"
-        :loading="actionLoading" class="text-no-wrap" hide-default-footer no-data-text="No audit logs found"
-        expand-on-click>
+      <VDataTable
+        :key="auditLogs.length"
+        :headers="headers"
+        :items="auditLogs"
+        :items-per-page="itemsPerPage"
+        :loading="actionLoading"
+        class="text-no-wrap"
+        hide-default-footer
+        no-data-text="No audit logs found"
+        expand-on-click
+      >
         <!-- ID Column -->
         <template #item.id="{ index }">
           {{ (page - 1) * itemsPerPage + index + 1 }}
         </template>
         <template #expanded-row="{ item }">
           <tr class="v-data-table__tr">
-            <td :colspan="headers.length" class="pa-4">
+            <td
+              :colspan="headers.length"
+              class="pa-4"
+            >
               <VTable density="compact">
                 <thead>
                   <tr>
                     <th>Field</th>
-                    <th class="text-error">Before</th>
-                    <th class="text-success">After</th>
+                    <th class="text-error">
+                      Before
+                    </th>
+                    <th class="text-success">
+                      After
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="row in normalizeCompareData(item)" :key="row.field">
+                  <tr
+                    v-for="row in normalizeCompareData(item)"
+                    :key="row.field"
+                  >
                     <td class="font-weight-medium">
                       {{ row.field }}
                     </td>
@@ -168,7 +199,11 @@ const normalizeCompareData = item => {
         </template>
 
         <template #bottom>
-          <TablePagination v-model:page="page" :items-per-page="itemsPerPage" :total-items="totalItems" />
+          <TablePagination
+            v-model:page="page"
+            :items-per-page="itemsPerPage"
+            :total-items="totalItems"
+          />
         </template>
       </VDataTable>
     </VCard>

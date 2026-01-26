@@ -164,7 +164,7 @@ onMounted(async () => {
       processedParameterSequences.value = processedParameter.processed_parameter_sequence?.map(processedParameterSequence => {
         return {
           type: processedParameterSequence.type,
-          parameter_id: processedParameterSequence.parameter_id
+          parameter_id: processedParameterSequence.parameter_id,
         }
       })
     } else {
@@ -192,6 +192,7 @@ const setPositionFromClick = () => {
     bodyAlert.value = 'Fill Name and Unit First!'
     titleAlert.value = "Invalid Input"
     alertType.value = 'error'
+    
     return
   }
   
@@ -202,7 +203,7 @@ const setPositionFromClick = () => {
   }
 }
 
-const handlePositionClick = (data) => {
+const handlePositionClick = data => {
   // Set position
   positionX.value = Number(data.position.x.toFixed(4))
   positionY.value = Number(data.position.y.toFixed(4))
@@ -284,6 +285,7 @@ const onSubmit = () => {
 watch(machineId, async value => {
   if (!value) {
     modelPath.value = ''
+    
     return
   }
 
@@ -308,10 +310,10 @@ watch(parameters, () => {
   const list = parameters.value['entries']
 
   if (!Array.isArray(list)) return []
-  processedParameters.value = list.map((parameter) => {
+  processedParameters.value = list.map(parameter => {
     return {
       title: parameter.code,
-      value: parameter.id
+      value: parameter.id,
     }
   })
 })
@@ -346,15 +348,26 @@ function removeOperation(index) {
   </VCol>
   
   <div class="mb-6 d-flex justify-center">
-    <AppStepper v-model:current-step="currentStep" :items="numberedSteps" align="start" />
+    <AppStepper
+      v-model:current-step="currentStep"
+      :items="numberedSteps"
+      align="start"
+    />
   </div>
 
   <VRow>
     <VCol cols="12">
       <VCard>
         <VCardText>
-          <VForm ref="refForm" lazy-validation @submit.prevent="onSubmit">
-            <VWindow v-model="currentStep" class="disable-tab-transition">
+          <VForm
+            ref="refForm"
+            lazy-validation
+            @submit.prevent="onSubmit"
+          >
+            <VWindow
+              v-model="currentStep"
+              class="disable-tab-transition"
+            >
               <!-- STEP 1: Parameter Details -->
               <VWindowItem>
                 <VCol>
@@ -376,7 +389,10 @@ function removeOperation(index) {
                     />
                   </VCol>
                   
-                  <VCol v-if="isAutomatic" cols="12">
+                  <VCol
+                    v-if="isAutomatic"
+                    cols="12"
+                  >
                     <AppSelect 
                       v-model="mqttTopicId" 
                       :error="!!formErrors.mqtt_topic_id"
@@ -471,35 +487,96 @@ function removeOperation(index) {
                     />
                   </VCol>
                   
-                  <VCol cols="12" class="pa-0">
+                  <VCol
+                    cols="12"
+                    class="pa-0"
+                  >
                     <VRow>
-                      <VCol cols="6" md="6">
-                        <VCol cols="6" md="6">
-                          <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Running Time" />
-                          <VSwitch v-model="isRunningTime" :label="isRunningTime ? 'Yes' : 'No'" />
+                      <VCol
+                        cols="6"
+                        md="6"
+                      >
+                        <VCol
+                          cols="6"
+                          md="6"
+                        >
+                          <VLabel
+                            class="mb-1 text-body-2 text-wrap"
+                            style="line-height: 15px;"
+                            text="Is Running Time"
+                          />
+                          <VSwitch
+                            v-model="isRunningTime"
+                            :label="isRunningTime ? 'Yes' : 'No'"
+                          />
                         </VCol>
-                        <VCol cols="6" md="6">
-                          <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Processed" />
-                          <VSwitch v-model="isProcessed" :label="isProcessed ? 'Processed Parameter' : 'Regular Parameter'" />
+                        <VCol
+                          cols="6"
+                          md="6"
+                        >
+                          <VLabel
+                            class="mb-1 text-body-2 text-wrap"
+                            style="line-height: 15px;"
+                            text="Is Processed"
+                          />
+                          <VSwitch
+                            v-model="isProcessed"
+                            :label="isProcessed ? 'Processed Parameter' : 'Regular Parameter'"
+                          />
                         </VCol>
-                        <VBtn v-if="isProcessed" block color="primary" variant="tonal" @click="addOperation">
+                        <VBtn
+                          v-if="isProcessed"
+                          block
+                          color="primary"
+                          variant="tonal"
+                          @click="addOperation"
+                        >
                           Add Operation
                         </VBtn>
                       </VCol>
                       
-                      <VCol cols="6" class="mt-4">
-                        <VRow v-if="isProcessed" v-for="(op, i) in processedParameterSequences" :key="i" class="align-center mb-4">
+                      <VCol
+                        cols="6"
+                        class="mt-4"
+                      >
+                        <VRow
+                          v-for="(op, i) in processedParameterSequences"
+                          v-if="isProcessed"
+                          :key="i"
+                          class="align-center mb-4"
+                        >
                           <VCol cols="5">
-                            <VSelect v-model="op.type" :items="availableOps" label="Operation Type" density="comfortable" />
+                            <VSelect
+                              v-model="op.type"
+                              :items="availableOps"
+                              label="Operation Type"
+                              density="comfortable"
+                            />
                           </VCol>
 
                           <VCol cols="5">
-                            <VSelect v-model.number="op.parameter_id" :items="processedParameters" density="comfortable" label="Parameter" />
+                            <VSelect
+                              v-model.number="op.parameter_id"
+                              :items="processedParameters"
+                              density="comfortable"
+                              label="Parameter"
+                            />
                           </VCol>
 
-                          <VCol cols="2" class="text-center">
-                            <VBtn icon size="small" color="error" @click="removeOperation(i)">
-                              <VIcon icon="tabler-trash" size="20" />
+                          <VCol
+                            cols="2"
+                            class="text-center"
+                          >
+                            <VBtn
+                              icon
+                              size="small"
+                              color="error"
+                              @click="removeOperation(i)"
+                            >
+                              <VIcon
+                                icon="tabler-trash"
+                                size="20"
+                              />
                             </VBtn>
                           </VCol>
                         </VRow>
@@ -509,26 +586,66 @@ function removeOperation(index) {
 
                   <VCol cols="12">
                     <VRow>
-                      <VCol cols="6" md="6">
-                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Display" />
-                        <VSwitch v-model="isDisplay" :label="isDisplay ? 'Active' : 'Inactive'" />
+                      <VCol
+                        cols="6"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Display"
+                        />
+                        <VSwitch
+                          v-model="isDisplay"
+                          :label="isDisplay ? 'Active' : 'Inactive'"
+                        />
                       </VCol>
-                      <VCol cols="6" md="6">
-                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Automatic" />
-                        <VSwitch v-model="isAutomatic" :label="isAutomatic ? 'Automatic' : 'Manual'" />
+                      <VCol
+                        cols="6"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Automatic"
+                        />
+                        <VSwitch
+                          v-model="isAutomatic"
+                          :label="isAutomatic ? 'Automatic' : 'Manual'"
+                        />
                       </VCol>
                     </VRow>
                   </VCol>
                   
                   <VCol cols="12">
                     <VRow>
-                      <VCol cols="12" md="6">
-                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Watch" />
-                        <VSwitch v-model="isWatch" :label="isWatch ? 'Watch' : 'Ignore'" />
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Watch"
+                        />
+                        <VSwitch
+                          v-model="isWatch"
+                          :label="isWatch ? 'Watch' : 'Ignore'"
+                        />
                       </VCol>
-                      <VCol cols="12" md="6">
-                        <VLabel class="mb-1 text-body-2 text-wrap" style="line-height: 15px;" text="Is Featured" />
-                        <VSwitch v-model="isFeatured" :label="isFeatured ? 'Yes' : 'No'" />
+                      <VCol
+                        cols="12"
+                        md="6"
+                      >
+                        <VLabel
+                          class="mb-1 text-body-2 text-wrap"
+                          style="line-height: 15px;"
+                          text="Is Featured"
+                        />
+                        <VSwitch
+                          v-model="isFeatured"
+                          :label="isFeatured ? 'Yes' : 'No'"
+                        />
                       </VCol>
                     </VRow>
                   </VCol>
@@ -539,10 +656,18 @@ function removeOperation(index) {
               <VWindowItem>
                 <VRow>
                   <VCol cols="8">
-                    <VAlert v-if="!machineId" type="info" class="mb-4">
+                    <VAlert
+                      v-if="!machineId"
+                      type="info"
+                      class="mb-4"
+                    >
                       Please select a machine first in Step 1
                     </VAlert>
-                    <VAlert v-else-if="!modelPath" type="warning" class="mb-4">
+                    <VAlert
+                      v-else-if="!modelPath"
+                      type="warning"
+                      class="mb-4"
+                    >
                       Selected machine doesn't have a 3D model
                     </VAlert>
                     <template v-else>
@@ -577,7 +702,9 @@ function removeOperation(index) {
                     </VCol>
                     
                     <VCol cols="12">
-                      <h4 class="mt-1 mb-1">Position</h4>
+                      <h4 class="mt-1 mb-1">
+                        Position
+                      </h4>
                     </VCol>
 
                     <VCol cols="12">
@@ -608,7 +735,9 @@ function removeOperation(index) {
                     <VDivider class="my-2" />
                     
                     <VCol cols="12">
-                      <h4 class="mt-1 mb-1">Rotation</h4>
+                      <h4 class="mt-1 mb-1">
+                        Rotation
+                      </h4>
                     </VCol>
                     <VCol cols="12">
                       <AppTextField 
@@ -642,10 +771,16 @@ function removeOperation(index) {
               <VWindowItem>
                 <VRow>
                   <VCol cols="12">
-                    <h4 class="text-h5 mb-4">Summary</h4>
+                    <h4 class="text-h5 mb-4">
+                      Summary
+                    </h4>
                   </VCol>
                   <VCol cols="12">
-                    <VAlert type="info" variant="tonal" class="mb-4">
+                    <VAlert
+                      type="info"
+                      variant="tonal"
+                      class="mb-4"
+                    >
                       Please review all information carefully before submitting.
                     </VAlert>
                   </VCol>
@@ -667,64 +802,124 @@ function removeOperation(index) {
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField v-model="name" label="Parameter Name" disabled />
+                    <AppTextField
+                      v-model="name"
+                      label="Parameter Name"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField v-model="code" label="Code" disabled />
+                    <AppTextField
+                      v-model="code"
+                      label="Code"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField v-model="unit" label="Unit" disabled />
+                    <AppTextField
+                      v-model="unit"
+                      label="Unit"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField v-model="category" label="Category" disabled />
+                    <AppTextField
+                      v-model="category"
+                      label="Category"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField v-model="minValue" label="Min Value" disabled />
+                    <AppTextField
+                      v-model="minValue"
+                      label="Min Value"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField v-model="maxValue" label="Max Value" disabled />
+                    <AppTextField
+                      v-model="maxValue"
+                      label="Max Value"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField :model-value="isDisplay ? 'Active' : 'Inactive'" label="Is Display" disabled />
+                    <AppTextField
+                      :model-value="isDisplay ? 'Active' : 'Inactive'"
+                      label="Is Display"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="6">
-                    <AppTextField :model-value="isAutomatic ? 'Automatic' : 'Manual'" label="Is Automatic" disabled />
+                    <AppTextField
+                      :model-value="isAutomatic ? 'Automatic' : 'Manual'"
+                      label="Is Automatic"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="12">
                     <VDivider class="my-3" />
-                    <h4 class="text-h6 mb-2">Position</h4>
+                    <h4 class="text-h6 mb-2">
+                      Position
+                    </h4>
                   </VCol>
 
                   <VCol cols="4">
-                    <AppTextField v-model="positionX" label="Position X" disabled />
+                    <AppTextField
+                      v-model="positionX"
+                      label="Position X"
+                      disabled
+                    />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField v-model="positionY" label="Position Y" disabled />
+                    <AppTextField
+                      v-model="positionY"
+                      label="Position Y"
+                      disabled
+                    />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField v-model="positionZ" label="Position Z" disabled />
+                    <AppTextField
+                      v-model="positionZ"
+                      label="Position Z"
+                      disabled
+                    />
                   </VCol>
 
                   <VCol cols="12">
-                    <h4 class="text-h6 mt-4 mb-2">Rotation</h4>
+                    <h4 class="text-h6 mt-4 mb-2">
+                      Rotation
+                    </h4>
                   </VCol>
 
                   <VCol cols="4">
-                    <AppTextField v-model="rotationX" label="Rotation X" disabled />
+                    <AppTextField
+                      v-model="rotationX"
+                      label="Rotation X"
+                      disabled
+                    />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField v-model="rotationY" label="Rotation Y" disabled />
+                    <AppTextField
+                      v-model="rotationY"
+                      label="Rotation Y"
+                      disabled
+                    />
                   </VCol>
                   <VCol cols="4">
-                    <AppTextField v-model="rotationZ" label="Rotation Z" disabled />
+                    <AppTextField
+                      v-model="rotationZ"
+                      label="Rotation Z"
+                      disabled
+                    />
                   </VCol>
                 </VRow>
               </VWindowItem>
@@ -737,17 +932,32 @@ function removeOperation(index) {
                 variant="tonal" 
                 @click="currentStep--"
               >
-                <VIcon class="flip-in-rtl" icon="tabler-arrow-left" start />
+                <VIcon
+                  class="flip-in-rtl"
+                  icon="tabler-arrow-left"
+                  start
+                />
                 Previous
               </VBtn>
               
-              <VBtn v-if="numberedSteps.length - 1 === currentStep" color="success" @click="onSubmit">
+              <VBtn
+                v-if="numberedSteps.length - 1 === currentStep"
+                color="success"
+                @click="onSubmit"
+              >
                 Submit
               </VBtn>
               
-              <VBtn v-else @click="currentStep++">
+              <VBtn
+                v-else
+                @click="currentStep++"
+              >
                 Next
-                <VIcon class="flip-in-rtl" end icon="tabler-arrow-right" />
+                <VIcon
+                  class="flip-in-rtl"
+                  end
+                  icon="tabler-arrow-right"
+                />
               </VBtn>
             </div>
           </VForm>

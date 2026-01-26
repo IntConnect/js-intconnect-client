@@ -62,7 +62,7 @@ export default [
       requiredPermission: "FACILITY_EDIT", // optional
     },
   },
-   {
+  {
     path: "/registers/create",
     name: "register-create",
     component: () => import("@/pages/registers/manage/[id].vue"),
@@ -83,4 +83,4 @@ export default [
       requiredPermission: "FACILITY_EDIT", // optional
     },
   },
-];
+]

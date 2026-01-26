@@ -299,7 +299,7 @@ onMounted(async () => {
   await fetchSystemSetting({ isMinimal: false, key: "DASHBOARD_SETTINGS" })
   await nextTick()
   await fetchMachines()
-let systemSettingData = systemSetting.value.entry
+  let systemSettingData = systemSetting.value.entry
   if (systemSettingData) {
     Object.assign(localForm, {
       showing: systemSettingData.value.showing,

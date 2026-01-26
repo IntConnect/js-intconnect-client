@@ -26,7 +26,7 @@ const localForm = reactive({
   insertionQueueSize: 0,
   parameterRecoveryCount: 20,
   snapshotTicker: 1,
-  snapshotTickerType: 'Seconds'
+  snapshotTickerType: 'Seconds',
 })
 
 const isAlertDialogVisible = ref(false)
@@ -100,59 +100,116 @@ onMounted(async () => {
     <VCard>
       <VCardText>
         <VRow>
-
-          <VCol cols="12" md="6">
-            <AppTextField v-model="localForm.key" disabled label="Key" />
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppTextField
+              v-model="localForm.key"
+              disabled
+              label="Key"
+            />
           </VCol>
 
-          <VCol cols="12" md="6">
-            <AppTextField v-model="localForm.description" label="Description"
-              placeholder="Listener configuration description" />
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppTextField
+              v-model="localForm.description"
+              label="Description"
+              placeholder="Listener configuration description"
+            />
           </VCol>
-          <VCol cols="12" md="6">
-            <AppTextField v-model.number="localForm.insertionWorkersAmount"
-              :error="!!formErrors.insertion_workers_amount" :error-messages="formErrors.insertion_workers_amount || []"
-              label="Insertion Workers Amount" />
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppTextField
+              v-model.number="localForm.insertionWorkersAmount"
+              :error="!!formErrors.insertion_workers_amount"
+              :error-messages="formErrors.insertion_workers_amount || []"
+              label="Insertion Workers Amount"
+            />
           </VCol>
 
-          <VCol cols="12" md="6">
-            <AppTextField v-model.number="localForm.insertionQueueSize" :error="!!formErrors.insertion_queue_size"
-              :error-messages="formErrors.insertion_queue_size || []" label="Insertion Queue Size" />
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppTextField
+              v-model.number="localForm.insertionQueueSize"
+              :error="!!formErrors.insertion_queue_size"
+              :error-messages="formErrors.insertion_queue_size || []"
+              label="Insertion Queue Size"
+            />
           </VCol>
 
-          <VCol cols="12" md="6">
-            <AppTextField v-model="localForm.parameterRecoveryCount" :error="!!formErrors.parameter_recovery_count"
-              :error-messages="formErrors.parameter_recovery_count || []" label="Parameter Recovery Count" />
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppTextField
+              v-model="localForm.parameterRecoveryCount"
+              :error="!!formErrors.parameter_recovery_count"
+              :error-messages="formErrors.parameter_recovery_count || []"
+              label="Parameter Recovery Count"
+            />
           </VCol>
-          <VCol cols="12" md="6">
-
+          <VCol
+            cols="12"
+            md="6"
+          >
             <VRow>
-              <VCol cols="6" md="6">
-                <AppTextField v-model="localForm.snapshotTicker" :error="!!formErrors.snapshot_ticker"
-                  :error-messages="formErrors.snapshot_ticker || []" label="Snapshot Ticker" />
+              <VCol
+                cols="6"
+                md="6"
+              >
+                <AppTextField
+                  v-model="localForm.snapshotTicker"
+                  :error="!!formErrors.snapshot_ticker"
+                  :error-messages="formErrors.snapshot_ticker || []"
+                  label="Snapshot Ticker"
+                />
               </VCol>
 
-              <VCol cols="6" md="6">
-                <AppSelect v-model="localForm.snapshotTickerType" :error="!!formErrors.snapshotTickerType"
+              <VCol
+                cols="6"
+                md="6"
+              >
+                <AppSelect
+                  v-model="localForm.snapshotTickerType"
+                  :error="!!formErrors.snapshotTickerType"
                   :error-messages="formErrors.snapshotTickerType || []"
                   :items="[{ title: 'Seconds', value: 'Seconds' }, { title: 'Minutes', value: 'Minutes' }]"
-                  :rules="[requiredValidator]" label="Snapshot Ticker Type" placeholder="Select Snapshot Ticker Type" />
+                  :rules="[requiredValidator]"
+                  label="Snapshot Ticker Type"
+                  placeholder="Select Snapshot Ticker Type"
+                />
               </VCol>
             </VRow>
           </VCol>
-
         </VRow>
 
         <div class="d-flex justify-end mt-6 gap-4">
-
           <div class="d-flex flex-row gap-2">
-            <VBtn color="error" variant="tonal" to="/system-settings">
-              <VIcon start icon="tabler-arrow-left" />
+            <VBtn
+              color="error"
+              variant="tonal"
+              to="/system-settings"
+            >
+              <VIcon
+                start
+                icon="tabler-arrow-left"
+              />
               Back
             </VBtn>
 
 
-            <VBtn color="success" @click="onSubmit">
+            <VBtn
+              color="success"
+              @click="onSubmit"
+            >
               Save Settings
             </VBtn>
           </div>
@@ -160,6 +217,11 @@ onMounted(async () => {
       </VCardText>
     </VCard>
   </VCol>
-  <AlertDialog :body-alert="bodyAlert" :is-dialog-visible="isAlertDialogVisible" :title-alert="titleAlert"
-    :type="alertType" @update:is-dialog-visible="isAlertDialogVisible = $event" />
+  <AlertDialog
+    :body-alert="bodyAlert"
+    :is-dialog-visible="isAlertDialogVisible"
+    :title-alert="titleAlert"
+    :type="alertType"
+    @update:is-dialog-visible="isAlertDialogVisible = $event"
+  />
 </template>

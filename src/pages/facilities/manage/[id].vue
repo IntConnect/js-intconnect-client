@@ -468,26 +468,50 @@ onBeforeUnmount(() => {
 
     <VCard>
       <VCardText>
-        <VForm ref="refForm" v-model="isFormValid" @submit.prevent="onSubmit">
+        <VForm
+          ref="refForm"
+          v-model="isFormValid"
+          @submit.prevent="onSubmit"
+        >
           <VRow>
             <VCol cols="6">
-              <AppTextField v-model="name" :error-messages="formErrors.name || []" :rules="[requiredValidator]"
-                label="Name" placeholder="HVAC" />
+              <AppTextField
+                v-model="name"
+                :error-messages="formErrors.name || []"
+                :rules="[requiredValidator]"
+                label="Name"
+                placeholder="HVAC"
+              />
             </VCol>
             <VCol cols="6">
-              <AppTextField v-model="code" :error-messages="formErrors.code || []" :rules="[requiredValidator]"
-                label="Code" placeholder="HVAC-01" />
+              <AppTextField
+                v-model="code"
+                :error-messages="formErrors.code || []"
+                :rules="[requiredValidator]"
+                label="Code"
+                placeholder="HVAC-01"
+              />
             </VCol>
           </VRow>
 
           <VRow>
             <VCol cols="6">
-              <AppTextField v-model="description" :error-messages="formErrors.description || []"
-                :rules="[requiredValidator]" label="Description" placeholder="Area for chiller" />
+              <AppTextField
+                v-model="description"
+                :error-messages="formErrors.description || []"
+                :rules="[requiredValidator]"
+                label="Description"
+                placeholder="Area for chiller"
+              />
             </VCol>
             <VCol cols="6">
-              <AppTextField v-model="location" :error-messages="formErrors.location || []" :rules="[requiredValidator]"
-                label="Location" placeholder="Building A, Floor 1" />
+              <AppTextField
+                v-model="location"
+                :error-messages="formErrors.location || []"
+                :rules="[requiredValidator]"
+                label="Location"
+                placeholder="Building A, Floor 1"
+              />
             </VCol>
           </VRow>
 
@@ -496,10 +520,19 @@ onBeforeUnmount(() => {
               <p class="text-body-2 mb-2">
                 Thumbnail
               </p>
-              <Vue3Dropzone v-model="thumbnail" v-model:previews="existingThumbnail" :max-file-size="3"
-                accept="image/png, image/jpeg, image/jpg, image/webp" mode="edit"
-                @error="e => handleFileRejected('thumbnail', e)" @file-uploaded="clearError('thumbnail')" />
-              <p v-if="formErrors.thumbnail || dropzoneError.thumbnail" class="text-body-2 mt-2 text-error">
+              <Vue3Dropzone
+                v-model="thumbnail"
+                v-model:previews="existingThumbnail"
+                :max-file-size="3"
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                mode="edit"
+                @error="e => handleFileRejected('thumbnail', e)"
+                @file-uploaded="clearError('thumbnail')"
+              />
+              <p
+                v-if="formErrors.thumbnail || dropzoneError.thumbnail"
+                class="text-body-2 mt-2 text-error"
+              >
                 {{ formErrors.thumbnail || dropzoneError.thumbnail.message }}
               </p>
             </VCol>
@@ -508,20 +541,35 @@ onBeforeUnmount(() => {
               <p class="text-body-2 mb-2">
                 Facility Position (Drag The Object)
               </p>
-              <div ref="threeContainer" class="rounded-lg overflow-hidden"
-                style="width: 100%; height: 300px; border: 1px solid #e0e0e0;" />
+              <div
+                ref="threeContainer"
+                class="rounded-lg overflow-hidden"
+                style="width: 100%; height: 300px; border: 1px solid #e0e0e0;"
+              />
             </VCol>
           </VRow>
 
           <VRow>
             <VCol cols="4">
-              <AppTextField v-model="positionX" disabled label="Position X" />
+              <AppTextField
+                v-model="positionX"
+                disabled
+                label="Position X"
+              />
             </VCol>
             <VCol cols="4">
-              <AppTextField v-model="positionY" disabled label="Position Y" />
+              <AppTextField
+                v-model="positionY"
+                disabled
+                label="Position Y"
+              />
             </VCol>
             <VCol cols="4">
-              <AppTextField v-model="positionZ" disabled label="Position Z" />
+              <AppTextField
+                v-model="positionZ"
+                disabled
+                label="Position Z"
+              />
             </VCol>
           </VRow>
 
@@ -530,9 +578,18 @@ onBeforeUnmount(() => {
               <p class="text-body-2 mb-2">
                 3D Model {{ isEditMode ? '(Optional)' : '' }}
               </p>
-              <Vue3Dropzone v-model="uploadedModel" :max-file-size="250" :multiple="false" accept=".glb"
-                @error="e => handleFileRejected('model', e)" @file-uploaded="clearError('model')" />
-              <p v-if="formErrors.model || dropzoneError.model" class="text-body-2 mt-2 text-error">
+              <Vue3Dropzone
+                v-model="uploadedModel"
+                :max-file-size="250"
+                :multiple="false"
+                accept=".glb"
+                @error="e => handleFileRejected('model', e)"
+                @file-uploaded="clearError('model')"
+              />
+              <p
+                v-if="formErrors.model || dropzoneError.model"
+                class="text-body-2 mt-2 text-error"
+              >
                 {{ formErrors.model || dropzoneError.model.message }}
               </p>
             </VCol>
@@ -540,30 +597,53 @@ onBeforeUnmount(() => {
               <p class="text-body-2 mb-2">
                 3D Preview (Rotate to Set Camera)
               </p>
-              <div ref="threePreviewContainer" class="rounded-lg overflow-hidden"
-                style="width: 100%; height: 300px; border: 1px solid #e0e0e0; background: #f5f5f5;" />
+              <div
+                ref="threePreviewContainer"
+                class="rounded-lg overflow-hidden"
+                style="width: 100%; height: 300px; border: 1px solid #e0e0e0; background: #f5f5f5;"
+              />
             </VCol>
           </VRow>
 
           <VRow>
             <VCol cols="4">
-              <AppTextField v-model="cameraX" disabled label="Camera X" />
+              <AppTextField
+                v-model="cameraX"
+                disabled
+                label="Camera X"
+              />
             </VCol>
             <VCol cols="4">
-              <AppTextField v-model="cameraY" disabled label="Camera Y" />
+              <AppTextField
+                v-model="cameraY"
+                disabled
+                label="Camera Y"
+              />
             </VCol>
             <VCol cols="4">
-              <AppTextField v-model="cameraZ" disabled label="Camera Z" />
+              <AppTextField
+                v-model="cameraZ"
+                disabled
+                label="Camera Z"
+              />
             </VCol>
           </VRow>
 
           <!-- Actions -->
           <VCol cols="12">
             <div class="d-flex justify-end gap-3">
-              <VBtn to="/facilities" color="error" variant="tonal">
+              <VBtn
+                to="/facilities"
+                color="error"
+                variant="tonal"
+              >
                 Back
               </VBtn>
-              <VBtn :loading="actionLoading" color="primary" type="submit">
+              <VBtn
+                :loading="actionLoading"
+                color="primary"
+                type="submit"
+              >
                 {{ isEditMode ? 'Update' : 'Create' }}
               </VBtn>
             </div>
@@ -572,6 +652,11 @@ onBeforeUnmount(() => {
       </VCardText>
     </VCard>
   </VCol>
-  <AlertDialog :body-alert="bodyAlert" :is-dialog-visible="isAlertDialogVisible" :title-alert="titleAlert"
-    :type="alertType" @update:is-dialog-visible="isAlertDialogVisible = $event" />
+  <AlertDialog
+    :body-alert="bodyAlert"
+    :is-dialog-visible="isAlertDialogVisible"
+    :title-alert="titleAlert"
+    :type="alertType"
+    @update:is-dialog-visible="isAlertDialogVisible = $event"
+  />
 </template>

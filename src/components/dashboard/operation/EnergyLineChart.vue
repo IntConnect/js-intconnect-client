@@ -30,6 +30,7 @@ const isDark = computed(() => {
   if (configStore.theme === 'system') {
     return vuetifyTheme.global.current.value.dark
   }
+  
   return configStore.theme === 'dark'
 })
 
@@ -53,11 +54,11 @@ const glassCardStyle = computed(() => ({
 }))
 
 const textPrimaryClass = computed(() => 
-  isDark.value ? 'text-white' : 'text-grey-darken-3'
+  isDark.value ? 'text-white' : 'text-grey-darken-3',
 )
 
 const textSecondaryClass = computed(() => 
-  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1'
+  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1',
 )
 
 const chartOptions = computed(() => {
@@ -134,7 +135,7 @@ const getLineChartSimpleConfig = () => {
           colors: themePrimaryTextColor,
           fontSize: '0.8125rem',
         },
-            formatter: v => v.toFixed(2),
+        formatter: v => v.toFixed(2),
 
       },
     },
@@ -144,7 +145,7 @@ const getLineChartSimpleConfig = () => {
       axisTicks: { 
         color: isDark.value 
           ? 'rgba(255, 255, 255, 0.1)' 
-          : 'rgba(0, 0, 0, 0.08)' 
+          : 'rgba(0, 0, 0, 0.08)', 
       },
       labels: {
         datetimeUTC: false,
@@ -158,15 +159,15 @@ const getLineChartSimpleConfig = () => {
         stroke: { 
           color: isDark.value 
             ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(0, 0, 0, 0.08)' 
+            : 'rgba(0, 0, 0, 0.08)', 
         },
       },
     },
     tooltip: {
       theme: isDark.value ? 'dark' : 'light',
-       y: {
-    formatter: v => v.toFixed(2),
-  },
+      y: {
+        formatter: v => v.toFixed(2),
+      },
     },
   }
 }
@@ -190,7 +191,11 @@ onMounted(async () => {
             class="chart-icon-wrapper"
             :class="isDark ? '' : 'chart-icon-wrapper-light'"
           >
-            <VIcon class="chart-icon" icon="tabler-chart-line" size="30" />
+            <VIcon
+              class="chart-icon"
+              icon="tabler-chart-line"
+              size="30"
+            />
           </div>
           <div>
             <h5 
@@ -220,7 +225,13 @@ onMounted(async () => {
         class="chart-container"
         :class="isDark ? '' : 'chart-container-light'"
       >
-        <VueApexCharts ref="chartRef" :options="chartOptions" :series="realtimeData" height="400" type="line" />
+        <VueApexCharts
+          ref="chartRef"
+          :options="chartOptions"
+          :series="realtimeData"
+          height="400"
+          type="line"
+        />
       </div>
     </VCardText>
   </VCard>

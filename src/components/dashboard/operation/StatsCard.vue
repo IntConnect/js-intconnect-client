@@ -42,6 +42,7 @@ const isDark = computed(() => {
   if (configStore.theme === 'system') {
     return vuetifyTheme.global.current.value.dark
   }
+  
   return configStore.theme === 'dark'
 })
 
@@ -58,15 +59,15 @@ const glassCardStyle = computed(() => ({
 }))
 
 const textPrimaryClass = computed(() => 
-  isDark.value ? 'text-white' : 'text-grey-darken-3'
+  isDark.value ? 'text-white' : 'text-grey-darken-3',
 )
 
 const textSecondaryClass = computed(() => 
-  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1'
+  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1',
 )
 
 const textMutedClass = computed(() => 
-  isDark.value ? 'text-grey' : 'text-grey-lighten-1'
+  isDark.value ? 'text-grey' : 'text-grey-lighten-1',
 )
 
 // Data statistik
