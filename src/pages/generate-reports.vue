@@ -1,8 +1,10 @@
 <script setup>
+import { exportAlarmLogPDF, loadImageAsBase64 } from '@/@core/utils/helpers'
 import { useFetchTelemetry } from '@/composables/useFetchTelemetry'
 import { useManageReportDocumentTemplate } from '@/composables/useManageReportDocumentTemplate'
 import { format } from 'date-fns'
 import { nextTick } from 'vue'
+
 
 
 const page = ref(1)
@@ -28,15 +30,14 @@ const {
   fetchReportDocumentTemplates,
 } = useManageReportDocumentTemplate()
 
-const startDate = ref('')
-const endDate = ref('')
+const startDate = ref('2026-01-26 01:00')
+const endDate = ref('2026-01-26 01:30')
 const interval = ref(1)
-const selectedReportDocumentTemplateId = ref(null)
+const selectedReportDocumentTemplateId = ref(1)
 
 const flatRows = computed(() => {
   if (telemetries.value.length == 0) return []
-  
-  return telemetries.value.entries.flatMap(group =>
+  return telemetries.value.entries?.flatMap(group =>
     group.entries.map(e => ({
       ...e,
       timestamp: group.timestamp,
@@ -48,7 +49,7 @@ const headers = [
   { title: "Group by Timestamp", key: "data-table-group" },
   { title: "Timestamp", key: "timestamp" },
   { title: "Machine", key: "machine_name" },
-  { title: "Parameter", key: "parameter" },
+  { title: "Parameter", key: "parameter_name" },
   { title: "Value", key: "value" },
 ]
 
@@ -94,6 +95,25 @@ onMounted(async () => {
     })
   }
 })
+
+const handleExportIntoPDF = async () => {
+  const logoBase64 = await loadImageAsBase64('/public/images/kalbeNutritionalLogo.png')
+  console.log(flatRows.value)
+  exportAlarmLogPDF({
+  data: flatRows.value,
+  logoBase64: logoBase64,
+  company: {
+    name: 'PT Kalbe Morinaga Indonesia',
+    address: '  Jl. Raya Kawasan Industri Indotaisei, Sektor 1A, Blok Q1, Kalihurip, Cikampek, Karawang, West Java 41373',
+  },
+  filters: {
+    'Date Range': '26 Jan 2026 01:06 - 01:18',
+    'Machine': 'Chiller',
+  },
+  generatedBy: 'Admin (admin@company.com)',
+  documentNumber: 'DOC-ALARM-2026-001',
+})
+}
 </script>
 
 <template>
@@ -187,12 +207,22 @@ onMounted(async () => {
             style="inline-size: 15.625rem;"
           />
         </div>
+        <div class="d-flex flex-row gap-2 justify-end w-100 align-end flex-wrap ">
+          <VBtn color="primary" :onClick="handleExportIntoPDF">
+      Export Into PDF
+    </VBtn>
+    <VBtn color="info">
+            Export Into XLSX
+
+    </VBtn>
+</div>
         <VDataTable
           :headers="headers"
           :items="flatRows"
           :group-by="[{ key: 'timestamp' }]"
           item-value="id"
         >
+    
           <template #data-table-group="{ props, item, count }">
             <td colspan="12">
               <VBtn

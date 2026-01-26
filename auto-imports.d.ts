@@ -54,6 +54,7 @@ declare global {
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
   const effectScope: typeof import('vue')['effectScope']
   const emailValidator: typeof import('./src/@core/utils/validators.js')['emailValidator']
+  const exportAlarmLogPDF: typeof import('./src/@core/utils/helpers.js')['exportAlarmLogPDF']
   const extendRef: typeof import('@vueuse/core')['extendRef']
   const extractFilename: typeof import('./src/@core/utils/helpers.js')['extractFilename']
   const formatChartData: typeof import('./src/composables/useManageDashboard.js')['formatChartData']
@@ -83,6 +84,7 @@ declare global {
   const jsonToFormData: typeof import('./src/@core/utils/helpers.js')['jsonToFormData']
   const kFormatter: typeof import('./src/@core/utils/formatters.js')['kFormatter']
   const lengthValidator: typeof import('./src/@core/utils/validators.js')['lengthValidator']
+  const loadImageAsBase64: typeof import('./src/@core/utils/helpers.js')['loadImageAsBase64']
   const logicAnd: typeof import('@vueuse/math')['logicAnd']
   const logicNot: typeof import('@vueuse/math')['logicNot']
   const logicOr: typeof import('@vueuse/math')['logicOr']
@@ -457,6 +459,7 @@ declare module 'vue' {
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly emailValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['emailValidator']>
+    readonly exportAlarmLogPDF: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['exportAlarmLogPDF']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly extractFilename: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['extractFilename']>
     readonly formatDate: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['formatDate']>
@@ -485,6 +488,7 @@ declare module 'vue' {
     readonly jsonToFormData: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['jsonToFormData']>
     readonly kFormatter: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['kFormatter']>
     readonly lengthValidator: UnwrapRef<typeof import('./src/@core/utils/validators.js')['lengthValidator']>
+    readonly loadImageAsBase64: UnwrapRef<typeof import('./src/@core/utils/helpers.js')['loadImageAsBase64']>
     readonly logicAnd: UnwrapRef<typeof import('@vueuse/math')['logicAnd']>
     readonly logicNot: UnwrapRef<typeof import('@vueuse/math')['logicNot']>
     readonly logicOr: UnwrapRef<typeof import('@vueuse/math')['logicOr']>

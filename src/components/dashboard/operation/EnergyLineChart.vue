@@ -134,6 +134,8 @@ const getLineChartSimpleConfig = () => {
           colors: themePrimaryTextColor,
           fontSize: '0.8125rem',
         },
+            formatter: v => v.toFixed(2),
+
       },
     },
     xaxis: {
@@ -162,6 +164,9 @@ const getLineChartSimpleConfig = () => {
     },
     tooltip: {
       theme: isDark.value ? 'dark' : 'light',
+       y: {
+    formatter: v => v.toFixed(2),
+  },
     },
   }
 }

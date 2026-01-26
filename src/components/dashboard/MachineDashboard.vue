@@ -9,8 +9,8 @@ import { useConfigStore } from '@core/stores/config'
 import { GridItem, GridLayout } from 'grid-layout-plus'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
+import ThreeDimensionModelRenderer from '../ThreeDimensionModelRenderer.vue'
 import RawBarChart from './RawBarChart.vue'
-import ThreeDimensionModelRenderer from './ThreeDimensionModelRenderer.vue'
 
 const props = defineProps({
   systemSetting: {
@@ -23,7 +23,8 @@ const props = defineProps({
 const {
   saveDashboardWidget,
 } = useManageDashboardWidget()
-
+const isRegisterDialogOpen = ref(false)
+const selectedRegister = ref({})
 const chartComponentMap = {
   gauge: GaugeChartWidget,
   line: EnergyLineChart,
@@ -51,11 +52,33 @@ const {
   getFormattedValueById,
   lastUpdate,
 } = useMqttConnection()
+const modelViewerRef = ref(null)
+
+const handleRegisterClick = (registerData) => {
+  isRegisterDialogOpen.value = true
+  selectedRegister.value = registerData
+}
+const selectedParameterIds = ref([])
+const interval = ref([])
+
+const handleRegisterValueUpdate = (value) => {
+  console.log(value)
+  isRegisterDialogOpen.value =false
+  manageRegisterValue(selectedRegister.value.id, {
+    value: value
+  })
+}
 
 const {
   alarmLogs,
   fetchAlarmLogsByMachineId,
 } = useManageAlarmLog()
+
+
+const {
+  registers,
+  manageRegisterValue,
+} = useManageRegister()
 
 // Theme Detection
 const configStore = useConfigStore()
@@ -292,6 +315,7 @@ watch(
 const processedMachine = computed(() => {
   if (!machine?.value?.entry) return null
   const rawProcessedMachine = machine.value.entry
+  console.log(rawProcessedMachine)
   if (rawProcessedMachine) {
     connectMQTT(rawProcessedMachine)
   }
@@ -356,6 +380,7 @@ const isDataReady = computed(() => {
 })
 
 const processedAlarmLogs = ref([])
+const processedParameters = ref([])
 onMounted(async () => {
   let machineId = props.systemSetting.entry.value.machine_id
   let actionResult = await fetchMachine(machineId)
@@ -375,7 +400,13 @@ onMounted(async () => {
       acknowledged: false
     }
   }) ?? []
-  console.log(processedAlarmLogs)
+  console.log(processedMachine)
+  processedParameters.value = processedMachine.value.mqtt_topic.parameters.map(parameter => {
+    return {
+      id: parameter.id,
+      title: parameter.code
+    }
+  })
 
   // Connect to alarm WebSocket
   connectAlarmWebSocket()
@@ -591,18 +622,25 @@ const gridMinHeight = computed(() => {
     <VRow style="min-height: 520px" class="match-height">
       <!-- LEFT -->
       <VCol cols="12" lg="6" md="6" class="d-flex flex-column">
+       
         <ThreeDimensionModelRenderer
-          v-if="processedMachine"
+  
+                        ref="modelViewerRef"
+                        v-if="processedMachine !== null"
           :model-path="processedMachine.model_path"
-          :camera-position="{
+                        
+                        :clickable="false"
+                      
+  :camera-position="{
             x: processedMachine.camera_x || 0,
             y: processedMachine.camera_y || 0,
             z: processedMachine.camera_z || 0
-          }"
-          :editable="false"
-          container-height="520px"
-          class="flex-grow-1"
-        />
+          }"                        container-height="90vh"
+          :parameters="processedMachine.parameters"
+          :registers="processedMachine.registers"
+            @register-click="handleRegisterClick"
+
+                      />
       </VCol>
 
       <!-- RIGHT -->
@@ -764,7 +802,198 @@ const gridMinHeight = computed(() => {
         </VCard>
       </VCol>
     </VRow>
+      <VRow class="match-height">
+      <VCol cols="12">
+        <h3 class="text-h4">
+          Administrative Insights
+        </h3>
+      </VCol>
+
+    </VRow>
+     <VRow>
+      <VCol
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <VCard class="fill-height">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Filter Parameter</VCardTitle>
+            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
+          </VCardItem>
+
+          <VCardText>
+            <VRow class="h-100">
+              <VCol
+                class="d-flex flex-row gap-4 align-end"
+                cols="12"
+                lg="12"
+                md="12"
+              >
+               
+                <AppSelect
+                  v-model="selectedParameterIds"
+                  :items="processedParameters"
+                  :rules="[requiredValidator]"
+                  label="Parameter"
+                  placeholder="Select parameter"
+                    chips
+                  closable-chips
+                  multiple
+
+                />
+                <AppTextField
+                  v-model="interval"
+                  label="Interval (Minutes)"
+                  placeholder="60"
+                />
+                <VBtn
+                  color="error"
+                  type="submit"
+                >
+                  Stop
+                </VBtn>
+                <VBtn type="submit">
+                  Submit
+                </VBtn>
+              </VCol>
+            </VRow>
+
+
+
+
+
+
+
+
+
+
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+   
+    <VRow class="match-height">
+      
+
+      <VCol
+        class="d-flex"
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Realtime Data (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+                  color="success"
+                  label
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+              </div>
+            </template>
+          </VCardItem>
+
+          <VCardText>
+            <RealtimeAverageChart mode="realtime"/>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+  
+    <VRow class="match-height">
+      <VCol
+        class="d-flex"
+        cols="6"
+        lg="6"
+        md="6"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Monthly Average (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+
+                  color="success"
+                  label
+
+
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+
+
+
+              </div>
+            </template>
+          </VCardItem>
+          <VCardText>
+          <RealtimeAverageChart/>
+          </VCardText>
+        </VCard>
+      </VCol>
+
+      <VCol
+        class="d-flex"
+        cols="6"
+        lg="6"
+        md="6"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Weekly Average (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+                  color="success"
+                  label
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+              </div>
+            </template>
+          </VCardItem>
+
+          <VCardText>
+          <RealtimeAverageChart/>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
+    
   </div>
+  <ManageRegisterValueDialog
+      v-model:is-dialog-visible="isRegisterDialogOpen"
+
+  :register="selectedRegister"
+  @submit:value="handleRegisterValueUpdate"
+  />
+
 </template>
 
 <style scoped>

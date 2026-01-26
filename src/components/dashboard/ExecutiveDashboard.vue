@@ -515,17 +515,47 @@ onMounted(async () => {
 
 
 
-
-
-
-
-
-
           </VCardText>
         </VCard>
       </VCol>
     </VRow>
-   
+   <VRow class="match-height">
+      
+
+      <VCol
+        class="d-flex"
+        cols="12"
+        lg="12"
+        md="12"
+      >
+        <VCard class="flex-grow-1">
+          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
+            <VCardTitle>Realtime Data (kW/hr)</VCardTitle>
+            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
+
+            <template #append>
+              <div class="d-flex align-center">
+                <VChip
+                  color="success"
+                  label
+                >
+                  <VIcon
+                    icon="tabler-arrow-up"
+                    size="15"
+                    start
+                  />
+                  <span>22</span>
+                </VChip>
+              </div>
+            </template>
+          </VCardItem>
+
+          <VCardText>
+            <RealtimeAverageChart mode="realtime"/>
+          </VCardText>
+        </VCard>
+      </VCol>
+    </VRow>
     <VRow class="match-height">
       <VCol
         class="d-flex"

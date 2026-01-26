@@ -29,6 +29,11 @@ const props = defineProps({
     type: String,
     default: '#3b82f6',
   },
+   mode: {
+    type: String,
+    default: 'monthly', // realtime | weekly | monthly
+  },
+
 })
 
 const chartRef = ref(null)
@@ -62,10 +67,36 @@ const hexToRgb = hex => {
   return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null
 }
 
+
+const xCategories = computed(() => {
+  switch (props.mode) {
+    case 'realtime':
+      // timestamp → HH:mm:ss
+      return props.chartData.map(item =>
+        new Date(new Date()).toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      )
+
+    case 'weekly':
+      return props.chartData.map(item => `Week ${item.week}`)
+
+    case 'monthly':
+    default:
+      return props.chartData.map(item => item.name)
+  }
+})
+
 // Series data for ApexCharts
 const series = computed(() => [
   {
-    name: props.title,
+    name: 'Actual',
+    data: props.chartData.map(item => item.value),
+  },
+  {
+    name: 'Target',
     data: props.chartData.map(item => item.value),
   },
 ])
@@ -138,27 +169,34 @@ const chartOptions = computed(() => {
       },
     },
     xaxis: {
-      categories: props.chartData.map(item => item.name),
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-      labels: {
-        style: {
-          colors: themeSecondaryTextColor,
-          fontSize: '12px',
-          fontWeight: 500,
-        },
-      },
-      crosshairs: {
-        show: true,
-        stroke: {
-          color: isDark.value 
-            ? 'rgba(255, 255, 255, 0.1)' 
-            : 'rgba(0, 0, 0, 0.1)',
-          width: 1,
-          dashArray: 3,
-        },
-      },
+  categories: xCategories.value,
+  type: props.mode === 'realtime' ? 'category' : 'category',
+  axisBorder: { show: false },
+  axisTicks: { show: false },
+  labels: {
+    rotate: props.mode === 'realtime' ? -45 : 0,
+    style: {
+      colors: themeSecondaryTextColor,
+      fontSize: '12px',
+      fontWeight: 500,
     },
+  },
+  crosshairs: {
+    show: true,
+    position: 'front',
+    stroke: {
+      width: 1,
+      dashArray: 3,
+    },
+  },
+},
+markers: {
+  size: 0,
+  hover: {
+    size: 6,
+  },
+},
+
     yaxis: {
       labels: {
         style: {
@@ -169,30 +207,18 @@ const chartOptions = computed(() => {
         formatter: value => `${value.toFixed(1)} kW`,
       },
     },
-    tooltip: {
-      enabled: true,
-      theme: isDark.value ? 'dark' : 'light',
-      style: {
-        fontSize: '13px',
-      },
-      y: {
-        formatter: value => `${value.toFixed(2)} kW/hr`,
-      },
-      marker: {
-        show: true,
-      },
-      custom: function({ series, seriesIndex, dataPointIndex, w }) {
-        const value = series[seriesIndex][dataPointIndex]
-        const label = w.globals.labels[dataPointIndex]
-        
-        return `
-          <div class="custom-tooltip ${isDark.value ? 'dark' : 'light'}">
-            <div class="tooltip-header">${label}</div>
-            <div class="tooltip-value">${value.toFixed(2)} kW/hr</div>
-          </div>
-        `
-      },
+   tooltip: {
+  shared: true,
+  intersect: false,
+  x: {
+    formatter: value => {
+      if (props.mode === 'realtime') return `Time: ${value}`
+      if (props.mode === 'weekly') return value
+      return value
     },
+  },
+},
+
     responsive: [{
       breakpoint: 1200,
       options: {

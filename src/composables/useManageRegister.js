@@ -183,18 +183,15 @@ export const useManageRegister = () => {
     }
   };
 
-  const manageRegisterOperation = async (
-    registerId,
-    registerOperationData
-  ) => {
+   const manageRegisterValue = async (registerId, registerData) => {
     actionLoading.value = true;
     clearFormErrors();
 
     try {
       const { data: response, error: apiError } = await useApi(
-        `/registers/operation/${registerId}`
+        `/registers/value/${registerId}`
       )
-        .put(registerOperationData)
+        .put(registerData)
         .json();
 
       const result = handleApiError(apiError, { formErrors, errorMessage });
@@ -209,6 +206,8 @@ export const useManageRegister = () => {
     }
   };
 
+
+ 
   const deleteRegister = async (registerId, reason = "") => {
     actionLoading.value = true;
     clearFormErrors();
@@ -274,7 +273,7 @@ export const useManageRegister = () => {
     fetchRegisterDependency,
     createRegister,
     updateRegister,
-    manageRegisterOperation,
+    manageRegisterValue,
     deleteRegister,
     saveRegister,
     clearFormErrors,

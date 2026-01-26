@@ -410,6 +410,8 @@
     "ActionSuccess": true,
     "SuccessManage": true,
     "SuccessDelete": true,
-    "useManageAlarmLog": true
+    "useManageAlarmLog": true,
+    "exportAlarmLogPDF": true,
+    "loadImageAsBase64": true
   }
 }

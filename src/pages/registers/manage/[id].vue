@@ -1,15 +1,13 @@
 <script setup>
 import AlertDialog from "@/components/general/AlertDialog.vue"
 import GeneralAlert from "@/components/general/GeneralAlert.vue"
+import ThreeDimensionModelRenderer from "@/components/ThreeDimensionModelRenderer.vue"
+import { useManageMachine } from "@/composables/useManageMachine.js"
 import { useManageRegister } from "@/composables/useManageRegister.js"
 import AppSelect from "@core/components/app-form-elements/AppSelect.vue"
 import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
-import * as THREE from 'three'
-import * as ThreeMeshUI from "three-mesh-ui"
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { nextTick, onMounted, ref } from 'vue'
-
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 // ==========================================
 // Composable
@@ -38,7 +36,6 @@ const {
   fetchMachine,
 } = useManageMachine()
 
-
 // ==========================================
 // State
 // ==========================================
@@ -47,8 +44,15 @@ const machineId = ref(null)
 const modbusServerId = ref(null)
 const memoryLocation = ref('')
 const name = ref('')
+const unit = ref('') // ADDED: Missing unit field
 const description = ref('')
 const dataType = ref('String')
+const positionX = ref(0)
+const positionY = ref(0)
+const positionZ = ref(0)
+const rotationX = ref(0)
+const rotationY = ref(0)
+const rotationZ = ref(0)
 const processedMachines = ref([])
 const processedModbusServers = ref([])
 const isAlertDialogVisible = ref(false)
@@ -56,15 +60,23 @@ const isModelClickable = ref(false)
 const refForm = ref()
 const modelPath = ref('')
 const processedRegisters = ref([])
-const isEditMode = computed(() => route.name === 'register-edit')
+const modelViewerRef = ref(null)
 
+const route = useRoute()
+const router = useRouter()
+const id = ref(route.params.id)
+
+const isEditMode = computed(() => route.name === 'register-edit')
 
 const numberedSteps = [
   {
     title: 'Register Details',
     subtitle: 'Basic Information',
   },
-  
+  {
+    title: 'Register Positions',
+    subtitle: 'Register Placement in 3D',
+  },
   {
     title: 'Summary',
     subtitle: 'Review Before Submit',
@@ -76,368 +88,135 @@ const buttonModelColor = computed(() => {
 })
 
 const buttonModelText = computed(() => {
-  return isModelClickable.value ? "Click Again to Off Set Position" : "Click on 3D Model to Set Position"
+  return isModelClickable.value ? "Click Again to Turn Off Set Position" : "Click on 3D Model to Set Position"
 })
 
-
-const wrapperRef = ref(null)
-const canvasRef = ref(null)
-
-let scene, camera, renderer, controls
-let model = null
-
-// marker untuk register ini
-let registerMarker = null
-const showAdjustPopup = ref(false)
 const bodyAlert = ref('')
 const titleAlert = ref('')
 const alertType = ref('info')
 
+// Computed properties for 3D renderer
+const markerPosition = computed(() => ({
+  x: positionX.value,
+  y: positionY.value,
+  z: positionZ.value,
+}))
+
+const markerRotation = computed(() => ({
+  x: rotationX.value,
+  y: rotationY.value,
+  z: rotationZ.value,
+}))
+
+const showMarker = computed(() => {
+  return !!name.value && !!unit.value
+})
+
 onMounted(async () => {
   await fetchRegisterDependency()
-    processedMachines.value = registerDependency.value.entry.machines?.map(machine => ({
+  
+  processedMachines.value = registerDependency.value.entry.machines?.map(machine => ({
     title: machine.name,
     value: machine.id,
   }))
+  
   processedModbusServers.value = registerDependency.value.entry.modbus_servers?.map(modbus_server => ({
     title: modbus_server.ip_address,
     value: modbus_server.id,
   }))
-  if(isEditMode.value){
-  let result = await fetchRegister(id.value)
-  await fetchRegisters({isAutomatic: null})
-  await nextTick()
-  console.log(register.value)
-
-  if (result.success) {
-    let processedRegister = register.value.entry
-    console.log(processedRegister)
-    id.value = processedRegister.id
-    name.value = processedRegister.name
-    machineId.value = processedRegister['machine_id'] 
-    modbusServerId.value = processedRegister['modbus_server_id']
-    memoryLocation.value = processedRegister['memory_location']
-    name.value = processedRegister['name']
-    description.value = processedRegister['description']
-    initialModel()
-  }else{
-    id.value = null
-  }
+  
+  if (isEditMode.value) {
+    let result = await fetchRegister(id.value)
+    await nextTick()
+    
+    if (result.success) {
+      let processedRegister = register.value.entry
+      console.log(processedRegister)
+      
+      id.value = processedRegister.id
+      name.value = processedRegister.name
+      unit.value = processedRegister.unit || '' // Handle unit
+      machineId.value = processedRegister.machine_id 
+      modbusServerId.value = processedRegister.modbus_server_id
+      memoryLocation.value = processedRegister.memory_location
+      description.value = processedRegister.description
+      dataType.value = processedRegister.data_type || 'String'
+      
+      // FIXED: Correct field names for position and rotation
+      positionX.value = processedRegister.position_x || 0
+      positionY.value = processedRegister.position_y || 0
+      positionZ.value = processedRegister.position_z || 0
+      rotationX.value = processedRegister.rotation_x || 0
+      rotationY.value = processedRegister.rotation_y || 0
+      rotationZ.value = processedRegister.rotation_z || 0
+    } else {
+      id.value = null
+    }
   }
 })
 
-
 // ----------------------------------------
-// Helper: Hapus marker dari scene
-// ----------------------------------------
-const removeMarker = marker => {
-  if (!marker || !scene) return
-
-  while (marker.children.length > 0) {
-    const child = marker.children[0]
-
-    marker.remove(child)
-    if (child.geometry) child.geometry.dispose()
-    if (child.material) {
-      if (Array.isArray(child.material)) {
-        child.material.forEach(m => {
-          if (m.map) m.map.dispose()
-          m.dispose()
-        })
-      } else {
-        if (child.material.map) child.material.map.dispose()
-        child.material.dispose()
-      }
-    }
-  }
-
-  if (marker.clear) marker.clear()
-  if (marker.parent) {
-    marker.parent.remove(marker)
-  }
-  scene.remove(marker)
-}
-
-// ----------------------------------------
-// Create marker/label
-// ----------------------------------------
-const createMarker = (registerName, registerValue, position) => {
-  const panel = new ThreeMeshUI.Block({
-    width: 10,
-    height: 5,
-    padding: 0.03,
-    borderRadius: 0.05,
-    justifyContent: 'center',
-    alignContent: 'center',
-    fontSize: 1.5,
-    backgroundColor: new THREE.Color(0x222222),
-    backgroundOpacity: 0.85,
-    fontFamily: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.json',
-    fontTexture: 'https://unpkg.com/three-mesh-ui/examples/assets/Roboto-msdf.png',
-  })
-
-  const titleText = new ThreeMeshUI.Text({ content: registerName })
-  const valueText = new ThreeMeshUI.Text({ content: registerValue })
-
-  panel.add(titleText)
-  panel.add(valueText)
-
-  panel.position.copy(position)
-  scene.add(panel)
-
-  return panel
-}
-
-// ----------------------------------------
-// Update marker position
-// ----------------------------------------
-const updateMarkerPosition = value => {
-  if (registerMarker) {
-    registerMarker.position.set(
-      positionX.value,
-      positionY.value,
-      positionZ.value,
-    )
-
-    registerMarker.rotation.set(
-      rotationX.value,
-      rotationY.value,
-      rotationZ.value,
-    )
-  }
-}
-
-// ----------------------------------------
-// Update marker rotation
-// ----------------------------------------
-const updateMarkerRotation = () => {
-  if (registerMarker) {
-    registerMarker.rotation.set(
-      THREE.MathUtils.degToRad(rotationX.value),
-      THREE.MathUtils.degToRad(rotationY.value),
-      THREE.MathUtils.degToRad(rotationZ.value),
-    )
-  }
-}
-
-// ----------------------------------------
-// Click on 3D model untuk set posisi
+// Handle 3D model click
 // ----------------------------------------
 const setPositionFromClick = () => {
-  if (!name.value || !code.value) {
+  if (!name.value) {
     isAlertDialogVisible.value = true
-    bodyAlert.value = 'Fill Name and Register First!'
+    bodyAlert.value = 'Fill Name First!'
     titleAlert.value = "Invalid Input"
     alertType.value = 'error'
-
     return
   }
+  
   isModelClickable.value = !isModelClickable.value
-
-  // Hapus marker lama jika ada
-  if (registerMarker) {
-    removeMarker(registerMarker)
-    registerMarker = null
+  
+  if (modelViewerRef.value) {
+    modelViewerRef.value.setClickable(isModelClickable.value)
   }
-
-  // Tunggu user klik 3D model
-  const raycaster = new THREE.Raycaster()
-  const mouse = new THREE.Vector2()
-
-  const handleClick = event => {
-    const rect = renderer.domElement.getBoundingClientRect()
-
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-
-    raycaster.setFromCamera(mouse, camera)
-
-    const intersects = raycaster.intersectObjects(scene.children, true)
-
-    if (intersects.length > 0) {
-      const point = intersects[0].point.clone()
-
-      // Set nilai ke form
-      positionX.value = point.x
-      positionY.value = point.y
-      positionZ.value = point.z
-
-      const hit = intersects[0]
-
-      const normal = hit.face.normal.clone()
-
-      normal.transformDirection(hit.object.matrixWorld)  // convert ke world normal
-
-      // Convert normal ke rotasi (Euler)
-      const rotation = new THREE.Euler()
-
-      rotation.setFromVector3(normal)
-
-      // Set ke form (dalam radian)
-      rotationX.value = rotation.x
-      rotationY.value = rotation.y
-      rotationZ.value = rotation.z
-
-      // Buat marker
-      registerMarker = createMarker(name.value, unit.value, point)
-
-      // Cleanup listener
-      renderer.domElement.removeEventListener("click", handleClick)
-      isAlertDialogVisible.value = true
-      titleAlert.value = "Position successfully set"
-      bodyAlert.value = "You can adjusted in Adjust Manual button"
-    }
-  }
-
-  renderer.domElement.addEventListener("click", handleClick)
 }
 
-// ----------------------------------------
-// Confirm & tampilkan popup untuk adjustment
-// ----------------------------------------
-const showAdjustment = () => {
-  if (!name.value || !code.value) {
-    isAlertDialogVisible.value = true
-    bodyAlert.value = 'Fill Name and Register First!'
-    alertType.value = 'error'
-
-    return
+const handlePositionClick = (data) => {
+  // Set position
+  positionX.value = Number(data.position.x.toFixed(4))
+  positionY.value = Number(data.position.y.toFixed(4))
+  positionZ.value = Number(data.position.z.toFixed(4))
+  
+  // Set rotation
+  rotationX.value = Number(data.rotation.x.toFixed(4))
+  rotationY.value = Number(data.rotation.y.toFixed(4))
+  rotationZ.value = Number(data.rotation.z.toFixed(4))
+  
+  // Turn off clickable mode
+  isModelClickable.value = false
+  if (modelViewerRef.value) {
+    modelViewerRef.value.setClickable(false)
   }
-
-  // Buat marker jika belum ada
-  if (!registerMarker) {
-    registerMarker = createMarker(
-      name.value,
-      unit.value,
-      new THREE.Vector3(positionX.value, positionY.value, positionZ.value),
-    )
-  }
-
-  // Update marker sesuai nilai form terbaru
-  updateMarkerPosition()
-  updateMarkerRotation()
-
-  showAdjustPopup.value = true
+  
+  // Show success message
+  isAlertDialogVisible.value = true
+  titleAlert.value = "Position Successfully Set"
+  bodyAlert.value = "You can adjust manually using the input fields"
+  alertType.value = 'success'
 }
-
-const confirmAdjustment = () => {
-  updateMarkerPosition()
-  updateMarkerRotation()
-  showAdjustPopup.value = false
-}
-
-const cancelAdjustment = () => {
-  showAdjustPopup.value = false
-}
-
-
-const initialModel = async () => {
-
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xffffff)
-
-  const width = wrapperRef.value.clientWidth
-  const height = wrapperRef.value.clientHeight
-
-  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.set(180, 70, -40)
-
-  renderer = new THREE.WebGLRenderer({
-    canvas: canvasRef.value,
-    antialias: true,
-  })
-
-  renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.8))
-
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.4)
-
-  dirLight.position.set(50, 100, 50)
-  scene.add(dirLight)
-
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-  controls.screenSpacePanning = true
-
-  // ----------------------------------------
-  // LOAD MODEL
-  // ----------------------------------------
-  const loader = new GLTFLoader()
-
-  if (modelPath.value) {
-    loadDynamicModel()
-  }
-
-
-  // ----------------------------------------
-  // ANIMATE
-  // ----------------------------------------
-  const animate = () => {
-    requestAnimationFrame(animate)
-
-    controls.update()
-
-    // Marker selalu hadap kamera kecuali ada custom rotation
-    if (registerMarker && registerMarker.parent) {
-      const hasCustomRotation = (rotationX.value !== 0 || rotationY.value !== 0 || rotationZ.value !== 0)
-
-      if (!hasCustomRotation) {
-        registerMarker.quaternion.copy(camera.quaternion)
-      } else {
-        registerMarker.rotation.set(
-          THREE.MathUtils.degToRad(rotationX.value),
-          THREE.MathUtils.degToRad(rotationY.value),
-          THREE.MathUtils.degToRad(rotationZ.value),
-        )
-      }
-    }
-
-    try {
-      ThreeMeshUI.update()
-    } catch (e) {
-      console.warn('ThreeMeshUI update warning:', e.message)
-    }
-    renderer.render(scene, camera)
-  }
-
-
-  animate()
-
-  // ----------------------------------------
-  // RESIZE
-  // ----------------------------------------
-  window.addEventListener("resize", () => {
-    const w = wrapperRef.value.clientWidth
-    const h = wrapperRef.value.clientHeight
-
-    camera.aspect = w / h
-    camera.updateProjectionMatrix()
-    renderer.setSize(w, h)
-  })
-
-}
-
-const id = ref('')
-const route = useRoute()
-const router = useRouter()
-
-id.value = route.params.id
 
 const onSubmit = () => {
   refForm.value.validate().then(async ({ valid }) => {
     if (!valid) return
 
-    
     const registerData = {
       id: id.value,
       machine_id: machineId.value,
       modbus_server_id: modbusServerId.value,
       memory_location: memoryLocation.value,
       name: name.value,
+      unit: unit.value,
       description: description.value,
       data_type: dataType.value,
+      position_x: positionX.value,
+      position_y: positionY.value,
+      position_z: positionZ.value,
+      rotation_x: rotationX.value,
+      rotation_y: rotationY.value,
+      rotation_z: rotationZ.value,
     }
 
     const result = await saveRegister(registerData)
@@ -446,9 +225,9 @@ const onSubmit = () => {
       await nextTick()
 
       isAlertDialogVisible.value = true
-      bodyAlert.value = "You will be redirect to register page"
+      bodyAlert.value = "You will be redirected to register page"
       alertType.value = 'info'
-      titleAlert.value = "Success manage Register"
+      titleAlert.value = "Success Manage Register"
 
       setTimeout(() => {
         router.push('/registers')
@@ -460,194 +239,377 @@ const onSubmit = () => {
   })
 }
 
-watch(currentStep, async value => {
-  if (value === 1) {
-    await nextTick()
-
-    if (!wrapperRef.value) return
-
-    initialModel()
-  }
-})
-
 watch(machineId, async value => {
-  if (!value) return
-
-  await fetchMachine(value)
-  await nextTick()
-  modelPath.value = machine.value.entry.model_path
-
-  // Reload 3D model
-  loadDynamicModel()
-})
-
-const loadDynamicModel = () => {
-  if (!scene) {
-    console.warn("Scene belum siap untuk load model")
-
+  if (!value) {
+    modelPath.value = ''
     return
   }
 
-  if (!modelPath.value) return
-
-  const loader = new GLTFLoader()
-
-  // Hapus model lama
-  if (model) {
-    scene.remove(model)
-    model.traverse(obj => {
-      if (obj.geometry) obj.geometry.dispose()
-      if (obj.material) {
-        if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose())
-        else obj.material.dispose()
-      }
-    })
-    model = null
-  }
-
-  loader.load(useStaticFile(modelPath.value), gltf => {
-    model = gltf.scene
-    model.updateMatrixWorld(true)
-
-    const box = new THREE.Box3().setFromObject(model)
-    const center = box.getCenter(new THREE.Vector3())
-
-    model.position.sub(center)
-
-    scene.add(model)
-  })
-}
-
-watch([modelPath, () => scene], async () => {
-  if (scene && modelPath.value) {
-    loadDynamicModel()
-  }
-})
-
-watch(registers, () => {
-  const list = registers.value['entries']
-
-  if (!Array.isArray(list)) return []
-  processedRegisters.value = list.map((register) => {
-    return {
-      title: register.code,
-      value: register.id
+  try {
+    await fetchMachine(value)
+    await nextTick()
+    
+    if (machine.value && machine.value.entry && machine.value.entry.model_path) {
+      console.log(machine.value)
+      modelPath.value = machine.value.entry.model_path
+      console.log('Machine loaded, modelPath set to:', modelPath.value)
+    } else {
+      console.warn('Machine loaded but no model_path found')
+      modelPath.value = ''
     }
-  })
-})
-
-const availableOps = [
-  { title: 'Add (+)', value: 'ADDITION' },
-  { title: 'Subtract (-)', value: 'SUBTRACTION' },
-  { title: 'Multiply (×)', value: 'MULTIPLICATION' },
-  { title: 'Divide (÷)', value: 'DIVISION' },
-]
-
-// Add new operation
-function addOperation() {
-  processedRegisterSequences.value.push({
-    type: 'ADDITION',
-    register_id: null,
-  })
-
-}
-
-// Remove operation
-function removeOperation(index) {
-  const op = processedRegisterSequences.value[index]
-
-  // jika punya id, masuk list deleted
-  if (op && op.id) {
+  } catch (error) {
+    console.error('Error loading machine:', error)
+    modelPath.value = ''
   }
-
-  processedRegisterSequences.value.splice(index, 1)
-}
+})
 </script>
 
 <template>
   <VCol cols="6">
     <h4 class="text-h4 mb-1 mt-1">
-      Create New Register
+      {{ isEditMode ? 'Edit Register' : 'Create New Register' }}
     </h4>
     <p class="text-body-1 mb-2">
-      Manage register information in machine
+      Setup register location and rotation on your 3D model.
     </p>
   </VCol>
+  
   <div class="mb-6 d-flex justify-center">
     <AppStepper v-model:current-step="currentStep" :items="numberedSteps" align="start" />
   </div>
 
   <VRow>
-    <!-- 3D MODEL - 7 cols -->
-
-    <!-- FORM - 5 cols -->
     <VCol cols="12">
       <VCard>
         <VCardText>
           <VForm ref="refForm" lazy-validation @submit.prevent="onSubmit">
             <VWindow v-model="currentStep" class="disable-tab-transition">
+              <!-- STEP 1: Register Details -->
               <VWindowItem>
                 <VCol>
                   <VCol cols="12">
-                    <GeneralAlert v-if="formErrors.value" color="error"
-                      description="There are error for some input, please fix it first!" icon="tabler-bug" />
-                    <AppSelect v-model="machineId" :error="!!formErrors.machine_id"
-                      :error-messages="formErrors.machine_id" :items="processedMachines" class="mt-3" label="Machine"
-                      placeholder="Select a Machine" />
+                    <GeneralAlert 
+                      v-if="formErrors.value" 
+                      color="error"
+                      description="There are errors in some inputs, please fix them first!" 
+                      icon="tabler-bug" 
+                    />
+                    <AppSelect 
+                      v-model="machineId" 
+                      :error="!!formErrors.machine_id"
+                      :error-messages="formErrors.machine_id" 
+                      :items="processedMachines" 
+                      class="mt-3" 
+                      label="Machine"
+                      placeholder="Select a Machine" 
+                    />
                   </VCol>
-                   <VCol cols="12">
-                    <AppSelect v-model="modbusServerId" :error="!!formErrors.modbus_server_id"
-                      :error-messages="formErrors.machine_id" :items="processedModbusServers" class="" label="Modbus Server"
-                      placeholder="Select a Modbus Server" />
-                  </VCol>
-                 
-
-
-                  <VCol cols="12">
-                    <AppTextField v-model="memoryLocation" :error="!!formErrors.memory_location" :error-messages="formErrors.memory_location"
-                      label="Memory Location" placeholder="e.g., 40001" required />
-                  </VCol>
-
-                  <VCol cols="12">
-                    <AppTextField v-model="name" :error="!!formErrors.name" :error-messages="formErrors.name"
-                      label="Name" placeholder="e.g., TEMP_01" required />
-                  </VCol>
-                 
-
                   
                   <VCol cols="12">
-                    <AppTextField v-model="description" :error="!!formErrors.description"
-                      :error-messages="formErrors.description" label="Description"
-                      placeholder="Describe this register" />
-                  </VCol>
-                  <VCol cols="12">
-                    <AppSelect v-model="dataType" :error="!!formErrors.data_type"
-                      :error-messages="formErrors.data_type" :items="[{
-                        title: 'String',
-                        value: 'String',
-                      }, {
-                        title: 'Number',
-                        value: 'Number',
-                      }, {
-                        title: 'Boolean (TRUE or FALSE)',
-                        value: 'Boolean',
-                      }]" label="Data Type" placeholder="Select a Data Type" />
+                    <AppSelect 
+                      v-model="modbusServerId" 
+                      :error="!!formErrors.modbus_server_id"
+                      :error-messages="formErrors.modbus_server_id" 
+                      :items="processedModbusServers" 
+                      label="Modbus Server"
+                      placeholder="Select a Modbus Server" 
+                    />
                   </VCol>
 
-                
-               
+                  <VCol cols="12">
+                    <AppTextField 
+                      v-model="memoryLocation" 
+                      :error="!!formErrors.memory_location" 
+                      :error-messages="formErrors.memory_location"
+                      label="Memory Location" 
+                      placeholder="e.g., 40001" 
+                      required 
+                    />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <AppTextField 
+                      v-model="name" 
+                      :error="!!formErrors.name" 
+                      :error-messages="formErrors.name"
+                      label="Name" 
+                      placeholder="e.g., Temperature Sensor" 
+                      required 
+                    />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <AppTextField 
+                      v-model="unit" 
+                      :error="!!formErrors.unit" 
+                      :error-messages="formErrors.unit"
+                      label="Unit" 
+                      placeholder="e.g., °C" 
+                    />
+                  </VCol>
+                  
+                  <VCol cols="12">
+                    <AppTextField 
+                      v-model="description" 
+                      :error="!!formErrors.description"
+                      :error-messages="formErrors.description" 
+                      label="Description"
+                      placeholder="Describe this register" 
+                    />
+                  </VCol>
+                  
+                  <VCol cols="12">
+                    <AppSelect 
+                      v-model="dataType" 
+                      :error="!!formErrors.data_type"
+                      :error-messages="formErrors.data_type" 
+                      :items="[
+                        { title: 'String', value: 'String' },
+                        { title: 'Number', value: 'Number' },
+                        { title: 'Boolean (TRUE or FALSE)', value: 'Boolean' }
+                      ]" 
+                      label="Data Type" 
+                      placeholder="Select a Data Type" 
+                    />
+                  </VCol>
                 </VCol>
-              </VWindowItem>           
+              </VWindowItem>
               
+              <!-- STEP 2: 3D Position -->
+              <VWindowItem>
+                <VRow>
+                  <VCol cols="8">
+                    <VAlert v-if="!machineId" type="info" class="mb-4">
+                      Please select a machine first in Step 1
+                    </VAlert>
+                    <VAlert v-else-if="!modelPath" type="warning" class="mb-4">
+                      Selected machine doesn't have a 3D model
+                    </VAlert>
+                    <template v-else>
+                      <ThreeDimensionModelRenderer
+                        v-if="currentStep === 1"
+                        ref="modelViewerRef"
+                        :key="`model-viewer-${machineId}`"
+                        :model-path="modelPath"
+                        :clickable="isModelClickable"
+                        :marker-name="name"
+                        :marker-value="unit || 'N/A'"
+                        :marker-position="markerPosition"
+                        :marker-rotation="markerRotation"
+                        :show-marker="showMarker"
+                        :camera-position="{ x: machine?.entry?.['camera_x'], y: machine?.entry?.['camera_y'], z: machine.entry?.['camera_z'] }"
+                        container-height="90vh"
+                        :is-register-marker="true"
+                        @position-click="handlePositionClick"
+                      />
+                    </template>
+                  </VCol>
+                  
+                  <VCol cols="4">
+                    <VCol cols="12">
+                      <VBtn 
+                        :color="buttonModelColor" 
+                        :disabled="!modelPath"
+                        class="w-full" 
+                        @click="setPositionFromClick"
+                      >
+                        {{ buttonModelText }}
+                      </VBtn>
+                    </VCol>
+                    
+                    <VCol cols="12">
+                      <h4 class="mt-1 mb-1">Position</h4>
+                    </VCol>
+
+                    <VCol cols="12">
+                      <AppTextField 
+                        v-model.number="positionX" 
+                        label="Position X" 
+                        type="number"
+                        step="0.1"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField 
+                        v-model.number="positionY" 
+                        label="Position Y" 
+                        type="number"
+                        step="0.1"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField 
+                        v-model.number="positionZ" 
+                        label="Position Z" 
+                        type="number"
+                        step="0.1"
+                      />
+                    </VCol>
+                    
+                    <VDivider class="my-2" />
+                    
+                    <VCol cols="12">
+                      <h4 class="mt-1 mb-1">Rotation</h4>
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField 
+                        v-model.number="rotationX" 
+                        label="Rotation X" 
+                        type="number"
+                        step="0.1"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField 
+                        v-model.number="rotationY" 
+                        label="Rotation Y" 
+                        type="number"
+                        step="0.1"
+                      />
+                    </VCol>
+                    <VCol cols="12">
+                      <AppTextField 
+                        v-model.number="rotationZ" 
+                        label="Rotation Z" 
+                        type="number"
+                        step="0.1"
+                      />
+                    </VCol>
+                  </VCol>
+                </VRow>
+              </VWindowItem>
+              
+              <!-- STEP 3: Summary -->
+              <VWindowItem>
+                <VRow>
+                  <VCol cols="12">
+                    <h4 class="text-h5 mb-4">Summary</h4>
+                  </VCol>
+                  <VCol cols="12">
+                    <VAlert type="info" variant="tonal" class="mb-4">
+                      Please review all information carefully before submitting.
+                    </VAlert>
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField 
+                      :model-value="processedMachines?.find(m => m.value === machineId)?.title"
+                      label="Machine" 
+                      disabled 
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField 
+                      :model-value="processedModbusServers?.find(m => m.value === modbusServerId)?.title"
+                      label="Modbus Server" 
+                      disabled 
+                    />
+                  </VCol>
+                  
+                  <VCol cols="6">
+                    <AppTextField 
+                      v-model="name" 
+                      label="Register Name" 
+                      disabled 
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField 
+                      v-model="memoryLocation" 
+                      label="Memory Location" 
+                      disabled 
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField 
+                      v-model="unit" 
+                      label="Unit" 
+                      disabled 
+                    />
+                  </VCol>
+
+                  <VCol cols="6">
+                    <AppTextField 
+                      v-model="dataType" 
+                      label="Data Type" 
+                      disabled 
+                    />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <VDivider class="my-3" />
+                    <h4 class="text-h6 mb-2">Position</h4>
+                  </VCol>
+
+                  <VCol cols="4">
+                    <AppTextField 
+                      v-model="positionX" 
+                      label="Position X" 
+                      disabled 
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField 
+                      v-model="positionY" 
+                      label="Position Y" 
+                      disabled 
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField 
+                      v-model="positionZ" 
+                      label="Position Z" 
+                      disabled 
+                    />
+                  </VCol>
+
+                  <VCol cols="12">
+                    <h4 class="text-h6 mt-4 mb-2">Rotation</h4>
+                  </VCol>
+
+                  <VCol cols="4">
+                    <AppTextField 
+                      v-model="rotationX" 
+                      label="Rotation X" 
+                      disabled 
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField 
+                      v-model="rotationY" 
+                      label="Rotation Y" 
+                      disabled 
+                    />
+                  </VCol>
+                  <VCol cols="4">
+                    <AppTextField 
+                      v-model="rotationZ" 
+                      label="Rotation Z" 
+                      disabled 
+                    />
+                  </VCol>
+                </VRow>
+              </VWindowItem>
             </VWindow>
+            
             <div class="d-flex flex-wrap gap-4 justify-sm-space-between justify-center mt-8">
-              <VBtn :disabled="currentStep === 0" color="secondary" variant="tonal" @click="currentStep--">
+              <VBtn 
+                :disabled="currentStep === 0" 
+                color="secondary" 
+                variant="tonal" 
+                @click="currentStep--"
+              >
                 <VIcon class="flip-in-rtl" icon="tabler-arrow-left" start />
                 Previous
               </VBtn>
+              
               <VBtn v-if="numberedSteps.length - 1 === currentStep" color="success" @click="onSubmit">
                 Submit
               </VBtn>
+              
               <VBtn v-else @click="currentStep++">
                 Next
                 <VIcon class="flip-in-rtl" end icon="tabler-arrow-right" />
@@ -658,21 +620,16 @@ function removeOperation(index) {
       </VCard>
     </VCol>
   </VRow>
-  <AlertDialog :body-alert="bodyAlert" :is-dialog-visible="isAlertDialogVisible" :title-alert="titleAlert"
-    :type="alertType" @update:is-dialog-visible="isAlertDialogVisible = $event" />
+  
+  <AlertDialog 
+    :body-alert="bodyAlert" 
+    :is-dialog-visible="isAlertDialogVisible" 
+    :title-alert="titleAlert"
+    :type="alertType" 
+    @update:is-dialog-visible="isAlertDialogVisible = $event" 
+  />
 </template>
 
 <style scoped>
-.three-wrapper {
-  width: 100%;
-  height: 90vh;
-  min-height: 100px;
-  position: relative;
-}
-
-canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+/* Tidak perlu style untuk canvas lagi */
 </style>
