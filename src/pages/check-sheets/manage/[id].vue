@@ -14,7 +14,7 @@ let id = route.params.id
 const numberedSteps = [
   {
     title: 'Mapping Parameter & Checkpoint',
-    subtitle: 'Select and adjust parameter with checkpoint',
+    subtitle: 'Select and adjust parameter with check point',
   },
   {
     title: 'Fill Report',
@@ -75,7 +75,7 @@ const onParameterChange = (parameterId, index) => {
 
   if (!param) return
 
-  checkpoints.value[index] = {
+  checkPoints.value[index] = {
 
     parameter: {
       id: param.id,
@@ -86,18 +86,18 @@ const onParameterChange = (parameterId, index) => {
 }
 
 
-const checkpoints = ref([])
+const checkPoints = ref([])
 
 const activeParametersCount = computed(() => {
-  return checkpoints.value.filter(cp => cp.parameterId).length
+  return checkPoints.value.filter(cp => cp.parameterId).length
 })
 
 const totalCheckpoints = computed(() => {
-  return checkpoints.value.length
+  return checkPoints.value.length
 })
 
 const addCheckpoint = () => {
-  checkpoints.value.push({
+  checkPoints.value.push({
     name: "",
     parameter: {
       id: null,
@@ -108,7 +108,7 @@ const addCheckpoint = () => {
 }
 
 const removeCheckpoint = index => {
-  checkpoints.value.splice(index, 1)
+  checkPoints.value.splice(index, 1)
 }
 
 // ==========================================
@@ -134,10 +134,10 @@ const checkSheetValues = ref({})
 ========================= */
 const onSubmit = async () => {
   formErrors.value = {}
-  const checkSheetCheckPoint = checkpoints.value.map((checkpoint, checkpointIndex) => {
-      // Kumpulkan semua values untuk checkpoint ini dari semua timeSlots
+  const checkSheetCheckPoint = checkPoints.value.map((checkPoint, checkPointIndex) => {
+      // Kumpulkan semua values untuk  ini dari semua timeSlots
       const checkSheetValues = timeSlots.value.map(time => {
-        const value = getCellValue(time, checkpointIndex)
+        const value = getCellValue(time, checkPointIndex)
         
         return {
           timestamp: time,
@@ -145,24 +145,24 @@ const onSubmit = async () => {
         }
       })
 
-      // Build checkpoint object
-      const checkpointData = {
-        parameter_id: checkpoint.parameter.id,
-        name: checkpoint.name,
+      // Build  object
+      const checkPointData = {
+        parameter_id: checkPoint.parameter.id,
+        name: checkPoint.name,
         check_sheet_values: checkSheetValues
       }
       
       // Hanya tambahkan id jika ada (edit mode)
-      if (checkpoint.id) {
-        checkpointData.id = checkpoint.id
+      if (checkPoint.id) {
+        checkPoint.id = checkPoint.id
       }
       
       // Hanya tambahkan check_sheet_id jika ada (edit mode)
-      if (checkpoint.check_sheet_id) {
-        checkpointData.check_sheet_id = checkpoint.check_sheet_id
+      if (checkPoint.check_sheet_id) {
+        checkPoint.check_sheet_id = checkPoint.check_sheet_id
       }
 
-      return checkpointData
+      return checkPointData
     })
 
  
@@ -208,6 +208,18 @@ onMounted(async () => {
   if (checkSheetResult.success) {
     isEditMode.value = true
     selectedCheckSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
+    checkPoints.value = checkSheet.value['check_sheet_check_points'].map(checkSheetCheckPoint => {
+      return {
+        id: checkSheetCheckPoint.id,
+        name: checkSheetCheckPoint.name,
+        parameter: {
+      id: checkSheetCheckPoint.parameter_id,
+      isAutomatic: checkSheetCheckPoint.parameter.is_automatic,
+      unit: checkSheetCheckPoint.parameter.unit,
+    },
+      }
+    })
+    console.log(checkSheet.value)
   } else {
     id = null
   }
@@ -239,9 +251,9 @@ const fillDown = (time, cpIndex) => {
 const isCheckpointValid = computed(() => {
   if (!selectedCheckSheetDocumentTemplateId.value) return false
 
-  return checkpoints.value.every(checkpoint =>
-    checkpoint.name &&
-    checkpoint.parameter?.id
+  return checkPoints.value.every(checkPoint =>
+    checkPoint.name &&
+    checkPoint.parameter?.id
   )
 })
 
@@ -292,8 +304,8 @@ watch(() => selectedCheckSheetDocumentTemplate.value, () => {
 const checkSheetData = ref({})
 
 // Function untuk get/set value
-const getCellValue = (time, checkpointIndex) => {
-  const key = `${time}-${checkpointIndex}`
+const getCellValue = (time, checkPointIndex) => {
+  const key = `${time}-${checkPointIndex}`
 
   const valueCheckSheet = checkSheetData.value[key]?.value
 
@@ -302,8 +314,8 @@ const getCellValue = (time, checkpointIndex) => {
   return String(valueCheckSheet)
 }
 
-const setCellValue = (time, checkpointIndex, value, parameterId) => {
-  const key = `${time}-${checkpointIndex}`
+const setCellValue = (time, checkPointIndex, value, parameterId) => {
+  const key = `${time}-${checkPointIndex}`
   checkSheetData.value[key] = {
     value,
     parameterId,
@@ -315,7 +327,7 @@ const setCellValue = (time, checkpointIndex, value, parameterId) => {
 const copyRow = time => {
   const rowData = {}
 
-  checkpoints.value.forEach((_, cpIndex) => {
+  checkPoints.value.forEach((_, cpIndex) => {
     rowData[cpIndex] = getCellValue(time, cpIndex)
   })
 
@@ -338,7 +350,7 @@ const fetchCheckPointParameterData = async () => {
     interval: selectedCheckSheetDocumentTemplate.value.rawData.interval,
     timestamp: timestamp.value,
     startingHour: selectedCheckSheetDocumentTemplate.value.rawData.starting_hour,
-    parameterIds: checkpoints.value.map(cp => cp.parameter.id),
+    parameterIds: checkPoints.value.map(cp => cp.parameter.id),
   }
 
   const result = await fetchTelemetriesInterval(payloadData)
@@ -354,26 +366,26 @@ const fetchCheckPointParameterData = async () => {
     const slotData = responseData[time]
     if (!slotData) return
 
-    checkpoints.value.forEach((checkpoint, cpIndex) => {
+    checkPoints.value.forEach((checkPoint, cpIndex) => {
       const key = `${time}-${cpIndex}`
 
       // Skip manual input
-      if (!checkpoint.parameter.isAutomatic) {
+      if (!checkPoint.parameter.isAutomatic) {
 
         checkSheetData.value[key] = {
           value: 0,
-          parameterId: checkpoint.parameter.id
+          parameterId: checkPoint.parameter.id
         }
       }
 
-      const paramId = checkpoint.parameter.id
+      const paramId = checkPoint.parameter.id
       const value = slotData[String(paramId)]
 
       if (value === undefined || value === null) return
 
       checkSheetData.value[key] = {
         value,
-        parameterId: checkpoint.parameter.id
+        parameterId: checkPoint.parameter.id
       }
     })
   })
@@ -461,7 +473,7 @@ const fetchCheckPointParameterData = async () => {
                       <div class="excel-cell index-cell">
                         #
                       </div>
-                      <div class="excel-cell checkpoint-cell">
+                      <div class="excel-cell check-point-cell">
                         Checkpoint Name
                       </div>
                       <div class="excel-cell parameter-cell">
@@ -476,37 +488,37 @@ const fetchCheckPointParameterData = async () => {
                     </div>
 
                     <!-- Data Rows -->
-                    <div v-for="(checkpoint, index) in checkpoints" :key="checkpoint.id" class="excel-row">
+                    <div v-for="(checkPoint, index) in checkPoints" :key="checkPoint.id" class="excel-row">
                       <!-- Index -->
                       <div class="excel-cell index-cell">
                         <span class="index-number">{{ index + 1 }}</span>
                       </div>
 
                       <!-- Checkpoint Name -->
-                      <div class="excel-cell checkpoint-cell">
-                        <AppTextField v-model="checkpoint.name" placeholder="Enter checkpoint name" density="compact"
+                      <div class="excel-cell check-point-cell">
+                        <AppTextField v-model="checkPoint.name" placeholder="Enter check point name" density="compact"
                           hide-details="auto" />
                       </div>
 
                       <!-- Parameter Select -->
                       <div class="excel-cell parameter-cell">
-                        <AppSelect v-model="checkpoint.parameter.id" :items="processedParameters"
+                        <AppSelect v-model="checkPoint.parameter.id" :items="processedParameters"
                           placeholder="Select parameter" density="compact" hide-details="auto"
                           @update:model-value="value => onParameterChange(value, index)" />
                       </div>
 
                       <!-- Is Automatic -->
                       <div class="excel-cell action-cell">
-                        <VChip :color="checkpoint.parameter.isAutomatic ? 'success' : 'info'" variant="elevated"
+                        <VChip :color="checkPoint.parameter.isAutomatic ? 'success' : 'info'" variant="elevated"
                           size="small">
-                          {{ checkpoint.parameter.isAutomatic ? 'Automatic' : 'Manual' }}
+                          {{ checkPoint.parameter.isAutomatic ? 'Automatic' : 'Manual' }}
                         </VChip>
                       </div>
 
                       <!-- Unit -->
                       <div class="excel-cell action-cell">
                         <span class="text-body-2 font-weight-medium">
-                          {{ checkpoint.parameter.unit || '-' }}
+                          {{ checkPoint.parameter.unit || '-' }}
                         </span>
                       </div>
                     </div>
@@ -542,12 +554,12 @@ const fetchCheckPointParameterData = async () => {
                         Fill Check Sheet Report
                       </h6>
                       <p class="mb-0 text-body-2">
-                        Input values for each checkpoint at different times
+                        Input values for each check point at different times
                       </p>
                     </div>
                     <div class="d-flex gap-2">
                       <VChip color="primary" variant="tonal" prepend-icon="tabler-checklist">
-                        {{ checkpoints.length }} Checkpoints
+                        {{ checkPoints.length }} Checkpoints
                       </VChip>
                       <VChip color="info" variant="tonal" prepend-icon="tabler-clock">
                         {{ timeSlots.length }} Time Slots
@@ -567,7 +579,7 @@ const fetchCheckPointParameterData = async () => {
                   </VAlert>
 
                   <!-- Excel Data Grid - IMPROVED -->
-                  <div v-if="checkpoints.length > 0" class="excel-data-grid">
+                  <div v-if="checkPoints.length > 0" class="excel-data-grid">
                     <div class="grid-toolbar">
                       <div class="d-flex align-center gap-3">
                         <VIcon icon="tabler-table" size="20" color="primary" />
@@ -590,23 +602,23 @@ const fetchCheckPointParameterData = async () => {
                                 <span>TIME</span>
                               </div>
                             </th>
-                            <th v-for="(checkpoint, cpIndex) in checkpoints" :key="cpIndex"
-                              class="checkpoint-column-header" @mouseenter="hoveredCol = cpIndex"
+                            <th v-for="(checkPoint, cpIndex) in checkPoints" :key="cpIndex"
+                              class="check-point-column-header" @mouseenter="hoveredCol = cpIndex"
                               @mouseleave="hoveredCol = null">
                               <div class="header-content">
                                 <div class="header-main">
-                                  <VChip size="small" :color="checkpoint.parameter.isAutomatic ? 'success' : 'primary'"
+                                  <VChip size="small" :color="checkPoint.parameter.isAutomatic ? 'success' : 'primary'"
                                     class="mb-1" variant="flat">
                                     {{ String.fromCharCode(65 + cpIndex) }}
                                   </VChip>
-                                  <div class="checkpoint-info">
-                                    <div class="checkpoint-title">
-                                      {{ checkpoint.name }}
+                                  <div class="check-point-info">
+                                    <div class="check-point-title">
+                                      {{ checkPoint.name }}
                                     </div>
-                                    <div class="checkpoint-meta">
-                                      <VIcon :icon="checkpoint.parameter.isAutomatic ? 'tabler-robot' : 'tabler-edit'"
+                                    <div class="check-point-meta">
+                                      <VIcon :icon="checkPoint.parameter.isAutomatic ? 'tabler-robot' : 'tabler-edit'"
                                         size="12" />
-                                      <span>{{ checkpoint.parameter.unit || 'N/A' }}</span>
+                                      <span>{{ checkPoint.parameter.unit || 'N/A' }}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -676,19 +688,19 @@ const fetchCheckPointParameterData = async () => {
                             </td>
 
                             <!-- Data Cells -->
-                            <td v-for="(checkpoint, cpIndex) in checkpoints" :key="cpIndex" class="input-cell" :class="{
+                            <td v-for="(checkPoint, cpIndex) in checkPoints" :key="cpIndex" class="input-cell" :class="{
                               'cell-active': isActiveCell(time, cpIndex),
                               'cell-hovered': hoveredCol === cpIndex,
-                              'cell-disabled': checkpoint.parameter.isAutomatic,
+                              'cell-disabled': checkPoint.parameter.isAutomatic,
                               'cell-filled': getCellValue(time, cpIndex)
                             }">
                               <div class="cell-wrapper">
                                 <AppTextField :model-value="getCellValue(time, cpIndex)" placeholder="--"
                                   density="compact" hide-details type="number"
-                                  :disabled="checkpoint.parameter.isAutomatic" class="cell-input"
+                                  :disabled="checkPoint.parameter.isAutomatic" class="cell-input"
                                   @focus="setActiveCell(time, cpIndex)" @blur="activeCell = null"
-                                  @update:model-value="val => setCellValue(time, cpIndex, val, checkpoint.parameter.id)">
-                                  <template v-if="checkpoint.parameter.isAutomatic" #append-inner>
+                                  @update:model-value="val => setCellValue(time, cpIndex, val, checkPoint.parameter.id)">
+                                  <template v-if="checkPoint.parameter.isAutomatic" #append-inner>
                                     <VTooltip location="top">
                                       <template #activator="{ props }" activator="parent">
                                         <VIcon v-bind="props" icon="tabler-lock" size="14" color="success" />
@@ -699,7 +711,7 @@ const fetchCheckPointParameterData = async () => {
                                 </AppTextField>
 
                                 <!-- Quick Fill Down Button -->
-                                <VBtn v-if="!checkpoint.parameter.isAutomatic && getCellValue(time, cpIndex)" icon
+                                <VBtn v-if="!checkPoint.parameter.isAutomatic && getCellValue(time, cpIndex)" icon
                                   size="x-small" variant="text" class="fill-down-btn" @click="fillDown(time, cpIndex)">
                                   <VTooltip location="top">
                                     <template #activator="{ props }">
@@ -722,7 +734,7 @@ const fetchCheckPointParameterData = async () => {
                           <VIcon icon="tabler-check" size="16" color="success" />
                           <span>{{Object.keys(checkSheetData).filter(k => checkSheetData[k]).length}} / {{
                             timeSlots.length *
-                            checkpoints.length }} Filled</span>
+                            checkPoints.length }} Filled</span>
                         </div>
                         <div class="stat-item">
                           <VIcon icon="tabler-clock" size="16" color="info" />
@@ -815,7 +827,7 @@ const fetchCheckPointParameterData = async () => {
   font-weight: 600;
 }
 
-.checkpoint-cell {
+.check-point-cell {
   min-width: 225px;
 }
 
@@ -843,7 +855,7 @@ const fetchCheckPointParameterData = async () => {
     grid-template-columns: 50px 1fr 1fr 100px 100px;
   }
 
-  .checkpoint-cell,
+  .check-point-cell,
   .parameter-cell {
     min-width: 175px;
   }
@@ -950,7 +962,7 @@ const fetchCheckPointParameterData = async () => {
   z-index: 25;
 }
 
-.checkpoint-column-header {
+.check-point-column-header {
   min-width: 200px;
   width: 200px;
 }
@@ -973,7 +985,7 @@ const fetchCheckPointParameterData = async () => {
   width: 30px;
 }
 
-.checkpoint-info {
+.check-point-info {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -981,14 +993,14 @@ const fetchCheckPointParameterData = async () => {
   width: 100%;
 }
 
-.checkpoint-title {
+.check-point-title {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.3;
   text-align: center;
 }
 
-.checkpoint-meta {
+.check-point-meta {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -1004,7 +1016,7 @@ const fetchCheckPointParameterData = async () => {
   transition: opacity 0.2s;
 }
 
-.checkpoint-column-header:hover .header-action {
+.check-point-column-header:hover .header-action {
   opacity: 1;
 }
 
@@ -1207,7 +1219,7 @@ const fetchCheckPointParameterData = async () => {
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .checkpoint-column-header {
+  .check-point-column-header {
     min-width: 160px;
     width: 160px;
   }
