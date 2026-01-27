@@ -38,6 +38,8 @@ const TABLE_HEADERS = [
   { title: 'Description', key: 'description', sortable: true },
   { title: 'Category', key: 'category', sortable: true },
   { title: 'Interval', key: 'interval', sortable: true },
+  { title: 'Interval Type', key: 'interval_type', sortable: true },
+  { title: 'Rotation Type', key: 'rotation_type', sortable: true },
   { title: 'Starting Hour', key: 'starting_hour', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false },
 ]
@@ -132,10 +134,13 @@ const handleSaveChecksheetDocumentTemplate = async reportDocumentTemplateData =>
     await nextTick()
 
     showAlertDialog.value = true
-    alertMessage.value = 'Success manage Check Sheet Document Template'
+    bodyAlert.value = 'Success save Check Sheet Document Template'
+    titleAlert.value = 'Request processed successfully'
+    alertType.value = 'info'
   } else {
-    console.error('Failed to save reportDocumentTemplate:', result.error || result.errors)
-  }
+ bodyAlert.value = 'Success save Check Sheet Document Template'
+    titleAlert.value = 'Request failed to be processed'
+    alertType.value = 'error'  }
 }
 
 /**
@@ -154,10 +159,14 @@ const handleDeleteChecksheetDocumentTemplate = async formData => {
   if (result.success) {
     closeDeleteDialog()
     showAlertDialog.value = true
-    alertMessage.value = 'Success delete Check Sheet Document Template'
+    bodyAlert.value = 'Success delete Check Sheet Document Template'
+    titleAlert.value = 'Request processed successfully'
+    alertType.value = 'info'
 
   } else {
-    console.error('Failed to delete user:', result.error)
+bodyAlert.value = 'Failed to delete Check Sheet Document Template'
+    titleAlert.value = 'Request failed to be processed'
+    alertType.value = 'error'
 
     // Optional: Show error notification
   }

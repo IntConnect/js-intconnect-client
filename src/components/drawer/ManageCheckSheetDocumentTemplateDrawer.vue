@@ -61,7 +61,7 @@ const no = ref('')
 const description = ref('')
 const category = ref('Inspection')
 const interval = ref(1)
-const intervalType = ref('Hours')
+const intervalType = ref('Hour')
 const rotationType = ref("Daily")
 const revisionNumber = ref(0)
 const effectiveDate = ref('')
@@ -301,20 +301,17 @@ onMounted(async () => {
                   </VCol>
                   <VCol cols="6">
                     <AppSelect
-                      v-model="rotationType"
+                      v-model="intervalType"
                       :items="[{
-                                 title: 'Daily',
-                                 value: 'Daily'
+                                 title: 'Minute',
+                                 value: 'Minute'
                                }, {
-                                 title: 'Weekly',
-                                 value: 'Weekly'
+                                 title: 'Hour',
+                                 value: 'Hour'
                                },
-                               {
-                                 title: 'Monthly',
-                                 value: 'Monthly'
-                               }]"
-                      :error="!!props.formErrors.rotationType"
-                      :error-messages="props.formErrors.rotationType || []"
+                              ]"
+                      :error="!!props.formErrors.intervalType"
+                      :error-messages="props.formErrors.intervalType || []"
                       :rules="[requiredValidator]"
                       label="Rotation Type"
                     />
