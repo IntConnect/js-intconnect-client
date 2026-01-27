@@ -37,7 +37,7 @@ export const { themeConfig, layoutConfig } = defineThemeConfig({
     iconRenderer: VIcon,
   },
   navbar: {
-    type: NavbarType.Hidden,
+    type: NavbarType.Sticky,
     navbarBlur: true,
   },
   footer: { type: FooterType.Sticky },
