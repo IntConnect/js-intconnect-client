@@ -122,7 +122,7 @@ const handleExportIntoPDF = async () => {
   <VCard>
     <AppCardActions
       no-actions
-      title="Permissions"
+      title="Generate Report"
     >
       <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-end">
         <!-- Items per page selector -->
