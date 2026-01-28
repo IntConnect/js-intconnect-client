@@ -206,7 +206,7 @@ onMounted(async () => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit Check Sheet Document Template' : 'Create Check Sheet Document Template'"
+      title="Manage Check Sheet Document Template"
       @cancel="closeNavigationDrawer"
     />
 
@@ -375,7 +375,7 @@ onMounted(async () => {
                   class="me-3"
                   type="submit"
                 >
-                  {{ isEditMode ? 'Update' : 'Create' }}
+                Manage
                 </VBtn>
                 <VBtn
                   color="error"

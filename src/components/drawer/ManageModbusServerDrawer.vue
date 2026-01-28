@@ -167,7 +167,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit Modbus Server' : 'Create Modbus Server'"
+      title="Manage Modbus Server"
       @cancel="closeNavigationDrawer"
     />
 
@@ -254,7 +254,7 @@ const handleDrawerModelValueUpdate = val => {
                   class="me-3"
                   type="submit"
                 >
-                  {{ isEditMode ? 'Update' : 'Create' }}
+                Manage
                 </VBtn>
                 <VBtn
                   color="error"

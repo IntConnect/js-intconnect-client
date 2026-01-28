@@ -193,7 +193,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit User' : 'Create User'"
+      title="Manage User"
       @cancel="closeNavigationDrawer"
     />
 
@@ -300,7 +300,7 @@ const handleDrawerModelValueUpdate = val => {
                   class="me-3"
                   type="submit"
                 >
-                  {{ isEditMode ? 'Update' : 'Register' }}
+                Manage
                 </VBtn>
                 <VBtn
                   color="error"

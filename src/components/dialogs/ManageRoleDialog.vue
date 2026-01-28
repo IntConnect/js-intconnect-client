@@ -177,7 +177,7 @@ const onReset = () => {
       <VCardText>
         <!-- 👉 Title -->
         <h4 class="text-h4 text-center mb-2">
-          {{ props.rolePermissions?.name ? 'Edit' : 'Add New' }} Role
+          Manage Role
         </h4>
         <p class="text-body-1 text-center mb-6">
           Set Role Permissions

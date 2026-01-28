@@ -181,7 +181,7 @@ const handleDrawerModelValueUpdate = val => {
   >
     <!-- Header -->
     <AppDrawerHeaderSection
-      :title="isEditMode ? 'Edit MQTT Topic' : 'Create MQTT Topic'"
+      title="Manage MQTT Topic"
       @cancel="closeNavigationDrawer"
     />
 
@@ -248,7 +248,7 @@ const handleDrawerModelValueUpdate = val => {
                   class="me-3"
                   type="submit"
                 >
-                  {{ isEditMode ? 'Update' : 'Create' }}
+                Manage
                 </VBtn>
                 <VBtn
                   color="error"

@@ -340,7 +340,7 @@ function removeOperation(index) {
 <template>
   <VCol cols="6">
     <h4 class="text-h4 mb-1 mt-1">
-      {{ isEditMode ? 'Edit Parameter' : 'Create New Parameter' }}
+      Manage Parameter
     </h4>
     <p class="text-body-1 mb-2">
       Setup parameter location and rotation on your 3D model.

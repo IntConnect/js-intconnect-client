@@ -410,7 +410,7 @@ const fillColumn = (cpIndex, value) => {
 <template>
   <VCol cols="12">
     <h4 class="text-h4 mb-1">
-      {{ isEditMode ? 'Edit' : 'Create' }} Check Sheet
+      Manage Check Sheet
     </h4>
     <p class="text-body-1 mb-4">
       Configure facility details and position in the dashboard model

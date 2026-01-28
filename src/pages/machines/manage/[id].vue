@@ -523,7 +523,7 @@ if (isEditMode.value) {
 <template>
   <VCol cols="12">
     <h4 class="text-h4 mb-1 mt-1">
-      {{ isEditMode ? 'Edit' : 'Create' }} Machine
+      Manage Machine
     </h4>
     <p class="text-body-1 mb-2">
       Configure machine settings and maintain essential machine information

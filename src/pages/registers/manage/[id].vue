@@ -269,7 +269,7 @@ watch(machineId, async value => {
 <template>
   <VCol cols="6">
     <h4 class="text-h4 mb-1 mt-1">
-      {{ isEditMode ? 'Edit Register' : 'Create New Register' }}
+      Manage Register
     </h4>
     <p class="text-body-1 mb-2">
       Setup register location and rotation on your 3D model.
