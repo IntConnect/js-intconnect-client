@@ -92,13 +92,19 @@ export const useManageAlarmLog = () => {
     }
   }
 
-  const fetchAlarmLogsByMachineId = async machineId => {
+  const fetchAlarmLogsByMachineId = async (machineId, isMinimal) => {
     clearErrors()
     actionLoading.value = true
 
+     let endpointUrl = `/alarm-logs/machine/${machineId}`
+    if (isMinimal) {
+      endpointUrl = `public/alarm-logs/machine/${machineId}`
+    }
+
+
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/alarm-logs/machine/${machineId}`, {}),
+        createUrl(endpointUrl, {}),
       )
         .get()
         .json()

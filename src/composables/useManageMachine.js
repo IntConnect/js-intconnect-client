@@ -114,13 +114,17 @@ export const useManageMachine = () => {
     }
   }
 
-  const fetchMachine = async machineId => {
+  const fetchMachine = async (machineId, isMinimal = false) => {
     clearErrors()
     actionLoading.value = true
+    let endpointUrl = `/machines/${machineId}`
+    if (isMinimal) {
+      endpointUrl = `public/machines/${machineId}`
+    }
 
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl(`/machines/${machineId}`, {}),
+        createUrl$(endpointUrl, {}),
       )
         .get()
         .json()

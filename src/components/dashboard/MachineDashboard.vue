@@ -335,6 +335,12 @@ const processedMachine = computed(() => {
     connectMQTT(rawProcessedMachine)
   }
   
+    processedParameters.value = rawProcessedMachine.value.mqtt_topic.parameters.map(parameter => {
+    return {
+      id: parameter.id,
+      title: parameter.code,
+    }
+  })
   return rawProcessedMachine
 })
 
@@ -401,8 +407,8 @@ const processedParameters = ref([])
 
 onMounted(async () => {
   let machineId = props.systemSetting.entry.value.machine_id
-  let actionResult = await fetchMachine(machineId)
-  let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId)
+  let actionResult = await fetchMachine(machineId, true)
+  let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId, true)
   await nextTick()
   processedAlarmLogs.value = alarmLogs.value.entries.map(alarmLog => {
     const parameter = getParameterById(alarmLog.parameter_id)
@@ -419,13 +425,7 @@ onMounted(async () => {
       acknowledged: false,
     }
   }) ?? []
-  console.log(processedMachine)
-  processedParameters.value = processedMachine.value.mqtt_topic.parameters.map(parameter => {
-    return {
-      id: parameter.id,
-      title: parameter.code,
-    }
-  })
+
 
   // Connect to alarm WebSocket
   connectAlarmWebSocket()
