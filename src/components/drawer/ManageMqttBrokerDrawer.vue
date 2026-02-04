@@ -155,6 +155,7 @@ const handleDrawerModelValueUpdate = val => {
     :model-value="props.isDrawerOpen"
     :width="400"
     class="scrollable-content"
+    data-testid="mqtt-broker-drawer"
     location="end"
     temporary
     @update:model-value="handleDrawerModelValueUpdate"
@@ -254,6 +255,7 @@ const handleDrawerModelValueUpdate = val => {
                   :loading="props.loading"
                   class="me-3"
                   type="submit"
+                  data-testid="submit-drawer"
                 >
                 Manage
                 </VBtn>
@@ -261,9 +263,8 @@ const handleDrawerModelValueUpdate = val => {
                   color="error"
                   variant="tonal"
                   @click="closeNavigationDrawer"
-                >
-                  Cancel
-                </VBtn>
+                  data-testid="cancel-drawer"
+                >Cancel</VBtn>
               </VCol>
             </VRow>
           </VForm>

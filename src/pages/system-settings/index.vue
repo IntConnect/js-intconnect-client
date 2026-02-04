@@ -59,6 +59,7 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
           :src="pages1"
           cover
           style="max-height: 250px;"
+          data-testid="dashboard-settings-img"
         />
 
         <VCardItem>
@@ -89,6 +90,8 @@ import UserProfileHeaderBg from '@images/pages/user-profile-header-bg.png'
           :src="pages2"
           cover
           style="max-height: 250px;"
+          data-testid="listener-settings-img"
+
         />
 
         <VCardItem>

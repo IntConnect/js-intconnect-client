@@ -301,9 +301,10 @@ onMounted(async () => {
   await fetchMachines()
   let systemSettingData = systemSetting.value.entry
   if (systemSettingData) {
+  console.log(systemSettingData)
     Object.assign(localForm, {
       showing: systemSettingData.value.showing,
-      machineId: Number(systemSettingData.value.machine_id),
+      machineId:  isNaN (Number(systemSettingData.value.machine_id)) ? null  : systemSettingData.value.machine_id,
       description: systemSettingData.description,
       existingModelUrl: systemSettingData.value.model_path,
       pinObjectName: systemSettingData.value.pin_object_name,
@@ -341,6 +342,7 @@ onMounted(async () => {
               :rules="[requiredValidator]"
               label="Showing"
               placeholder="Select Showing"
+              data-testid="showing-dropdown"
             />
           </VCol>
           <VCol
@@ -356,6 +358,7 @@ onMounted(async () => {
               :rules="[requiredValidator]"
               label="Machine"
               placeholder="Select Machine"
+              data-testid="machine-dropdown"
             />
           </VCol>
           
@@ -473,6 +476,7 @@ onMounted(async () => {
               color="error"
               variant="tonal"
               to="/system-settings"
+              data-testid="back-button"
             >
               <VIcon
                 start

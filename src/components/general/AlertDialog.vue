@@ -42,6 +42,7 @@ const closeDialog = () => emit("update:isDialogVisible", false)
     :model-value="isDialogVisible"
     width="450"
     @update:model-value="closeDialog"
+    data-testid="alert-dialog"
   >
     <DialogCloseBtn @click="closeDialog" />
 

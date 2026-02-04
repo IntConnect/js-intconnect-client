@@ -188,12 +188,8 @@ onMounted(() => {
 <template>
   <section>
     <VCol cols="12">
-      <h4 class="text-h4 mb-1">
-        All MQTT Brokers
-      </h4>
-      <p class="text-body-1 mb-0">
-        View and manage all MQTT brokers connected to your company’s system.
-      </p>
+      <h4 class="text-h4 mb-1">All MQTT Brokers</h4>
+      <p class="text-body-1 mb-0">View and manage all MQTT brokers connected to your company’s system.</p>
     </VCol>
     <VCard>
       <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">

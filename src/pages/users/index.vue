@@ -25,8 +25,7 @@ import UserList from "@/components/user/UserList.vue"
         Total users with their roles
       </h4>
       <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
-      </p>
+View all users and their assigned roles within the system      </p>
     </VCol>
 
     <VCol cols="12">

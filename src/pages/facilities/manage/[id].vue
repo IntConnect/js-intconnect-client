@@ -459,12 +459,8 @@ onBeforeUnmount(() => {
 
 <template>
   <VCol cols="12">
-    <h4 class="text-h4 mb-1">
-      Manage Facility
-    </h4>
-    <p class="text-body-1 mb-4">
-      Configure facility details and position in the dashboard model
-    </p>
+    <h4 class="text-h4 mb-1">Manage Facility</h4>
+    <p class="text-body-1 mb-4">Configure facility details and position in the dashboard model</p>
 
     <VCard>
       <VCardText>

@@ -129,6 +129,7 @@ onMounted(() => {
                   :error="!!formErrors.user_identifier"
                   :error-messages="formErrors.user_identifier"
                   autofocus
+                  data-testid="user-identifier-error"
                   label="Email or Username"
                   placeholder="johndoe@email.com"
                 />
@@ -146,6 +147,7 @@ onMounted(() => {
                   label="Password"
                   placeholder="············"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                  data-testid="password-error"
                 />
 
                 <div class="d-flex align-center flex-wrap justify-space-between my-6" />
@@ -153,6 +155,7 @@ onMounted(() => {
                 <VBtn
                   block
                   type="submit"
+                  data-testid="submit-button"
                 >
                   Login
                 </VBtn>

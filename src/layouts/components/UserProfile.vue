@@ -34,6 +34,7 @@ watch(parsedJwt, () => {
     location="bottom right"
     offset-x="3"
     offset-y="3"
+    data-testid="profile-button"
   >
     <VAvatar
       class="cursor-pointer"
@@ -83,13 +84,12 @@ watch(parsedJwt, () => {
 
 
           <VListItem
-            class="text-white"
             link
             to="/users/profile"
           >
             <template #prepend>
               <VIcon
-                class="me-2 text-white"
+                class="me-2 "
                 icon="tabler-user"
                 size="22"
               />
@@ -100,13 +100,12 @@ watch(parsedJwt, () => {
             </VListItemTitle>
           </VListItem>
           <VListItem
-            class="text-white"
             link
             to="/faqs"
           >
             <template #prepend>
               <VIcon
-                class="me-2 text-white"
+                class="me-2"
                 icon="tabler-bubble-text"
                 size="22"
               />

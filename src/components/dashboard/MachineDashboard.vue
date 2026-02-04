@@ -410,7 +410,7 @@ onMounted(async () => {
   let actionResult = await fetchMachine(machineId, true)
   let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId, true)
   await nextTick()
-  processedAlarmLogs.value = alarmLogs.value.entries.map(alarmLog => {
+  processedAlarmLogs.value = alarmLogs.value.entries?.map(alarmLog => {
     const parameter = getParameterById(alarmLog.parameter_id)
     
     return {

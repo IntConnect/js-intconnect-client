@@ -20,6 +20,7 @@ const emit = defineEmits(['cancel'])
 
     <IconBtn
       size="small"
+      data-testid="close-drawer-btn"
       @click="$emit('cancel', $event)"
     >
       <VIcon

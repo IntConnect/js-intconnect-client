@@ -234,6 +234,7 @@ const handleUpdateAction = async note => {
               color="success"
               variant="text"
               @click="handleUpdate(item)"
+              data-testid="resolve-button"
             >
               <VIcon
                 icon="tabler-check"
@@ -269,8 +270,8 @@ const handleUpdateAction = async note => {
       label: 'Note',
       placeholder: 'Type your note...',
       type: 'text',
-      formErrors: formErrors
     }]"
+    :formErrors="formErrors"
     :loading="actionLoading"
     message="Please provide a note before acknowledged issue"
     title="Acknowledged Issue"

@@ -185,6 +185,7 @@ onMounted(async () => {
                   :rules="[requiredValidator]"
                   label="Snapshot Ticker Type"
                   placeholder="Select Snapshot Ticker Type"
+                  data-testid="snapshot-ticker-type"
                 />
               </VCol>
             </VRow>

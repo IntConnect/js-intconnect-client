@@ -36,7 +36,7 @@ const handleSubmit = () => {
     :width="$vuetify.display.smAndDown ? 'auto' : 600"
     :model-value="props.modelValue"
   >
-    <DialogCloseBtn @click="closeDialog" />
+    <DialogCloseBtn @click="closeDialog" data-testid="cancel-dialog-confirmation" />
 
     <VCard class="pa-4">
       <!-- 👉 Title -->

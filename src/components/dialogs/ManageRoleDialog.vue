@@ -171,7 +171,7 @@ const onReset = () => {
     @update:model-value="onReset"
   >
     <!-- 👉 Dialog close btn -->
-    <DialogCloseBtn @click="onReset" />
+    <DialogCloseBtn @click="onReset" data-testid="close-button-x" />
 
     <VCard class="pa-sm-10 pa-2">
       <VCardText>
@@ -262,6 +262,7 @@ const onReset = () => {
               color="secondary"
               variant="tonal"
               @click="onReset"
+              data-testid="cancel-button"
             >
               Cancel
             </VBtn>

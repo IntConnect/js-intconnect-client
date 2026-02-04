@@ -214,6 +214,7 @@ onMounted(() => {
                 icon="tabler-photo-scan"
                 rounded
                 variant="tonal"
+                data-testid="view-thumbnail"
               />
             </a>
           </template>

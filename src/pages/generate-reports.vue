@@ -98,6 +98,7 @@ onMounted(async () => {
 })
 
 const handleExportIntoPDF = async () => {
+  console.log("TEST")
   const logoBase64 = await loadImageAsBase64('/public/images/kalbeNutritionalLogo.png')
 
   console.log(flatRows.value)
@@ -212,7 +213,7 @@ const handleExportIntoPDF = async () => {
         <div class="d-flex flex-row gap-2 justify-end w-100 align-end flex-wrap ">
           <VBtn
             color="primary"
-            :on-click="handleExportIntoPDF"
+            @click="handleExportIntoPDF"
           >
             Export Into PDF
           </VBtn>

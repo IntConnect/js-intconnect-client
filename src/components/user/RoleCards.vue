@@ -178,7 +178,7 @@ onMounted(() => {
                 </div>
               </div>
               <IconBtn @click="openDeleteDialog(item)">
-                <VIcon icon="tabler-trash" />
+                <VIcon icon="tabler-trash" data-testid="button-trash-role" />
               </IconBtn>
             </div>
           </VCardText>
@@ -192,6 +192,7 @@ onMounted(() => {
         <VCard
           :ripple="false"
           class="h-100"
+          data-testid="add-role-card"
         >
           <VRow
             class="h-100"

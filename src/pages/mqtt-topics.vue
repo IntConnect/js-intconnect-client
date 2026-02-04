@@ -188,7 +188,7 @@ onMounted(() => {
         All MQTT Topics
       </h4>
       <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
+Explore the complete list of MQTT topics and their configurations
       </p>
     </VCol>
     <VCard>

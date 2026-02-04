@@ -237,6 +237,7 @@ const handleDrawerModelValueUpdate = val => {
                   :rules="[requiredValidator]"
                   label="QoS"
                   placeholder="Select QoS"
+                  data-testid="qos-selector"
                 />
               </VCol>
 
