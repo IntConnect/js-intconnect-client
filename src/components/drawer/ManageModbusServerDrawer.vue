@@ -43,7 +43,7 @@ const refForm = ref()
 
 // Form fields
 const id = ref('')
-const ipAddress = ref('')
+const hostName = ref('')
 const port = ref('')
 const slaveId = ref('')
 const isActive = ref(false)
@@ -86,7 +86,7 @@ const onSubmit = () => {
     // Prepare modbusServer data
     const modbusServerData = {
       id: id.value,
-      ip_address: ipAddress.value,
+      host_name: hostName.value,
       port: port.value,
       slave_id: slaveId.value,
       timeout: timeout.value,
@@ -115,7 +115,7 @@ watch(
   val => {
     if (val && Object.keys(val).length) {
       id.value = val.id || ''
-      ipAddress.value = val.ip_address || ''
+      hostName.value = val.host_name || ''
       port.value = val.port
       slaveId.value = val.slave_id
       timeout.value = val.timeout
@@ -186,11 +186,11 @@ const handleDrawerModelValueUpdate = val => {
             <VRow>
               <VCol cols="12">
                 <AppTextField
-                  v-model="ipAddress"
-                  :error="!!props.formErrors.ipAddress"
-                  :error-messages="props.formErrors.ipAddress || []"
+                  v-model="hostName"
+                  :error="!!props.formErrors.hostName"
+                  :error-messages="props.formErrors.hostName || []"
                   :rules="[requiredValidator]"
-                  label="IP Address"
+                  label="Host Name"
                   placeholder="127.0.0.1"
                 />
               </VCol>

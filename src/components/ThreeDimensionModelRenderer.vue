@@ -304,6 +304,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     container.userData.valueText = valueText
     container.userData.animPhase = Math.random() * Math.PI * 2
     container.userData.parameterName = parameterName
+    container.userData.code = registerData.code
 
 
   } else {
@@ -1365,12 +1366,12 @@ defineExpose({
     // Update parameter markers yang sudah ada
     scene.children.forEach(child => {
       if (child.userData && child.userData.valueText && child.userData.isRegisterMarker) {
-        console.log(child.userData.parameterName)
+        console.log(child.userData.parameterName, child.userData)
 
 
         // Cari parameter yang match
         const matchParam = updatedParameters.find(p => {
-          return p.parameter == child.userData.parameterName
+          return p.parameter == child.userData.parameterName || child.userData.code == p.parameter
         })
 
         console.log(updatedParameters)
@@ -1382,8 +1383,11 @@ defineExpose({
       }
     })
   },
-  
-
+  destroyViewer: () => {
+    console.log('Destroy triggered from parent')
+    cleanupViewer(true) // tanda bahwa komponen sedang di-destroy
+    isMounted.value = false
+  },
 })
 </script>
 

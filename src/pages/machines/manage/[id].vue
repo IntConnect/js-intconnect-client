@@ -4,16 +4,12 @@ import AppTextField from "@core/components/app-form-elements/AppTextField.vue"
 import AppStepper from "@core/components/AppStepper.vue"
 import Vue3Dropzone from '@jaxtheprime/vue3-dropzone'
 import "@jaxtheprime/vue3-dropzone/dist/style.css"
-import * as THREE from 'three'
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import { useManageFacility } from "@/composables/useManageFacility"
 import { useManageMachine } from "@/composables/useManageMachine"
 import { useManageParameter } from "@/composables/useManageParameter"
 import { extractFilename } from "@core/utils/helpers"
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 const numberedSteps = [
   {
@@ -51,13 +47,6 @@ const {
 } = useManageParameter()
 
 
-// Preview state
-let previewRenderer = null
-let previewScene = null
-let previewCamera = null
-let previewControls = null
-let previewModel = null
-
 const {
   machine,
   fetchMachine,
@@ -65,7 +54,6 @@ const {
   // (optional) machines etc if needed
 } = useManageMachine()
 
-const threePreviewContainer = ref(null)
 
 // localForm: reactive copy to avoid two-way bind issues during editing
 const localForm = reactive({
@@ -77,6 +65,7 @@ const localForm = reactive({
   thumbnail: null, // File or null
   thumbnailUrl: null, // File or null
   modelUrl: null, // File or null
+  modelFile: null,
   facility_id: null,
   parameter_id: null,
   camera_x: 0,
@@ -102,13 +91,13 @@ onMounted(async () => {
         name: processedMachine.name,
         code: processedMachine.code,
         description: processedMachine.description,
+        mode: processedMachine['model_path'],
         facility_id: processedMachine['facility_id'],
         camera_x: processedMachine['camera_x'],
         camera_y: processedMachine.camera_y,
         camera_z: processedMachine.camera_z,
       })
 
-      initModelPreview(processedMachine['model_path'], true)
 
       // ADD THIS
       localForm.documents = processedMachine['machine_documents']?.map(doc => ({
@@ -127,26 +116,6 @@ onMounted(async () => {
 
 })
 
-function destroyModelPreview() {
-  if (previewControls) {
-    previewControls.removeEventListener('end', syncPreviewCameraState)
-    previewControls.dispose()
-    previewControls = null
-  }
-
-  if (previewRenderer) {
-    previewRenderer.dispose()
-    previewRenderer = null
-  }
-
-  if (threePreviewContainer.value) {
-    threePreviewContainer.value.innerHTML = ''
-  }
-
-  previewScene = null
-  previewCamera = null
-  previewModel = null
-}
 
 // helpers: documents
 const addDocument = () => {
@@ -157,132 +126,15 @@ const removeDocument = idx => {
   localForm.documents.splice(idx, 1)
 }
 
-function initModelPreview(modelUrl, shouldRestoreCamera = false) {
-  if (!threePreviewContainer.value || !modelUrl) return
 
-  destroyModelPreview()
 
-  const width = threePreviewContainer.value.clientWidth
-  const height = 300
-
-  // Renderer
-  previewRenderer = new THREE.WebGLRenderer({ antialias: true })
-  previewRenderer.domElement.style.width = '100%'
-  previewRenderer.domElement.style.height = '100%'
-  previewRenderer.domElement.style.display = 'block'
-  previewRenderer.setSize(width, height)
-  previewRenderer.setPixelRatio(window.devicePixelRatio)
-  threePreviewContainer.value.appendChild(previewRenderer.domElement)
-
-  // Scene
-  previewScene = new THREE.Scene()
-  previewScene.background = new THREE.Color(0xf5f5f5)
-
-  // Camera - set default position first
-  previewCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  previewCamera.position.set(localForm.camera_x, localForm.camera_y, localForm.camera_z)
-  previewCamera.updateProjectionMatrix()
-
-  // Controls
-  previewControls = new OrbitControls(previewCamera, previewRenderer.domElement)
-  previewControls.enableDamping = true
-  previewControls.dampingFactor = 0.05
-  previewControls.addEventListener('end', syncPreviewCameraState)
-
-  const pmrem = new THREE.PMREMGenerator(previewRenderer)
-
-  previewScene.environment = pmrem.fromScene(
-    new RoomEnvironment(),
-    0.04,
-  ).texture
-
-  // Light
-  previewScene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1))
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
-
-  directionalLight.position.set(5, 10, 7.5)
-  previewScene.add(directionalLight)
-
-  // Load uploaded model
-  const loader = new GLTFLoader()
-
-  loader.load(
-    shouldRestoreCamera ? useStaticFile(modelUrl) : modelUrl,
-    gltf => {
-      previewModel = gltf.scene
-      previewModel.updateMatrixWorld(true)
-
-      // Center model
-      const box = new THREE.Box3().setFromObject(previewModel)
-      const center = box.getCenter(new THREE.Vector3())
-      const size = box.getSize(new THREE.Vector3())
-
-      previewModel.position.x -= center.x
-      previewModel.position.y -= center.y
-      previewModel.position.z -= center.z
-
-      previewScene.add(previewModel)
-
-      // Check if we should restore saved camera position or auto-fit
-      const hasSavedCamera = shouldRestoreCamera && (
-        localForm.camera_x !== 0 ||
-        localForm.camera_y !== 0 ||
-        localForm.camera_z !== 0
-      )
-
-      if (hasSavedCamera) {
-        // Restore saved camera position
-        previewCamera.position.set(
-          localForm.camera_x,
-          localForm.camera_y,
-          localForm.camera_z,
-        )
-        previewCamera.updateProjectionMatrix()
-        previewControls.update()
-      } else {
-        // Auto-fit camera for new uploads
-        const maxDim = Math.max(size.x, size.y, size.z)
-        const fov = previewCamera.fov * (Math.PI / 180)
-        let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2))
-        cameraZ *= 1.5
-
-        previewCamera.position.z = cameraZ
-        previewControls.update()
-
-        // Sync camera state after auto-fit
-        syncPreviewCameraState()
-      }
-    },
-    undefined,
-    error => {
-      console.error('Error loading preview model:', error)
-    },
-  )
-
-  animatePreview()
-}
-
-function animatePreview() {
-  if (!previewRenderer) return
-  requestAnimationFrame(animatePreview)
-  previewControls.update()
-  previewRenderer.render(previewScene, previewCamera)
-}
-
-function syncPreviewCameraState() {
-  if (!previewCamera) return
-
-  localForm.camera_x = Number(previewCamera.position.x.toFixed(4))
-  localForm.camera_y = Number(previewCamera.position.y.toFixed(4))
-  localForm.camera_z = Number(previewCamera.position.z.toFixed(4))
-}
 
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 const existingThumbnail = ref([])    // array of URLs
 const deletedDocumentIds = ref([])
+const viewerRef = ref(null)
 
 
 const modelFile = computed(() => localForm.model?.[0]?.file || null)
@@ -323,8 +175,8 @@ const onSubmit = async () => {
   if (result.success) {
 
     isAlertDialogVisible.value = true
-    bodyAlert.value = "You will be redirected to facilities page"
-    titleAlert.value = SuccessManage("facilities")
+    bodyAlert.value = "You will be redirected to machines page"
+    titleAlert.value = SuccessManage("machines")
 
     setTimeout(() => {
       router.push('/machines')
@@ -352,20 +204,12 @@ watch(
   val => {
     if (val && val[0]?.file) {
       localForm.modelUrl = URL.createObjectURL(val[0].file)
-      initModelPreview(localForm.modelUrl, false)
     }
   },
   { deep: true },
 )
 
-const threeContainer = ref(null)
 
-// Three.js instances
-let renderer = null
-let scene = null
-let camera = null
-let controls = null
-let model = null
 
 const {
   errors: dropzoneError,
@@ -381,81 +225,11 @@ watch(
   async step => {
     if (step === 2) {
       await nextTick()
-      initThreePreview()
     } else {
-      destroyPreview()
     }
   },
 )
 
-// Destroy the preview (important)
-function destroyPreview() {
-  if (renderer) {
-    renderer.dispose()
-    renderer = null
-  }
-  if (threeContainer.value) {
-    threeContainer.value.innerHTML = ''
-  }
-}
-
-// Initialize Three.js preview
-function initThreePreview() {
-  if (!threeContainer.value || !localForm.modelUrl) return
-
-  destroyPreview()
-
-  const width = threeContainer.value.clientWidth
-  const height = threeContainer.value.clientHeight
-
-  // Renderer
-  renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setSize(width, height)
-  renderer.setPixelRatio(window.devicePixelRatio)
-  threeContainer.value.appendChild(renderer.domElement)
-
-  // Scene
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0xffffff)
-
-  const pmrem = new THREE.PMREMGenerator(renderer)
-
-  scene.environment = pmrem.fromScene(
-    new RoomEnvironment(),
-    0.04,
-  ).texture
-
-  // Camera
-  camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000)
-  camera.position.set(2, 1.5, 3)
-
-  // Controls
-  controls = new OrbitControls(camera, renderer.domElement)
-  controls.enableDamping = true
-
-  // Light
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1)
-
-  scene.add(hemiLight)
-
-  // Load 3D model
-  const loader = new GLTFLoader()
-
-  loader.load(localForm.modelUrl, gltf => {
-    model = gltf.scene
-    model.scale.set(1, 1, 1)
-    scene.add(model)
-  })
-  animate()
-}
-
-// Animation loop
-function animate() {
-  if (!renderer) return
-  requestAnimationFrame(animate)
-  controls.update()
-  renderer.render(scene, camera)
-}
 
 function removeExistingDocument(docId, index) {
   if (!docId) return
@@ -516,6 +290,17 @@ if (isEditMode.value) {
       camera_z: processedMachine.camera_z || 0,
       modelUrl: processedMachine.model_path,
     })
+  }
+}
+
+const onFileRemoved = () => {
+  localForm.model = null
+  destroyViewer()
+}
+
+const destroyViewer = () => {
+  if (viewerRef.value?.destroyViewer) {
+    viewerRef.value.destroyViewer()
   }
 }
 </script>
@@ -632,13 +417,17 @@ if (isEditMode.value) {
                     v-model="localForm.model"
                     :max-file-size="250"
                     :multiple="false"
-                    accept=".glb"
+                    accept="model/gltf-binary"
                     @error="e => handleFileRejected('model', e)"
                     @file-uploaded="clearError('model')"
+                    @file-removed="() => {
+                      onFileRemoved()
+                      console.log('aaaa')
+                    }"
                   />
                   <p
                     v-if="formErrors.model || dropzoneError.model"
-                    class="text-body-2 mt-2 text-danger"
+                    class="text-body-2 mt-2 text-error"
                   >
                     {{ formErrors.model || dropzoneError.model.message }}
                   </p>
@@ -664,7 +453,7 @@ if (isEditMode.value) {
                   />
                   <p
                     v-if="formErrors.thumbnail || dropzoneError.thumbnail"
-                    class="text-body-2 mt-2 text-danger"
+                    class="text-body-2 mt-2 text-error"
                   >
                     {{ formErrors.thumbnail || dropzoneError.thumbnail.message }}
                   </p>
@@ -678,6 +467,7 @@ if (isEditMode.value) {
                     3D Preview (Rotate to set camera)
                   </p>
                   <ThreeDimensionModelRenderer
+                  ref="viewerRef"
                     v-if="localForm.modelUrl"
                     :model-path="localForm.modelUrl"
                     :camera-position="{

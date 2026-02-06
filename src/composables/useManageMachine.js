@@ -119,12 +119,13 @@ export const useManageMachine = () => {
     actionLoading.value = true
     let endpointUrl = `/machines/${machineId}`
     if (isMinimal) {
-      endpointUrl = `public/machines/${machineId}`
+      endpointUrl = `/public/machines/${machineId}`
     }
 
+    console.log(endpointUrl)
     try {
       const { data: response, error: apiError } = await useApi(
-        createUrl$(endpointUrl, {}),
+        createUrl(endpointUrl, {}),
       )
         .get()
         .json()
@@ -137,7 +138,8 @@ export const useManageMachine = () => {
       return {
         success: true,
       }
-    } catch (_) {
+    } catch (err) {
+      console.log(err)
       return { success: false, error: "Unknown error" }
     } finally {
       actionLoading.value = false

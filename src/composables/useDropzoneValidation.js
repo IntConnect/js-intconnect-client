@@ -9,6 +9,7 @@ export function useDropzoneValidation(options = {}) {
   const errors = ref({})
 
   function handleFileRejected(field, rejection) {
+console.log(field, rejection)
     if (!field || !rejection) return
 
     errors.value[field] = {

@@ -66,7 +66,6 @@ const selectedParameterIds = ref([])
 const interval = ref([])
 
 const handleRegisterValueUpdate = value => {
-  console.log(value)
   isRegisterDialogOpen.value =false
   manageRegisterValue(selectedRegister.value.id, {
     value: value,
@@ -210,7 +209,6 @@ const connectAlarmWebSocket = () => {
         }else{
           const indexOfUpdatedAlarmLog =  processedAlarmLogs.value.findIndex(alarmLog => alarmLog.parameter_id == data.parameter_id)
 
-          console.log(indexOfUpdatedAlarmLog)
           processedAlarmLogs.value[indexOfUpdatedAlarmLog] = {
             ...processedAlarmLogs.value[indexOfUpdatedAlarmLog],
             value: data.value,
@@ -317,6 +315,7 @@ watch(
         parameter: value.name,
         value: value.value,
         unit: value.unit,
+        code: value.code,
       })
     })
     realtimeData.value = newData
@@ -327,15 +326,15 @@ watch(
 )
 
 const processedMachine = computed(() => {
-  if (!machine?.value?.entry) return null
   const rawProcessedMachine = machine.value.entry
+  if (!rawProcessedMachine) return null
 
-  console.log(rawProcessedMachine)
+
   if (rawProcessedMachine) {
     connectMQTT(rawProcessedMachine)
   }
-  
-    processedParameters.value = rawProcessedMachine.value.mqtt_topic.parameters.map(parameter => {
+  console.log(rawProcessedMachine)
+    processedParameters.value = rawProcessedMachine.value?.mqtt_topic.parameters.map(parameter => {
     return {
       id: parameter.id,
       title: parameter.code,
@@ -463,7 +462,7 @@ watch(
         if (!mqttParam) return
 
         // update VALUE SAJA
-        item.value = `${mqttParam.value} ${mqttParam.unit ?? item.unit ?? ''}`
+        item.value = `${Number(mqttParam.value).toFixed(2)} ${mqttParam.unit ?? item.unit ?? ''}`
       })
     })
 
@@ -664,7 +663,7 @@ const gridMinHeight = computed(() => {
       </div>
     </VOverlay>
 
-    <VRow class="match-height">
+<VRow class="match-height align-stretch">
       <!-- LEFT -->
       <VCol
         cols="12"
@@ -685,7 +684,9 @@ const gridMinHeight = computed(() => {
             y: processedMachine.camera_y,
             z: processedMachine.camera_z + 7
           }"
-          container-height="80vh"
+            class="flex-grow-1"
+                style="min-height:500px;"            
+
           :parameters="processedMachine.parameters"
           :registers="processedMachine.registers"
           @register-click="handleRegisterClick"

@@ -20,12 +20,6 @@ export const emailValidator = value => {
 }
 
 // 👉 Password Validator
-export const passwordValidator = password => {
-  const regExp = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*()]).{8,}/
-  const validPassword = regExp.test(password)
-  
-  return validPassword || 'Field must contain at least one uppercase, lowercase, special character and digit with min 8 chars'
-}
 
 // 👉 Confirm Password Validator
 export const confirmedValidator = (value, target) => value === target || 'The Confirm Password field confirmation does not match'

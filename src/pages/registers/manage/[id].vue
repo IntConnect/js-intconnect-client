@@ -45,6 +45,7 @@ const modbusServerId = ref(null)
 const memoryLocation = ref('')
 const name = ref('')
 const unit = ref('') // ADDED: Missing unit field
+const code = ref('')
 const description = ref('')
 const dataType = ref('String')
 const positionX = ref(0)
@@ -59,7 +60,6 @@ const isAlertDialogVisible = ref(false)
 const isModelClickable = ref(false)
 const refForm = ref()
 const modelPath = ref('')
-const processedRegisters = ref([])
 const modelViewerRef = ref(null)
 
 const route = useRoute()
@@ -121,7 +121,7 @@ onMounted(async () => {
   }))
   
   processedModbusServers.value = registerDependency.value.entry.modbus_servers?.map(modbus_server => ({
-    title: modbus_server.ip_address,
+    title: modbus_server.host_name,
     value: modbus_server.id,
   }))
   
@@ -217,6 +217,7 @@ const onSubmit = () => {
       position_z: positionZ.value,
       rotation_x: rotationX.value,
       rotation_y: rotationY.value,
+      code: code.value,
       rotation_z: rotationZ.value,
     }
 
@@ -250,7 +251,7 @@ watch(machineId, async value => {
   try {
     await fetchMachine(value)
     await nextTick()
-    
+    console.log(machine.value)
     if (machine.value && machine.value.entry && machine.value.entry.model_path) {
       console.log(machine.value)
       modelPath.value = machine.value.entry.model_path
@@ -340,6 +341,16 @@ watch(machineId, async value => {
                     />
                   </VCol>
 
+                   <VCol cols="12">
+                    <AppTextField 
+                      v-model="code" 
+                      :error="!!formErrors.code" 
+                      :error-messages="formErrors.code"
+                      label="Code" 
+                      placeholder="e.g., 1_Leaving_Chilled_Water_Temp_Settings" 
+                      required 
+                    />
+                  </VCol>
                   <VCol cols="12">
                     <AppTextField 
                       v-model="name" 
@@ -389,7 +400,7 @@ watch(machineId, async value => {
               </VWindowItem>
               
               <!-- STEP 2: 3D Position -->
-              <VWindowItem>
+<VWindowItem class="h-100">
                 <VRow>
                   <VCol cols="8">
                     <VAlert
@@ -410,7 +421,7 @@ watch(machineId, async value => {
                       <ThreeDimensionModelRenderer
                         v-if="currentStep === 1"
                         ref="modelViewerRef"
-                        :key="`model-viewer-${machineId}`"
+          :key="`model-${machineId}-step-${currentStep}-${modelPath}`"
                         :model-path="modelPath"
                         :clickable="isModelClickable"
                         :marker-name="name"

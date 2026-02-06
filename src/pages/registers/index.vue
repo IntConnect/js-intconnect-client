@@ -251,7 +251,7 @@ onMounted(async () => {
 
         <template #item.modbus_server="{ item }">
           <div class="d-flex align-center gap-x-4">
-            {{ item.modbus_server.ip_address }}
+            {{ item.modbus_server.host_name }}
           </div>
         </template>
 

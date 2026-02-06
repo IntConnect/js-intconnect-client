@@ -32,7 +32,7 @@ const {
 // ==========================================
 const TABLE_HEADERS = [
   { title: 'Id', key: 'id', sortable: true },
-  { title: 'IP Address', key: 'ip_address', sortable: true },
+  { title: 'Host Name', key: 'host_name', sortable: true },
   { title: 'Port', key: 'port', sortable: true },
   { title: 'Slave ID', key: 'slave_id', sortable: true },
   { title: 'Timeout', key: 'timeout', sortable: true },
@@ -129,13 +129,13 @@ const handleSaveModbusServer = async modbusServerData => {
 
     showAlertDialog.value = true
     titleAlert.value = 'Success manage Modbus Server'
-    bodyAlert.value = 'Modbus server has been created'
+    bodyAlert.value = 'Modbus server has been managed'
     alertType.value = 'info'
   } else {
     showAlertDialog.value = true
     titleAlert.value = 'Failed manage Modbus Server'
-    bodyAlert.value = 'Modbus server failed to be deleted'
-    alertType.value = 'delete'
+    bodyAlert.value = 'Modbus server failed to be managed'
+    alertType.value = 'error'
 
 
     console.error('Failed to save modbusServer:', result.error || result.errors)
