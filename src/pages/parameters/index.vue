@@ -54,7 +54,10 @@ const sortOrder = ref("asc")
 const showDeleteDialog = ref(false)
 const showParameterOperationDialog = ref(false)
 const selectedParameter = ref(null)
-
+const showAlertDialog = ref(false)
+const titleAlert = ref('')
+const bodyAlert = ref('')
+const alertType = ref('info')
 // ==========================================
 // Methods
 // ==========================================
@@ -115,14 +118,19 @@ const handleDeleteParameter = async formData => {
   const reason = formData.reason || ''
   const result = await deleteParameter(selectedParameter.value.id, reason)
 
+ 
   if (result.success) {
     closeDeleteDialog()
-    await loadParameters()
+    showAlertDialog.value = true
+    titleAlert.value = 'Action success'
+    bodyAlert.value = 'Parameter has been deleted'
 
   } else {
-    console.error('Failed to delete parameter:', result.error)
+    showAlertDialog.value = true
+    titleAlert.value = 'Action failed'
+    bodyAlert.value = 'Parameter failed to deleted'
+    alertType.value = 'error'
 
-    // Optional: Show error notification
   }
 }
 
@@ -202,6 +210,7 @@ onMounted(() => {
           <VBtn
             color="primary"
             :to="{ name: 'parameter-create'}"
+            data-testid="parameter-create-btn"
           >
             New Parameter
           </VBtn>
@@ -329,4 +338,10 @@ onMounted(() => {
       @submit="handleManageParameterOperation"
     />
   </section>
+    <AlertDialog
+    v-model:is-dialog-visible="showAlertDialog"
+    :body-alert="bodyAlert"
+    :title-alert="titleAlert"
+    :type="alertType"
+  />
 </template>

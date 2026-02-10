@@ -203,6 +203,7 @@ onMounted(async () => {
     location="end"
     temporary
     @update:model-value="handleDrawerModelValueUpdate"
+    data-testid="check-sheet-document-template-drawer"
   >
     <!-- Header -->
     <AppDrawerHeaderSection
@@ -230,6 +231,7 @@ onMounted(async () => {
                   :error-messages="props.formErrors.machineId || []"
                   :rules="[requiredValidator]"
                   label="Machine"
+                  data-testid="machine-select"
                 />
               </VCol>
 
@@ -284,6 +286,7 @@ onMounted(async () => {
                   :error-messages="props.formErrors.category || []"
                   :rules="[requiredValidator]"
                   label="Category"
+                  data-testid="category-select"
                 />
               </VCol>
 
@@ -313,19 +316,40 @@ onMounted(async () => {
                       :error="!!props.formErrors.intervalType"
                       :error-messages="props.formErrors.intervalType || []"
                       :rules="[requiredValidator]"
-                      label="Rotation Type"
+                      label="Interval Type"
+                      data-testid="interval-type-select"
                     />
                   </VCol>
                 </VRow>
               </VCol>
 
+               <VCol cols="12">
+                    <AppSelect
+                      v-model="rotationType"
+                      :items="[{
+                                 title: 'Daily',
+                                 value: 'Daily'
+                               }, {
+                                 title: 'Weekly',
+                                 value: 'Weekly'
+                               }, {
+                                 title: 'Monthly',
+                                 value: 'Monthly'
+                               },
+                              ]"
+                      :error="!!props.formErrors.rotationType"
+                      :error-messages="props.formErrors.rotationType || []"
+                      :rules="[requiredValidator]"
+                      label="Rotation Type"
+                      data-testid="rotation-type-select"
+                    />
+                  </VCol>
 
               <VCol cols="6">
                 <AppTextField
                   v-model.number="revisionNumber"
                   :error="!!props.formErrors.revision_number"
                   :error-messages="props.formErrors.revision_number || []"
-                  :rules="[requiredValidator]"
                   label="Revision Number"
                   placeholder="1"
                   :disabled="isEditMode"
@@ -346,6 +370,7 @@ onMounted(async () => {
                   label="Effective Date"
                   :rules="[requiredValidator]"
                   placeholder="Select date"
+                  data-testid="effective-date-select"
                 />
               </VCol>
               <VCol cols="12">
@@ -363,6 +388,7 @@ onMounted(async () => {
                   label="Starting Hour"
                   :rules="[requiredValidator]"
                   placeholder="Select time"
+                  data-testid="starting-hour-select"
                 />
               </VCol>
 
@@ -374,6 +400,7 @@ onMounted(async () => {
                   :loading="props.loading"
                   class="me-3"
                   type="submit"
+                  data-testid="submit-drawer"
                 >
                 Manage
                 </VBtn>
@@ -381,6 +408,7 @@ onMounted(async () => {
                   color="error"
                   variant="tonal"
                   @click="closeNavigationDrawer"
+                  data-testid="cancel-drawer"
                 >
                   Cancel
                 </VBtn>

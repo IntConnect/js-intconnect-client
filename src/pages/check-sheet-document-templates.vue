@@ -138,7 +138,7 @@ const handleSaveChecksheetDocumentTemplate = async reportDocumentTemplateData =>
     titleAlert.value = 'Request processed successfully'
     alertType.value = 'info'
   } else {
- bodyAlert.value = 'Success save Check Sheet Document Template'
+ bodyAlert.value = 'Failed to save Check Sheet Document Template'
     titleAlert.value = 'Request failed to be processed'
     alertType.value = 'error'  }
 }

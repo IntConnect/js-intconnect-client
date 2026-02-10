@@ -386,6 +386,7 @@ function removeOperation(index) {
                       class="mt-3" 
                       label="Machine"
                       placeholder="Select a Machine" 
+                      data-testid="machine-select"
                     />
                   </VCol>
                   
@@ -400,6 +401,7 @@ function removeOperation(index) {
                       :items="processedMqttTopic" 
                       label="MQTT Topic"
                       placeholder="Select a MQTT Topic" 
+                      data-testid="mqtt-topic-select"
                     />
                   </VCol>
 
@@ -437,6 +439,7 @@ function removeOperation(index) {
                       ]" 
                       label="Category" 
                       placeholder="Select a Category" 
+                      data-testid="category-select"
                     />
                   </VCol>
 
@@ -507,6 +510,7 @@ function removeOperation(index) {
                           />
                           <VSwitch
                             v-model="isRunningTime"
+                            data-testid="is-running-time-switch"
                             :label="isRunningTime ? 'Yes' : 'No'"
                           />
                         </VCol>
@@ -522,6 +526,8 @@ function removeOperation(index) {
                           <VSwitch
                             v-model="isProcessed"
                             :label="isProcessed ? 'Processed Parameter' : 'Regular Parameter'"
+                            data-testid="is-processed-switch"
+
                           />
                         </VCol>
                         <VBtn
@@ -530,6 +536,7 @@ function removeOperation(index) {
                           color="primary"
                           variant="tonal"
                           @click="addOperation"
+                          data-testid="add-operation-btn"
                         >
                           Add Operation
                         </VBtn>
@@ -598,6 +605,8 @@ function removeOperation(index) {
                         <VSwitch
                           v-model="isDisplay"
                           :label="isDisplay ? 'Active' : 'Inactive'"
+                            data-testid="is-display-switch"
+
                         />
                       </VCol>
                       <VCol
@@ -612,6 +621,8 @@ function removeOperation(index) {
                         <VSwitch
                           v-model="isAutomatic"
                           :label="isAutomatic ? 'Automatic' : 'Manual'"
+                            data-testid="is-automatic-switch"
+
                         />
                       </VCol>
                     </VRow>
@@ -631,6 +642,8 @@ function removeOperation(index) {
                         <VSwitch
                           v-model="isWatch"
                           :label="isWatch ? 'Watch' : 'Ignore'"
+                            data-testid="is-watch-switch"
+
                         />
                       </VCol>
                       <VCol
@@ -645,6 +658,8 @@ function removeOperation(index) {
                         <VSwitch
                           v-model="isFeatured"
                           :label="isFeatured ? 'Yes' : 'No'"
+                            data-testid="is-featured-switch"
+
                         />
                       </VCol>
                     </VRow>
@@ -931,6 +946,7 @@ function removeOperation(index) {
                 color="secondary" 
                 variant="tonal" 
                 @click="currentStep--"
+                data-testid="prev-btn"
               >
                 <VIcon
                   class="flip-in-rtl"
@@ -944,6 +960,7 @@ function removeOperation(index) {
                 v-if="numberedSteps.length - 1 === currentStep"
                 color="success"
                 @click="onSubmit"
+                data-testid="submit-btn"
               >
                 Submit
               </VBtn>
@@ -951,6 +968,7 @@ function removeOperation(index) {
               <VBtn
                 v-else
                 @click="currentStep++"
+                data-testid="next-btn"
               >
                 Next
                 <VIcon

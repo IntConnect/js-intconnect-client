@@ -389,6 +389,7 @@ const destroyViewer = () => {
                     :items="processedFacilities"
                     label="Facility"
                     placeholder="Select facility"
+                    data-testid="facility-selector"
                   />
                 </VCol>
                 <VCol
@@ -402,6 +403,7 @@ const destroyViewer = () => {
                     label="Description"
                     placeholder="Describe the machine"
                     textarea
+                    data-testid="description-field"
                   />
                 </VCol>
 
@@ -812,6 +814,8 @@ const destroyViewer = () => {
               color="secondary"
               variant="tonal"
               @click="currentStep--"
+              data-testid="prev-btn"
+
             >
               <VIcon
                 class="flip-in-rtl"
@@ -824,12 +828,14 @@ const destroyViewer = () => {
               v-if="numberedSteps.length - 1 === currentStep"
               color="success"
               @click="onSubmit"
+              data-testid="submit-btn"
             >
               Submit
             </VBtn>
             <VBtn
               v-else
               @click="currentStep++"
+              data-testid="next-btn"
             >
               Next
               <VIcon

@@ -128,7 +128,7 @@ const handleSaveReportDocumentTemplate = async reportDocumentTemplateData => {
     await nextTick()
 
     showAlertDialog.value = true
-    alertMessage.value = 'Success manage Report Document Templates'
+    titleAlert.value = 'Success manage Report Document Templates'
     bodyAlert.value = 'Report Document Templates has been managed'
   } else {
     console.error('Failed to save reportDocumentTemplate:', result.error || result.errors)
@@ -184,12 +184,8 @@ onMounted(() => {
 <template>
   <section>
     <VCol cols="12">
-      <h4 class="text-h4 mb-1">
-        All Report Document Templates
-      </h4>
-      <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
-      </p>
+      <h4 class="text-h4 mb-1">All Report Document Templates</h4>
+      <p class="text-body-1 mb-0">View and manage all report document templates in one</p>
     </VCol>
     <VCard>
       <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">

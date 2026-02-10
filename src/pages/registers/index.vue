@@ -176,12 +176,8 @@ onMounted(async () => {
 <template>
   <section>
     <VCol cols="12">
-      <h4 class="text-h4 mb-1">
-        All Registers
-      </h4>
-      <p class="text-body-1 mb-0">
-        Find all of your company’s administrator accounts and their associate roles.
-      </p>
+      <h4 class="text-h4 mb-1">All Registers</h4>
+      <p class="text-body-1 mb-0">Access and maintain register configurations in one place</p>
     </VCol>
     <VCard>
       <VCardText class="d-flex flex-wrap gap-4 justify-space-between align-center">
@@ -207,6 +203,7 @@ onMounted(async () => {
             :loading="actionLoading"
             color="primary"
             :to="{ name: 'register-create'}"
+            data-testid="register-create-btn"
           >
             New Register
           </VBtn>

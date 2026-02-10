@@ -332,6 +332,7 @@ const currentTab = ref(0)
                 ref="threeContainer"
                 class="rounded-lg overflow-hidden"
                 style="width: 100%; min-height:500px;border: 1px solid #e0e0e0;"
+                data-testid="canvas-3d"
               />
             </VCol>
 

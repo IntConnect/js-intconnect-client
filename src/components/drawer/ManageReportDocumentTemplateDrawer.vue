@@ -173,6 +173,7 @@ const handleDrawerModelValueUpdate = val => {
     location="end"
     temporary
     @update:model-value="handleDrawerModelValueUpdate"
+    data-testid="report-document-template-drawer"
   >
     <!-- Header -->
     <AppDrawerHeaderSection
@@ -224,6 +225,7 @@ const handleDrawerModelValueUpdate = val => {
                   label="Parameter"
                   multiple
                   placeholder="Select parameter"
+                  data-testid="parameter-select"
                 />
               </VCol>
               <!-- Actions -->
@@ -232,6 +234,7 @@ const handleDrawerModelValueUpdate = val => {
                   :loading="props.loading"
                   class="me-3"
                   type="submit"
+                  data-testid="submit-drawer"
                 >
                 Manage
                 </VBtn>
@@ -239,6 +242,7 @@ const handleDrawerModelValueUpdate = val => {
                   color="error"
                   variant="tonal"
                   @click="closeNavigationDrawer"
+                  data-testid="cancel-drawer"
                 >
                   Cancel
                 </VBtn>

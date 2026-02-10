@@ -262,6 +262,7 @@ const resolveBadgeRole = role => {
         class="text-no-wrap"
         hide-default-footer
         no-data-text="No users found"
+        data-testid="user-table"
       >
         <!-- ID Column -->
         <template #item.id="{ index }">

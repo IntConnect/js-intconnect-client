@@ -165,6 +165,7 @@ watch([page, itemsPerPage], loadMachines)
               <VBtn
                 color="primary"
                 :to="{ name: 'machine-create' }"
+                data-testid="new-machine-btn"
               >
                 New Machine
               </VBtn>
@@ -249,6 +250,7 @@ watch([page, itemsPerPage], loadMachines)
                   size="small"
                   variant="text"
                   :to="{ name: 'machine-edit', params: { id: item.id } }"
+                  data-testid="edit-machine-btn"
                 >
                   <VIcon
                     icon="tabler-pencil"

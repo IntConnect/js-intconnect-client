@@ -19,6 +19,7 @@ const props = defineProps({
     size="30"
     :ripple="false"
     class="v-dialog-close-btn"
+    data-testid="cancel-dialog-confirmation-btn"
   >
     <VIcon
       :icon="props.icon"

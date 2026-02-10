@@ -178,6 +178,7 @@ const handleDrawerModelValueUpdate = val => {
     location="end"
     temporary
     @update:model-value="handleDrawerModelValueUpdate"
+    data-testid="user-drawer"
   >
     <!-- Header -->
     <AppDrawerHeaderSection
@@ -255,6 +256,8 @@ const handleDrawerModelValueUpdate = val => {
                   color="error"
                   variant="tonal"
                   @click="closeNavigationDrawer"
+                  data-testid="cancel-drawer"
+
                 >
                   Cancel
                 </VBtn>

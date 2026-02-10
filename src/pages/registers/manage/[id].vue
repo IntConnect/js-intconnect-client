@@ -315,7 +315,8 @@ watch(machineId, async value => {
                       :items="processedMachines" 
                       class="mt-3" 
                       label="Machine"
-                      placeholder="Select a Machine" 
+                      placeholder="Select a Machine"
+                      data-testid="machine-select" 
                     />
                   </VCol>
                   
@@ -327,6 +328,7 @@ watch(machineId, async value => {
                       :items="processedModbusServers" 
                       label="Modbus Server"
                       placeholder="Select a Modbus Server" 
+                      data-testid="modbus-server-select"
                     />
                   </VCol>
 
@@ -394,6 +396,7 @@ watch(machineId, async value => {
                       ]" 
                       label="Data Type" 
                       placeholder="Select a Data Type" 
+                      data-testid="data-type-select"
                     />
                   </VCol>
                 </VCol>
@@ -647,6 +650,7 @@ watch(machineId, async value => {
                 color="secondary" 
                 variant="tonal" 
                 @click="currentStep--"
+                data-testid="prev-btn"
               >
                 <VIcon
                   class="flip-in-rtl"
@@ -660,6 +664,7 @@ watch(machineId, async value => {
                 v-if="numberedSteps.length - 1 === currentStep"
                 color="success"
                 @click="onSubmit"
+                data-testid="submit-btn"
               >
                 Submit
               </VBtn>
@@ -667,6 +672,7 @@ watch(machineId, async value => {
               <VBtn
                 v-else
                 @click="currentStep++"
+                data-testid="next-btn"
               >
                 Next
                 <VIcon

@@ -30,10 +30,10 @@ const {
   fetchReportDocumentTemplates,
 } = useManageReportDocumentTemplate()
 
-const startDate = ref('2026-01-26 01:00')
-const endDate = ref('2026-01-26 01:30')
+const startDate = ref('')
+const endDate = ref('')
 const interval = ref(1)
-const selectedReportDocumentTemplateId = ref(1)
+const selectedReportDocumentTemplateId = ref()
 
 const flatRows = computed(() => {
   if (telemetries.value.length == 0) return []
@@ -54,20 +54,6 @@ const headers = [
   { title: "Value", key: "value" },
 ]
 
-const groupBy = [{ key: 'status' }]
-
-const resolveStatusVariant = status => {
-  if (status === 'Current')
-    return { color: 'primary' }
-  else if (status === 'Professional')
-    return { color: 'success' }
-  else if (status === 'Rejected')
-    return { color: 'error' }
-  else if (status === 'Resigned')
-    return { color: 'warning' }
-  else
-    return { color: 'info' }
-}
 
 const getIcon = props => props.icon
 
@@ -156,10 +142,10 @@ const handleExportIntoPDF = async () => {
                 time_24hr: true,
               }"
               :rules="[requiredValidator]"
-
               :error-messages="fetchTelemetriesReportError.start_date || []"
               label="Start Date"
               placeholder="Select date and time"
+              data-testid="start-date-field"
             />
             <AppDateTimePicker
               id="endDate"
@@ -177,6 +163,8 @@ const handleExportIntoPDF = async () => {
               :rules="[requiredValidator]"
 
               placeholder="Select date and time"
+              data-testid="end-date-field"
+
             />
             <AppTextField
               v-model.number="interval"
@@ -196,6 +184,8 @@ const handleExportIntoPDF = async () => {
               :rules="[requiredValidator]"
               label="Report Document Template"
               placeholder="Select Report Document Template"
+              data-testid="report-document-template-field"
+
             />
             <VBtn
               icon="tabler-cloud-up"
@@ -221,6 +211,8 @@ const handleExportIntoPDF = async () => {
             Export Into XLSX
           </VBtn>
         </div>
+        <div class="table-scroll-wrapper">
+
         <VDataTable
           :headers="headers"
           :items="flatRows"
@@ -228,7 +220,7 @@ const handleExportIntoPDF = async () => {
           item-value="id"
         >
           <template #data-table-group="{ props, item, count }">
-            <td colspan="12">
+            <td>
               <VBtn
                 v-bind="props"
                 variant="text"
@@ -245,6 +237,7 @@ const handleExportIntoPDF = async () => {
             </td>
           </template>
         </VDataTable>
+        </div>
       </VCardText>
     </AppCardActions>
   </VCard>
@@ -255,3 +248,10 @@ const handleExportIntoPDF = async () => {
     :type="alertType"
   />
 </template>
+
+<style>
+.table-scroll-wrapper {
+  overflow-y: auto;
+  width: 100%;
+  max-height: calc(100vh - 420px);
+}</style>
