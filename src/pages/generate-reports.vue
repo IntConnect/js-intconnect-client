@@ -84,16 +84,15 @@ onMounted(async () => {
 })
 
 const handleExportIntoPDF = async () => {
-  console.log("TEST")
-  const logoBase64 = await loadImageAsBase64('/public/images/kalbeNutritionalLogo.png')
+  const logoBase64 = await loadImageAsBase64('/public/images/sinergiLogo.png')
 
   console.log(flatRows.value)
   exportAlarmLogPDF({
     data: flatRows.value,
     logoBase64: logoBase64,
     company: {
-      name: 'PT Kalbe Morinaga Indonesia',
-      address: '  Jl. Raya Kawasan Industri Indotaisei, Sektor 1A, Blok Q1, Kalihurip, Cikampek, Karawang, West Java 41373',
+      name: 'PT Sinergi Bisnis Indonesia',
+      address: '  Jl. Raya Kawasan Industri Indotaisei',
     },
     filters: {
       'Date Range': '26 Jan 2026 01:06 - 01:18',
