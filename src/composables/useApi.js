@@ -9,14 +9,23 @@ export const useApi = createFetch({
   },
   options: {
     refetch: true,
-    beforeFetch({ options }) {
-      const accessToken = useCookie('access_token').value
-      if (accessToken) {
-        options.headers = { ...options.headers, Authorization: `Bearer ${accessToken}` }
-      }
+  beforeFetch({ options }) {
+  const cookieToken = useCookie('access_token').value
+  const storageToken = localStorage.getItem('access_token')
 
-      return { options }
-    },
+  const accessToken = cookieToken || storageToken
+  console.log('TOKEN =>', accessToken)
+
+
+  if (accessToken) {
+    options.headers = {
+      ...options.headers,
+      Authorization: `Bearer ${accessToken}`,
+    }
+  }
+
+  return { options }
+},
     afterFetch(ctx) {
       let parsedData = null
       try {
