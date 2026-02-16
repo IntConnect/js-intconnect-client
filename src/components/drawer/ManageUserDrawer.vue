@@ -45,6 +45,11 @@ const password = ref('')
 const confirmPassword = ref('')
 const roleId = ref('')
 
+const isAlertDialogVisible = ref(false)
+const bodyAlert = ref('')
+const titleAlert = ref('')
+const alertType = ref('info')
+
 // Password visibility
 const isPasswordVisible = ref(false)
 const isConfirmPasswordVisible = ref(false)
@@ -85,7 +90,10 @@ const onSubmit = () => {
 
     // Validate password match (only if password is provided)
     if (password.value && password.value !== confirmPassword.value) {
-      alert('Passwords do not match')
+    isAlertDialogVisible.value = true
+    bodyAlert.value = 'Password do not match'
+    titleAlert.value = 'Input not valid'
+    alertType.value = 'error'
 
       return
     }
@@ -322,4 +330,11 @@ const handleDrawerModelValueUpdate = val => {
       </VCard>
     </PerfectScrollbar>
   </VNavigationDrawer>
+  <AlertDialog
+    :body-alert="bodyAlert"
+    :is-dialog-visible="isAlertDialogVisible"
+    :title-alert="titleAlert"
+    :type="alertType"
+    @update:is-dialog-visible="isAlertDialogVisible = $event"
+  />
 </template>
