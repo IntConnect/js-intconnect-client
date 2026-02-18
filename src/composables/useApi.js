@@ -14,7 +14,6 @@ export const useApi = createFetch({
   const storageToken = localStorage.getItem('access_token')
 
   const accessToken = cookieToken || storageToken
-  console.log('TOKEN =>', accessToken)
 
 
   if (accessToken) {

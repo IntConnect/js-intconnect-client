@@ -9,7 +9,6 @@ export function useDropzoneValidation(options = {}) {
   const errors = ref({})
 
   function handleFileRejected(field, rejection) {
-console.log(field, rejection)
     if (!field || !rejection) return
 
     errors.value[field] = {
@@ -41,7 +40,6 @@ console.log(field, rejection)
    ERROR MAPPER
 ========================= */
 function mapErrorMessage(code, fallback) {
-  console.log(code, fallback)
   switch (code) {
   case 'file-too-large':
     return 'The file size exceeds the allowed limit.'

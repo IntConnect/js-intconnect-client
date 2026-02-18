@@ -173,7 +173,6 @@ const onSubmit = async () => {
     check_sheet_check_points: checkSheetCheckPoint,
   }
 
-  console.log(payload)
 
   const result = await createCheckSheet(payload)
   if (result.success) {
@@ -221,7 +220,6 @@ onMounted(async () => {
         },
       }
     })
-    console.log(checkSheet.value)
   } else {
     id = null
   }

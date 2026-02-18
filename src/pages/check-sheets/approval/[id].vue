@@ -229,7 +229,6 @@ const onSubmit = async () => {
     check_sheet_check_points: checkSheetCheckPoint,
   }
 
-  console.log(payload)
 
   const result = await createCheckSheet(payload)
   if (result.success) {
@@ -268,7 +267,6 @@ onMounted(async () => {
     selectedCheckSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
     checkpoints.value = checkSheet.value['check_sheet_check_points'].map(checkSheetCheckPoint => {
       let parameter = getParameterById(checkSheetCheckPoint.parameter_id)
-      console.log(parameter)
       
       return {
         name: checkSheetCheckPoint.name,

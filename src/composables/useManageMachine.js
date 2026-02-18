@@ -122,7 +122,6 @@ export const useManageMachine = () => {
       endpointUrl = `/public/machines/${machineId}`
     }
 
-    console.log(endpointUrl)
     try {
       const { data: response, error: apiError } = await useApi(
         createUrl(endpointUrl, {}),
@@ -139,7 +138,6 @@ export const useManageMachine = () => {
         success: true,
       }
     } catch (err) {
-      console.log(err)
       return { success: false, error: "Unknown error" }
     } finally {
       actionLoading.value = false
@@ -151,7 +149,6 @@ export const useManageMachine = () => {
     clearFormErrors()
     try {
       const formData = jsonToFormData(machineData)
-
      
       // Don't set Content-Type header - let the browser set it automatically with boundary
       const { data: response, error: apiError } = await useApi("/machines", {})
@@ -171,11 +168,16 @@ export const useManageMachine = () => {
     }
   }
 
-  const updateMachine = async (machineId, machineData) => {
+  const updateMachine = async (machineId, machineData, deletedDocumentIds) => {
     actionLoading.value = true
     clearFormErrors()
     try {
       const formData = jsonToFormData(machineData)
+      formData.append('deleted_machine_document_ids', deletedDocumentIds)
+console.log(formData)
+for (const row of formData.entries()) {
+ console.log(row)
+}
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
       const { data: response, error: apiError } = await useApi(
@@ -232,11 +234,11 @@ export const useManageMachine = () => {
     }
   }
 
-  const saveMachine = async machineData => {
+  const saveMachine = async (machineData, deletedDocumentIds) => {
     if (machineData.id) {
       const { id, ...payload } = machineData
 
-      return updateMachine(id, payload)
+      return updateMachine(id, payload, deletedDocumentIds)
     }
 
     return createMachine(machineData)
