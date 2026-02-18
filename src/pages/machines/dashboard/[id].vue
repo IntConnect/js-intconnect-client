@@ -315,7 +315,6 @@ const handleSaveWidget = () => {
 }
 
 const handleRemoveWidget = id => {
-  console.log(selectedWidget)
   layout.value = layout.value.filter(w => w.i !== selectedWidget.value.i)
   saveIntoStorage()
   showDeleteDialog.value = false
@@ -394,32 +393,7 @@ const handleRemoveParameter = parameterId => {
  * Persist Dashboard
  * =============================== */
 const handleStoreWidget = async () => {
-  console.log({
-    machine_id: machineId,
-    added_parameter_ids: addedParameterIds.value,
-    removed_parameter_ids: removedParameterIds.value,
-    edited_widgets: editedWidgets.value,
-    added_widgets: addedWidgets.value?.map(addedWidget => {
-      return {
-        code: addedWidget.i,
-        layout: {
-          x: addedWidget.x,
-          y: addedWidget.y,
-          w: addedWidget.w,
-          h: addedWidget.h,
-        },
-        config: {
-          type: addedWidget.type,
-          title: addedWidget.title,
-          dataSourceIds: addedWidget.dataSourceIds,
-          color: addedWidget.color,
-        },
-      }
-    }),
-    removed_widgets: removedWidgets.value.map(removedWidget => {
-      return removedWidget.i
-    }),
-  })
+
   let actResult = await saveDashboardWidget({
     machine_id: machineId,
     added_parameter_ids: addedParameterIds.value,

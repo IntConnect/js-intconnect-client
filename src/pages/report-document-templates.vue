@@ -128,7 +128,7 @@ const handleSaveReportDocumentTemplate = async reportDocumentTemplateData => {
     await nextTick()
 
     showAlertDialog.value = true
-    titleAlert.value = 'Success manage Report Document Templates'
+    titleAlert.value = 'Success manage data'
     bodyAlert.value = 'Report Document Templates has been managed'
   } else {
     console.error('Failed to save reportDocumentTemplate:', result.error || result.errors)

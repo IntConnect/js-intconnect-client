@@ -174,10 +174,7 @@ export const useManageMachine = () => {
     try {
       const formData = jsonToFormData(machineData)
       formData.append('deleted_machine_document_ids', deletedDocumentIds)
-console.log(formData)
-for (const row of formData.entries()) {
- console.log(row)
-}
+
 
       // Don't set Content-Type header - let the browser set it automatically with boundary
       const { data: response, error: apiError } = await useApi(
