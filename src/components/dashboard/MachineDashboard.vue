@@ -130,7 +130,7 @@ onMounted(() => {
 
 const connectAlarmWebSocket = () => {
   try {
-    alarmSocket.value = new WebSocket('ws://localhost:8181/ws')
+    alarmSocket.value = new WebSocket(import.meta.env.VITE_ALARM_WEBSOCKET)
 
     alarmSocket.value.onopen = () => {
       readyState.value = alarmSocket.value.readyState
