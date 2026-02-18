@@ -661,7 +661,6 @@ const handleRemoveParameter = itemId => {
 .add-parameter-card:hover {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15)) !important;
   border-color: rgba(16, 185, 129, 0.6) !important;
-  transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
 }
 

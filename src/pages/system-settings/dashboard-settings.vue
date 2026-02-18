@@ -350,7 +350,7 @@ onMounted(async () => {
             md="6"
           >
             <AppSelect
-              v-if="localForm.showing === 'Machine'"
+              v-if="localForm.showing === 'Machine' "
               v-model="localForm.machineId"
               :error="!!formErrors.machineId"
               :error-messages="formErrors.machineId || []"
@@ -383,6 +383,9 @@ onMounted(async () => {
               placeholder="Dashboard configuration description"
             />
           </VCol>
+          <template 
+          v-if="localForm.showing == 'Executive'"
+          >
 
           <VCol
             cols="12"
@@ -456,6 +459,8 @@ onMounted(async () => {
               </VCol>
             </VRow>
           </VCol>
+        </template>
+
         </VRow>
 
         <div class="d-flex justify-space-between mt-6 gap-4">
@@ -467,6 +472,7 @@ onMounted(async () => {
               color="primary"
               variant="outlined"
               @click="pinMode = !pinMode"
+              v-if="localForm.showing == 'Executive'"
             >
               {{ pinMode ? 'Cancel Pin Selection' : 'Select Pin Object' }}
             </VBtn>

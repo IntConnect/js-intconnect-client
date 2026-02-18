@@ -25,7 +25,10 @@ const machineId = route.params.id
 
 const { saveDashboardWidget } = useManageDashboardWidget()
 const { machine, fetchMachine } = useManageMachine()
-
+const isAlertDialogVisible = ref(false)
+const bodyAlert = ref('')
+const titleAlert = ref('')
+const alertType = ref('info')
 /* ===============================
  * Component Maps
  * =============================== */
@@ -266,10 +269,19 @@ const handleOpenDialog = widget => {
 }
 
 const handleSaveWidget = () => {
-  if (!widgetForm.value.title.trim()) return alert('Title required')
-  if (!widgetForm.value.dataSourceIds.length && (widgetForm.value.type !== 'metric' && widgetForm.value.type !== 'gauge'))
-    return alert('Select at least one parameter')
-
+  if (!widgetForm.value.title.trim()) {
+      isAlertDialogVisible.value = true
+    titleAlert.value = 'Input not valid'
+    bodyAlert.value = 'Title is required'
+    alertType.value = 'error'
+  }
+  if (!widgetForm.value.dataSourceIds.length && (widgetForm.value.type !== 'metric' && widgetForm.value.type !== 'gauge')) {
+    isAlertDialogVisible.value = true
+    titleAlert.value = 'Input not valid'
+    bodyAlert.value = 'Select at least one parameter'
+    alertType.value = 'error'
+    return 
+}
   if (isAddMode.value) {
     layout.value.push({
       ...widgetForm.value,
@@ -378,8 +390,8 @@ const handleRemoveParameter = parameterId => {
 /* ===============================
  * Persist Dashboard
  * =============================== */
-const handleStoreWidget = () => {
-  saveDashboardWidget({
+const handleStoreWidget = async () => {
+  console.log({
     machine_id: machineId,
     added_parameter_ids: addedParameterIds.value,
     removed_parameter_ids: removedParameterIds.value,
@@ -406,6 +418,44 @@ const handleStoreWidget = () => {
       return removedWidget.i
     }),
   })
+  let actResult = await saveDashboardWidget({
+    machine_id: machineId,
+    added_parameter_ids: addedParameterIds.value,
+    removed_parameter_ids: removedParameterIds.value,
+    edited_widgets: editedWidgets.value,
+    added_widgets: addedWidgets.value?.map(addedWidget => {
+      return {
+        code: addedWidget.i,
+        layout: {
+          x: addedWidget.x,
+          y: addedWidget.y,
+          w: addedWidget.w,
+          h: addedWidget.h,
+        },
+        config: {
+          type: addedWidget.type,
+          title: addedWidget.title,
+          subtitle: addedWidget.subtitle,
+          dataSourceIds: addedWidget.dataSourceIds,
+          color: addedWidget.color,
+        },
+      }
+    }),
+    removed_widgets: removedWidgets.value.map(removedWidget => {
+      return removedWidget.i
+    }),
+  })
+    isAlertDialogVisible.value = true
+  if(actResult.success){
+    titleAlert.value = 'Action success'
+    bodyAlert.value = 'Dashboard has been updated'
+    alertType.value = 'success'
+  }else{
+ isAlertDialogVisible.value = true
+    titleAlert.value = 'Action failed'
+    bodyAlert.value = 'Dashboard failed to be updated'
+    alertType.value = 'error'
+  }
 }
 
 /* ===============================
@@ -532,6 +582,8 @@ const handleResizeStart = i => {
     <VRow
       style="min-height: 520px"
       class="match-height"
+        v-if="processedMachine?.model_path"
+
     >
       <!-- LEFT -->
       <VCol
@@ -588,6 +640,7 @@ const handleResizeStart = i => {
       </VCol>
     </VRow>
 
+    <VRow>
     <VCol
       cols="12"
       md="12"
@@ -726,8 +779,7 @@ const handleResizeStart = i => {
         </VCardText>
       </VCard>
     </VCol>
-    <!-- Empty State -->
-
+</VRow>
     <!-- Add/Edit Widget Dialog -->
     <VDialog
       v-model="showAddWidget"
@@ -1113,6 +1165,13 @@ const handleResizeStart = i => {
       </VCard>
     </VDialog>
   </div>
+    <AlertDialog
+    :body-alert="bodyAlert"
+    :is-dialog-visible="isAlertDialogVisible"
+    :title-alert="titleAlert"
+    :type="alertType"
+    @update:is-dialog-visible="isAlertDialogVisible = $event"
+  />
 </template>
 
 <style scoped>

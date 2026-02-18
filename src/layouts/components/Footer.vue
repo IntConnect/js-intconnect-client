@@ -8,10 +8,10 @@
       dikembangkan
       Oleh <a
         class="text-primary ms-1 mr-1"
-        href="#"
+        href="sinergibisnis.id"
         rel="noopener noreferrer"
         target="_blank"
-      >PT Kalbe Morinaga Indonesia</a>
+      >PT Sinergi Bisnis Indonesia</a>
     </span>
     <!-- 👉 Footer: right content -->
   </div>

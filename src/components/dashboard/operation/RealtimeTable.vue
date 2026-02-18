@@ -11,7 +11,7 @@ const props = defineProps({
 
   lastUpdate: {
     type: Date,
-    default: "2026-01-01T10:30:00",
+    default: new Date(),
   },
 
   machineData: {

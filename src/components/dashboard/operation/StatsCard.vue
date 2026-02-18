@@ -14,7 +14,7 @@ const props = defineProps({
   },
   badge: {
     type: String,
-    default: "Warning",
+    default: "Offline",
   },
   value: {
     type: [String, Number],
@@ -123,7 +123,7 @@ const stats = {
           prepend-icon="tabler-circle-filled"
           size="small"
         >
-          {{ props.badge }} Online
+          {{ props.badge }}
         </VChip>
       </div>
 
@@ -194,7 +194,6 @@ const stats = {
 }
 
 .glass-card-chiller:hover {
-  transform: translateY(-4px);
   box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25) !important;
   border-color: rgba(16, 185, 129, 0.4) !important;
 }
