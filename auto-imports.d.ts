@@ -300,6 +300,7 @@ declare global {
   const useMouseInElement: typeof import('@vueuse/core')['useMouseInElement']
   const useMousePressed: typeof import('@vueuse/core')['useMousePressed']
   const useMqttConnection: typeof import('./src/composables/useMqttConnection.js')['useMqttConnection']
+  const useMqttGateway: typeof import('./src/composables/useMqttGateway.js')['useMqttGateway']
   const useMutationObserver: typeof import('@vueuse/core')['useMutationObserver']
   const useNavigatorLanguage: typeof import('@vueuse/core')['useNavigatorLanguage']
   const useNetwork: typeof import('@vueuse/core')['useNetwork']
@@ -694,6 +695,7 @@ declare module 'vue' {
     readonly useMouseInElement: UnwrapRef<typeof import('@vueuse/core')['useMouseInElement']>
     readonly useMousePressed: UnwrapRef<typeof import('@vueuse/core')['useMousePressed']>
     readonly useMqttConnection: UnwrapRef<typeof import('./src/composables/useMqttConnection.js')['useMqttConnection']>
+    readonly useMqttGateway: UnwrapRef<typeof import('./src/composables/useMqttGateway.js')['useMqttGateway']>
     readonly useMutationObserver: UnwrapRef<typeof import('@vueuse/core')['useMutationObserver']>
     readonly useNavigatorLanguage: UnwrapRef<typeof import('@vueuse/core')['useNavigatorLanguage']>
     readonly useNetwork: UnwrapRef<typeof import('@vueuse/core')['useNetwork']>

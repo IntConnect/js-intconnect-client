@@ -1,4 +1,5 @@
 <script setup>
+import { useConfigStore } from '@core/stores/config'
 import { computed } from 'vue'
 import { useTheme } from 'vuetify'
 
@@ -20,428 +21,417 @@ const props = defineProps({
   },
 })
 
+// Theme Detection (sama seperti KPI card)
+const configStore = useConfigStore()
 const vuetifyTheme = useTheme()
-const currentTheme = vuetifyTheme.current.value.colors
+
+const isDark = computed(() => {
+  if (configStore.theme === 'system') {
+    return vuetifyTheme.global.current.value.dark
+  }
+  return configStore.theme === 'dark'
+})
+
+const copMax = 8.0
 
 const series = computed(() => {
   const value = Number((props.copValue / copMax) * 100)
-
   return [Math.min(Math.max(value, 0), 100)]
 })
 
-
-// COP Data
-const copMax = 8.0 // Maximum COP value
-
-// Calculate percentage for gauge
-const copPercentage = computed(() => {
-  return Number(props.copValue / copMax) * 100
-
-})
-
-
-// Determine status based on COP value
 const copStatus = computed(() => {
+  const dark = isDark.value
+
   if (props.copValue >= 4.0) {
     return {
-      label: 'EXCELLENT',
-      color: '#10b981',
-      bgColor: 'rgba(16, 185, 129, 0.15)',
-      icon: 'tabler-circle-check',
-      borderColor: 'rgba(16, 185, 129, 0.4)',
+      label: 'Excellent',
+      sublabel: 'Peak Efficiency',
+      // Dark
+      color:        dark ? '#10b981' : '#059669',
+      colorRgb:     dark ? '16, 185, 129' : '5, 150, 105',
+      borderColor:  dark ? 'rgba(16, 185, 129, 0.35)' : 'rgba(5, 150, 105, 0.30)',
+      bgColor:      dark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(5, 150, 105, 0.10)',
+      glowColor:    dark ? 'rgba(16, 185, 129, 0.20)' : 'rgba(5, 150, 105, 0.15)',
+      gradientFrom: dark ? '#10b981' : '#059669',
+      gradientTo:   dark ? '#06b6d4' : '#0891b2',
+      pulse: true,
     }
   } else if (props.copValue >= 3.0) {
     return {
-      label: 'GOOD',
-      color: '#3b82f6',
-      bgColor: 'rgba(59, 130, 246, 0.15)',
-      icon: 'tabler-circle-dot',
-      borderColor: 'rgba(59, 130, 246, 0.4)',
+      label: 'Good',
+      sublabel: 'Normal Range',
+      color:        dark ? '#3b82f6' : '#2563eb',
+      colorRgb:     dark ? '59, 130, 246' : '37, 99, 235',
+      borderColor:  dark ? 'rgba(59, 130, 246, 0.35)' : 'rgba(37, 99, 235, 0.30)',
+      bgColor:      dark ? 'rgba(59, 130, 246, 0.12)' : 'rgba(37, 99, 235, 0.10)',
+      glowColor:    dark ? 'rgba(59, 130, 246, 0.20)' : 'rgba(37, 99, 235, 0.15)',
+      gradientFrom: dark ? '#3b82f6' : '#2563eb',
+      gradientTo:   dark ? '#8b5cf6' : '#7c3aed',
+      pulse: false,
     }
   } else if (props.copValue >= 2.0) {
     return {
-      label: 'WARNING',
-      color: '#f59e0b',
-      bgColor: 'rgba(245, 158, 11, 0.15)',
-      icon: 'tabler-alert-circle',
-      borderColor: 'rgba(245, 158, 11, 0.4)',
+      label: 'Warning',
+      sublabel: 'Below Optimal',
+      color:        dark ? '#f59e0b' : '#d97706',
+      colorRgb:     dark ? '245, 158, 11' : '217, 119, 6',
+      borderColor:  dark ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.30)',
+      bgColor:      dark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(217, 119, 6, 0.10)',
+      glowColor:    dark ? 'rgba(245, 158, 11, 0.20)' : 'rgba(217, 119, 6, 0.15)',
+      gradientFrom: dark ? '#f59e0b' : '#d97706',
+      gradientTo:   dark ? '#ef4444' : '#dc2626',
+      pulse: true,
     }
   } else {
     return {
-      label: 'ALARM',
-      color: '#ef4444',
-      bgColor: 'rgba(239, 68, 68, 0.15)',
-      icon: 'tabler-alert-triangle',
-      borderColor: 'rgba(239, 68, 68, 0.4)',
+      label: 'Alarm',
+      sublabel: 'Critical',
+      color:        dark ? '#ef4444' : '#dc2626',
+      colorRgb:     dark ? '239, 68, 68' : '220, 38, 38',
+      borderColor:  dark ? 'rgba(239, 68, 68, 0.35)' : 'rgba(220, 38, 38, 0.30)',
+      bgColor:      dark ? 'rgba(239, 68, 68, 0.12)' : 'rgba(220, 38, 38, 0.10)',
+      glowColor:    dark ? 'rgba(239, 68, 68, 0.20)' : 'rgba(220, 38, 38, 0.15)',
+      gradientFrom: dark ? '#ef4444' : '#dc2626',
+      gradientTo:   dark ? '#dc2626' : '#b91c1c',
+      pulse: true,
     }
   }
 })
 
+// SVG arc colors — different opacity for light vs dark
+const trackStroke = computed(() =>
+  isDark.value ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.08)'
+)
+const tickMajor = computed(() =>
+  isDark.value ? 'rgba(255,255,255,0.22)' : 'rgba(15,23,42,0.18)'
+)
+const tickMinor = computed(() =>
+  isDark.value ? 'rgba(255,255,255,0.09)' : 'rgba(15,23,42,0.07)'
+)
+const tickLabel = computed(() =>
+  isDark.value ? 'rgba(255,255,255,0.30)' : 'rgba(15,23,42,0.35)'
+)
+const copLabel = computed(() =>
+  isDark.value ? 'rgba(148,163,184,0.65)' : 'rgba(71,85,105,0.70)'
+)
+const minMaxLabel = computed(() =>
+  isDark.value ? 'rgba(148,163,184,0.38)' : 'rgba(100,116,139,0.55)'
+)
 
-const chartOptions = computed(() => ({
-  chart: {
-    type: 'radialBar',
-    offsetY: -10,
-    sparkline: {
-      enabled: true,
-    },
-  },
-  plotOptions: {
-    radialBar: {
-      startAngle: -90,
-      endAngle: 90,
-      hollow: {
-        size: '65%',
-      },
-      track: {
-        background: 'rgba(255, 255, 255, 0.1)',
-        strokeWidth: '100%',
-        margin: 8,
-      },
-      dataLabels: {
-        name: {
-          show: false,
-        },
-        value: {
-          offsetY: -5,
-          fontSize: '32px',
-          fontWeight: 'bold',
-          color: copStatus.value.color,
-          formatter: function () {
-            return props.copValue.toFixed(1)
-          },
-        },
-      },
-    },
-  },
-  fill: {
-    type: 'gradient',
-    gradient: {
-      shade: 'dark',
-      type: 'horizontal',
-      shadeIntensity: 0.5,
-      gradientToColors: [copStatus.value.color],
-      inverseColors: false,
-      opacityFrom: 1,
-      opacityTo: 1,
-      stops: [0, 100],
-    },
-  },
-  stroke: {
-    lineCap: 'round',
-  },
-  colors: [copStatus.value.color],
-}))
+// SVG gauge arc path
+const gaugeArc = computed(() => {
+  const cx = 110, cy = 100, r = 78
+  const startAngle = 210
+  const totalSweep = 240
+  const fillSweep = (series.value[0] / 100) * totalSweep
+
+  function pt(angle) {
+    const rad = (angle - 90) * Math.PI / 180
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
+  }
+
+  const s = pt(startAngle)
+  const te = pt(startAngle + totalSweep)
+  const fe = pt(startAngle + fillSweep)
+
+  return {
+    track: `M ${s.x.toFixed(2)} ${s.y.toFixed(2)} A ${r} ${r} 0 1 1 ${te.x.toFixed(2)} ${te.y.toFixed(2)}`,
+    fill: fillSweep > 1
+      ? `M ${s.x.toFixed(2)} ${s.y.toFixed(2)} A ${r} ${r} 0 ${fillSweep > 180 ? 1 : 0} 1 ${fe.x.toFixed(2)} ${fe.y.toFixed(2)}`
+      : '',
+    cx, cy,
+  }
+})
+
+// Tick marks
+const ticks = computed(() => {
+  const { cx, cy } = gaugeArc.value
+  return Array.from({ length: 9 }, (_, i) => {
+    const angle = 210 + (i / 8) * 240
+    const rad = (angle - 90) * Math.PI / 180
+    const major = i % 2 === 0
+    const rO = 90, rI = major ? 80 : 84, rL = 100
+    return {
+      x1: cx + rI * Math.cos(rad), y1: cy + rI * Math.sin(rad),
+      x2: cx + rO * Math.cos(rad), y2: cy + rO * Math.sin(rad),
+      lx: cx + rL * Math.cos(rad), ly: cy + rL * Math.sin(rad),
+      label: i, major,
+    }
+  })
+})
 </script>
 
 <template>
-  <VCard class="gauge-glass-card">
-    <!-- Animated Background Effect -->
-    <div class="animated-glow" />
+  <div
+    class="cop-card"
+    :class="{ 'cop-light': !isDark }"
+    :style="{
+      '--sc':        copStatus.color,
+      '--sc-rgb':    copStatus.colorRgb,
+      '--sc-border': copStatus.borderColor,
+      '--sc-bg':     copStatus.bgColor,
+      '--grad-from': copStatus.gradientFrom,
+      '--grad-to':   copStatus.gradientTo,
+    }"
+  >
+    <div class="cop-top-line" />
+    <div class="cop-glow-blob" />
+    <span class="sparkle sp1" />
+    <span class="sparkle sp2" />
+    <span class="sparkle sp3" />
 
     <!-- Header -->
-    <VCardText class="pb-2">
-      <div class="d-flex align-center justify-space-between">
-        <div class="d-flex align-center gap-2">
-          <div class="header-icon-wrapper">
-            <VIcon
-              icon="tabler-gauge"
-              size="20"
-              class="header-icon"
-            />
-          </div>
-          <div class="text-left">
-            <h6 class="text-h5 text-white font-weight-bold mb-0 text-left">
-              {{ props.header }}
-            </h6>
-            <span class="text-caption text-grey-lighten-1">{{ props.subHeader }}</span>
-          </div>
+    <div class="cop-header">
+      <div class="cop-header-left">
+        <div class="cop-icon-wrap">
+          <VIcon icon="tabler-gauge" size="17" class="cop-icon" />
         </div>
-
-        <!-- Status Badge -->
-        <VChip
-          size="small"
-          :style="{
-            background: copStatus.bgColor,
-            color: copStatus.color,
-            borderColor: copStatus.borderColor,
-            border: '1px solid'
-          }"
-          class="font-weight-bold status-chip"
-          :prepend-icon="copStatus.icon"
-        >
-          {{ copStatus.label }}
-        </VChip>
-      </div>
-    </VCardText>
-
-    <!-- Gauge Chart -->
-    <VCardText class="py-3">
-      <div class="gauge-container">
-        <VueApexCharts
-          :height="250"
-          :options="chartOptions"
-          :series="series"
-          type="radialBar"
-        />
-
-
-        <!-- Min Max Labels -->
-        <div class="gauge-labels">
-          <span class="text-caption text-grey">0.0</span>
-          <span class="text-caption text-grey">{{ copMax.toFixed(1) }}</span>
+        <div>
+          <div class="cop-title">{{ props.header }}</div>
+          <div class="cop-subtitle">{{ props.subHeader }}</div>
         </div>
       </div>
-    </VCardText>
 
+      <div class="cop-badge" :class="{ pulsing: copStatus.pulse }">
+        <span class="badge-dot" :class="{ pulsing: copStatus.pulse }" />
+        <span class="badge-label">{{ copStatus.label }}</span>
+      </div>
+    </div>
 
-    <!-- Footer Info -->
-    <VDivider class="divider-custom" />
+    <!-- Gauge SVG -->
+    <div class="cop-gauge-wrap">
+      <svg viewBox="0 0 220 150" class="cop-gauge-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cop-arc-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" :stop-color="copStatus.gradientFrom" />
+            <stop offset="100%" :stop-color="copStatus.gradientTo" />
+          </linearGradient>
+          <filter id="cop-arc-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <filter id="cop-val-glow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
 
+        <!-- Track -->
+        <path :d="gaugeArc.track" fill="none" :stroke="trackStroke"
+          stroke-width="10" stroke-linecap="round" />
 
-    <!-- Sparkle Effects -->
-    <div class="sparkle sparkle-1" />
-    <div class="sparkle sparkle-2" />
-    <div class="sparkle sparkle-3" />
-  </VCard>
+        <!-- Ticks -->
+        <g v-for="(t, i) in ticks" :key="i">
+          <line :x1="t.x1" :y1="t.y1" :x2="t.x2" :y2="t.y2"
+            :stroke="t.major ? tickMajor : tickMinor"
+            :stroke-width="t.major ? 1.5 : 1" />
+          <text v-if="t.major" :x="t.lx" :y="t.ly"
+            text-anchor="middle" dominant-baseline="middle"
+            :fill="tickLabel" font-size="8" font-family="Inter, sans-serif">
+            {{ t.label }}
+          </text>
+        </g>
+
+        <!-- Fill glow -->
+        <path v-if="gaugeArc.fill" :d="gaugeArc.fill" fill="none"
+          :stroke="copStatus.gradientFrom" stroke-width="14"
+          stroke-linecap="round" opacity="0.18" filter="url(#cop-arc-glow)" />
+
+        <!-- Fill arc -->
+        <path v-if="gaugeArc.fill" :d="gaugeArc.fill" fill="none"
+          stroke="url(#cop-arc-grad)" stroke-width="10" stroke-linecap="round" />
+
+        <!-- COP value -->
+        <text :x="gaugeArc.cx" :y="gaugeArc.cy - 8"
+          text-anchor="middle" dominant-baseline="middle"
+          :fill="copStatus.gradientFrom" font-size="32" font-weight="700"
+          font-family="Inter, sans-serif" filter="url(#cop-val-glow)">
+          {{ props.copValue.toFixed(1) }}
+        </text>
+
+        <!-- COP label -->
+        <text :x="gaugeArc.cx" :y="gaugeArc.cy + 16"
+          text-anchor="middle" :fill="copLabel"
+          font-size="9" font-weight="500" letter-spacing="1.5"
+          font-family="Inter, sans-serif">COP</text>
+
+        <!-- Min / Max -->
+        <text x="24" y="140" :fill="minMaxLabel" font-size="8" font-family="Inter, sans-serif">0.0</text>
+        <text x="196" y="140" :fill="minMaxLabel" font-size="8"
+          font-family="Inter, sans-serif" text-anchor="end">8.0</text>
+      </svg>
+
+      <div class="cop-sublabel">{{ copStatus.sublabel }}</div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.gauge-glass-card {
+/* ═══════════════════════════════
+   CARD — Dark (default)
+═══════════════════════════════ */
+.cop-card {
   position: relative;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+  overflow: hidden;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-top: 3px solid var(--sc) !important;
+  background: rgba(15, 23, 42, 0.72) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 20px !important;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+  padding: 18px 18px 22px;
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1), box-shadow 0.3s ease, background 0.35s ease;
+  font-family: 'Inter', sans-serif;
 }
 
-.gauge-glass-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 24px 64px rgba(16, 185, 129, 0.2) !important;
-  border-color: rgba(16, 185, 129, 0.3) !important;
+.cop-card:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.4),
+    0 0 0 1px rgba(var(--sc-rgb), 0.22),
+    0 0 50px rgba(var(--sc-rgb), 0.07);
 }
 
-/* Animated Glow Background */
-.animated-glow {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle,
-      rgba(16, 185, 129, 0.15) 0%,
-      rgba(6, 182, 212, 0.1) 30%,
-      transparent 70%);
-  animation: rotate-glow 8s linear infinite;
-  pointer-events: none;
-  opacity: 0.6;
+/* ═══════════════════════════════
+   CARD — Light override
+═══════════════════════════════ */
+.cop-card.cop-light {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(37, 99, 235, 0.12) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255,255,255,0.8) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-@keyframes rotate-glow {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
+.cop-card.cop-light:hover {
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.10),
+    0 0 0 1px rgba(var(--sc-rgb), 0.20),
+    0 0 40px rgba(var(--sc-rgb), 0.06) !important;
 }
 
-/* Header Icon */
-.header-icon-wrapper {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+/* ═══════════════════════════════
+   DECORATIVE ELEMENTS
+═══════════════════════════════ */
+
+/* Top scan line — dark: animated gradient */
+.cop-top-line {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--sc), transparent);
+  animation: line-scan 4s ease-in-out infinite;
+}
+@keyframes line-scan { 0%,100%{opacity:.35} 50%{opacity:1} }
+
+/* Top line — light: solid full-width, no fade */
+.cop-light .cop-top-line {
+  background: var(--sc);
+  animation: none;
+  opacity: 1;
 }
 
-.gauge-glass-card:hover .header-icon-wrapper {
-  transform: rotate(-10deg) scale(1.1);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+/* Glow blob — subtler in light */
+.cop-glow-blob {
+  position: absolute; top:-60%; left:-30%; width:200%; height:200%;
+  background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(var(--sc-rgb),.09) 0%, transparent 70%);
+  animation: blob-spin 10s linear infinite; pointer-events: none;
 }
-
-.header-icon {
-  color: #10b981;
-  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.6));
+.cop-light .cop-glow-blob {
+  background: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(var(--sc-rgb),.05) 0%, transparent 70%);
 }
+@keyframes blob-spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-/* Status Chip */
-.status-chip {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  animation: pulse-badge 2s ease-in-out infinite;
-}
-
-@keyframes pulse-badge {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Gauge Container */
-.gauge-container {
-  position: relative;
-  margin: 0 auto;
-  max-width: 240px;
-}
-
-
-.gauge-labels {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
-  margin-top: -10px;
-}
-
-/* Metrics Grid */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.metric-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 10px;
-  transition: all 0.3s ease;
-}
-
-.metric-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(16, 185, 129, 0.3);
-  transform: translateY(-2px);
-}
-
-.metric-icon-circle {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  border: 1px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.metric-item:hover .metric-icon-circle {
-  transform: rotate(10deg) scale(1.1);
-}
-
-.metric-value-container {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.metric-value {
-  font-size: 1.1rem;
-  font-weight: bold;
-  line-height: 1;
-  text-shadow: 0 0 10px currentColor;
-}
-
-.metric-unit {
-  font-size: 0.7rem;
-  color: #94a3b8;
-}
-
-/* Divider */
-.divider-custom {
-  border-color: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* Status Dot */
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
-}
-
-.animate-pulse {
-  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse-dot {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Sparkle Effects */
+/* Sparkles */
 .sparkle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
-  animation: sparkle-float 3s ease-in-out infinite;
-  pointer-events: none;
+  position: absolute; width:3px; height:3px; border-radius:50%;
+  background: var(--sc); box-shadow:0 0 6px var(--sc);
+  pointer-events:none; animation:sp-float 3.5s ease-in-out infinite;
+}
+.sp1{top:18%;right:12%;animation-delay:0s}
+.sp2{top:55%;left:8%; animation-delay:1.2s}
+.sp3{bottom:25%;right:18%;animation-delay:2.4s}
+@keyframes sp-float {
+  0%,100%{opacity:0;transform:translateY(0) scale(.8)}
+  50%    {opacity:1;transform:translateY(-14px) scale(1.6)}
+}
+/* Sparkles dimmer in light mode */
+.cop-light .sparkle { opacity: 0.6; }
+
+/* ═══════════════════════════════
+   HEADER
+═══════════════════════════════ */
+.cop-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 10px; position: relative; z-index: 1; margin-bottom: 6px;
+}
+.cop-header-left { display:flex; align-items:flex-start; gap:10px; }
+
+.cop-icon-wrap {
+  width:34px; height:34px; border-radius:9px;
+  background:rgba(var(--sc-rgb),.14); border:1px solid rgba(var(--sc-rgb),.25);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--sc); flex-shrink:0; transition:all .3s ease;
+}
+.cop-card:hover .cop-icon-wrap {
+  transform:rotate(-8deg) scale(1.08);
+  box-shadow:0 4px 14px rgba(var(--sc-rgb),.3);
+}
+.cop-icon { filter: drop-shadow(0 0 4px rgba(var(--sc-rgb),.5)); }
+
+/* Text colors — dark */
+.cop-title    { font-size:.875rem; font-weight:600; color:#f1f5f9; line-height:1.2; }
+.cop-subtitle { font-size:.72rem;  color:#64748b; margin-top:2px; }
+.cop-sublabel { font-size:.72rem;  color:#64748b; margin-top:-4px; }
+
+/* Text colors — light */
+.cop-light .cop-title    { color:#0f172a; }
+.cop-light .cop-subtitle { color:#94a3b8; }
+.cop-light .cop-sublabel { color:#94a3b8; }
+
+/* ═══════════════════════════════
+   STATUS BADGE
+═══════════════════════════════ */
+.cop-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 9px; border-radius:7px;
+  background: var(--sc-bg, rgba(var(--sc-rgb),.12));
+  border:1px solid var(--sc-border);
+  flex-shrink:0; cursor:default;
+}
+.cop-badge.pulsing { animation:badge-breathe 2.2s ease-in-out infinite; }
+@keyframes badge-breathe {
+  0%,100%{box-shadow:0 0 0 0 rgba(var(--sc-rgb),0)}
+  50%    {box-shadow:0 0 10px 3px rgba(var(--sc-rgb),.22)}
 }
 
-.sparkle-1 {
-  top: 20%;
-  right: 10%;
-  animation-delay: 0s;
+.badge-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--sc); box-shadow:0 0 5px rgba(var(--sc-rgb),.7);
+  position:relative; flex-shrink:0;
+}
+.badge-dot.pulsing::after {
+  content:''; position:absolute; inset:-3px; border-radius:50%;
+  border:1.5px solid var(--sc); opacity:0;
+  animation:dot-ring 2s ease-out infinite;
+}
+@keyframes dot-ring {
+  0%  {opacity:.7;transform:scale(1)}
+  70% {opacity:0; transform:scale(2.4)}
+  100%{opacity:0; transform:scale(2.4)}
 }
 
-.sparkle-2 {
-  top: 60%;
-  left: 15%;
-  animation-delay: 1s;
+.badge-label {
+  font-size:.65rem; font-weight:600; letter-spacing:.4px;
+  text-transform:uppercase; color:var(--sc);
 }
 
-.sparkle-3 {
-  bottom: 30%;
-  right: 20%;
-  animation-delay: 2s;
+/* ═══════════════════════════════
+   GAUGE
+═══════════════════════════════ */
+.cop-gauge-wrap {
+  position:relative; z-index:1;
+  display:flex; flex-direction:column; align-items:center;
+  margin-top:2px;
 }
-
-@keyframes sparkle-float {
-
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 0;
-  }
-
-  50% {
-    transform: translateY(-20px) scale(1.5);
-    opacity: 1;
-  }
-}
-
-/* Responsive */
-@media (max-width: 960px) {
-  .metrics-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+.cop-gauge-svg { width:100%; max-width:220px; overflow:visible; }
 </style>

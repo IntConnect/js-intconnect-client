@@ -301,7 +301,6 @@ onMounted(async () => {
   await fetchMachines()
   let systemSettingData = systemSetting.value.entry
   if (systemSettingData) {
-  console.log(systemSettingData)
     Object.assign(localForm, {
       showing: systemSettingData.value.showing,
       machineId:  isNaN (Number(systemSettingData.value.machine_id)) ? null  : systemSettingData.value.machine_id,

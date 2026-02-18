@@ -131,7 +131,6 @@ onMounted(async () => {
     
     if (result.success) {
       let processedRegister = register.value.entry
-      console.log(processedRegister)
       
       id.value = processedRegister.id
       name.value = processedRegister.name
@@ -251,11 +250,8 @@ watch(machineId, async value => {
   try {
     await fetchMachine(value)
     await nextTick()
-    console.log(machine.value)
     if (machine.value && machine.value.entry && machine.value.entry.model_path) {
-      console.log(machine.value)
       modelPath.value = machine.value.entry.model_path
-      console.log('Machine loaded, modelPath set to:', modelPath.value)
     } else {
       console.warn('Machine loaded but no model_path found')
       modelPath.value = ''

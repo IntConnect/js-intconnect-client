@@ -13,9 +13,6 @@ const props = defineProps({
   fields: {
     type: Array,
     default: () => [],
-
-    // contoh:
-    // [{ key: 'reason', label: 'Alasan', placeholder: 'Masukkan alasan', type: 'text' }]
   },
 })
 

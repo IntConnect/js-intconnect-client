@@ -117,17 +117,18 @@ export default [
     ],
   },
 
-  {
-    title: "System Settings",
-    icon: { icon: "tabler-settings-spark" },
-    to: { name: "system-settings" },
-    requiredPermission: "SYSTEM_SETTING_VIEW",
-  },
 
   {
     title: "Alarm Log",
     to: { name: "alarm-logs" },
     icon: { icon: "tabler-bell-minus" },
     requiredPermission: "ALARM_LOG_VIEW",
+  },
+
+  {
+    title: "System Settings",
+    icon: { icon: "tabler-settings-spark" },
+    to: { name: "system-settings" },
+    requiredPermission: "SYSTEM_SETTING_VIEW",
   },
 ]

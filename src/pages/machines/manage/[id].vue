@@ -170,7 +170,7 @@ const onSubmit = async () => {
     camera_z: localForm.camera_z,
   }
 
-  const result = await saveMachine(payload)
+  const result = await saveMachine(payload, deletedDocumentIds.value)
 
   if (result.success) {
 
@@ -179,7 +179,7 @@ const onSubmit = async () => {
     titleAlert.value = SuccessManage("machines")
 
     setTimeout(() => {
-      router.push('/machines')
+      // router.push('/machines')
     }, 2000)
   } else {
     currentStep.value = 0
@@ -424,7 +424,6 @@ const destroyViewer = () => {
                     @file-uploaded="clearError('model')"
                     @file-removed="() => {
                       onFileRemoved()
-                      console.log('aaaa')
                     }"
                   />
                   <p

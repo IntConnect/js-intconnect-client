@@ -23,6 +23,7 @@ const {
   fetchTelemetriesReport,
   telemetries,
   fetchTelemetriesReportError,
+  generateXLSX,
 } = useFetchTelemetry()
 
 const {
@@ -30,8 +31,8 @@ const {
   fetchReportDocumentTemplates,
 } = useManageReportDocumentTemplate()
 
-const startDate = ref('')
-const endDate = ref('')
+const startDate = ref('2026-02-18 21:23')
+const endDate = ref('2026-02-18 21:30')
 const interval = ref(1)
 const selectedReportDocumentTemplateId = ref()
 
@@ -41,7 +42,7 @@ const flatRows = computed(() => {
   return telemetries.value.entries?.flatMap(group =>
     group.entries.map(e => ({
       ...e,
-      timestamp: group.timestamp,
+      timestamp: format( group.timestamp, 'yyyy-MM-dd HH:mm:ss'),
     })),
   )
 })
@@ -86,7 +87,6 @@ onMounted(async () => {
 const handleExportIntoPDF = async () => {
   const logoBase64 = await loadImageAsBase64('/public/images/sinergiLogo.png')
 
-  console.log(flatRows.value)
   exportAlarmLogPDF({
     data: flatRows.value,
     logoBase64: logoBase64,
@@ -100,6 +100,20 @@ const handleExportIntoPDF = async () => {
     },
     generatedBy: 'Admin (admin@company.com)',
     documentNumber: 'DOC-ALARM-2026-001',
+  })
+}
+
+const handleExportIntoXLSX = async () => {
+ 
+
+    refForm.value?.validate().then(async ({ valid }) => {
+    if (!valid) return
+    await generateXLSX({
+      reportDocumentTemplateId: selectedReportDocumentTemplateId.value,
+      interval: interval.value,
+      startDate: startDate.value,
+      endDate: endDate.value,
+    })
   })
 }
 </script>
@@ -206,7 +220,9 @@ const handleExportIntoPDF = async () => {
           >
             Export Into PDF
           </VBtn>
-          <VBtn color="info">
+          <VBtn color="info"
+            @click="handleExportIntoXLSX"
+          >
             Export Into XLSX
           </VBtn>
         </div>

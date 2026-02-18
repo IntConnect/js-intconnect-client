@@ -229,7 +229,6 @@ const onSubmit = async () => {
     check_sheet_check_points: checkSheetCheckPoint,
   }
 
-  console.log(payload)
 
   const result = await createCheckSheet(payload)
   if (result.success) {
@@ -268,7 +267,6 @@ onMounted(async () => {
     selectedCheckSheetDocumentTemplateId.value = checkSheet.value["check_sheet_document_template_id"]
     checkpoints.value = checkSheet.value['check_sheet_check_points'].map(checkSheetCheckPoint => {
       let parameter = getParameterById(checkSheetCheckPoint.parameter_id)
-      console.log(parameter)
       
       return {
         name: checkSheetCheckPoint.name,
@@ -328,40 +326,59 @@ const selectedCheckSheetDocumentTemplate = computed(() => {
 
 })
 
-watch(() => selectedCheckSheetDocumentTemplate.value, () => {
-  if (!selectedCheckSheetDocumentTemplate.value?.rawData) {
+watch(
+  () => selectedCheckSheetDocumentTemplate.value,
+  () => {
+    const raw = selectedCheckSheetDocumentTemplate.value?.rawData
+
+    if (!raw) {
+      timeSlots.value = []
+      return
+    }
+
+    const { interval, starting_hour, interval_type } = raw
+
+
+    if (!interval || !starting_hour || !interval_type) {
+      timeSlots.value = []
+      return
+    }
+
+    // starting_hour diasumsikan: "HH:mm" atau "HH:00"
+    const [h, m = '0'] = starting_hour.split(':').map(Number)
+
+    const startMinute = h * 60 + m
+
+    let stepMinute = 0
+    if (interval_type === 'Hour') {
+      stepMinute = interval * 60
+    } else if (interval_type === 'Minute') {
+      stepMinute = interval
+    } else {
+      timeSlots.value = []
+      return
+    }
+
+    const visited = new Set()
     timeSlots.value = []
-    
-    return
-  }
 
-  const { interval, starting_hour } = selectedCheckSheetDocumentTemplate.value.rawData
-  if (!interval || !starting_hour) {
-    timeSlots.value = []
-    
-    return
-  }
+    let current = startMinute
 
-  const startHour = parseHour(starting_hour)
+    while (!visited.has(current)) {
+      visited.add(current)
 
-  timeSlots.value = []
+      const hh = Math.floor(current / 60) % 24
+      const mm = current % 60
 
-  let currentHour = startHour
-  const visited = new Set()
+      timeSlots.value.push(
+        `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`,
+      )
 
-  while (!visited.has(currentHour)) {
-    visited.add(currentHour)
-
-    timeSlots.value.push(
-      `${String(currentHour % 24).padStart(2, '0')}:00`,
-    )
-
-    currentHour = (currentHour + interval) % 24
-  }
-},
-{ immediate: true },
+      current = (current + stepMinute) % (24 * 60)
+    }
+  },
+  { immediate: true },
 )
-
 // Initialize checkSheetData untuk menyimpan nilai
 const checkSheetData = ref({})
 

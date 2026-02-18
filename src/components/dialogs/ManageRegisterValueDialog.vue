@@ -45,7 +45,6 @@ const dialogVisibleUpdate = val => {
        
         <VForm
           @submit.prevent="() => {
-            console.log(value)
             emit('submit:value', value)
           }"
         >

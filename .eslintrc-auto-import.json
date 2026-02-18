@@ -412,6 +412,7 @@
     "SuccessDelete": true,
     "useManageAlarmLog": true,
     "exportAlarmLogPDF": true,
-    "loadImageAsBase64": true
+    "loadImageAsBase64": true,
+    "useMqttGateway": true
   }
 }

@@ -11,6 +11,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 import ThreeDimensionModelRenderer from '../ThreeDimensionModelRenderer.vue'
 import RawBarChart from './RawBarChart.vue'
+import { useMqttGateway } from '@/composables/useMqttGateway'
 
 const props = defineProps({
   systemSetting: {
@@ -39,21 +40,26 @@ const {
   fetchMachine,
 } = useManageMachine()
 
+// ============================================================
+// ✅ MIGRASI: useMqttConnection → useMqttGateway
+//    Semua nama export tetap sama, tidak ada perubahan di template
+// ============================================================
 const {
   mqttData,
   mqttStatus,
   isConnected,
-  connectMQTT,
+  connectMQTT,       // wrapper kompatibel — terima machineConfig seperti biasa
   disconnectMQTT,
   getValue,
   getFormattedValue,
   filterParametersByKeys,
   calculateDelta,
   getParameterById,
+  getParameterOnlineStatusById,
   getValueByParameterId,
   getFormattedValueById,
   lastUpdate,
-} = useMqttConnection()
+} = useMqttGateway()  // ← ganti dari useMqttConnection()
 
 const modelViewerRef = ref(null)
 
@@ -66,10 +72,8 @@ const selectedParameterIds = ref([])
 const interval = ref([])
 
 const handleRegisterValueUpdate = value => {
-  isRegisterDialogOpen.value =false
-  manageRegisterValue(selectedRegister.value.id, {
-    value: value,
-  })
+  isRegisterDialogOpen.value = false
+  manageRegisterValue(selectedRegister.value.id, { value })
 }
 
 const {
@@ -77,77 +81,46 @@ const {
   fetchAlarmLogsByMachineId,
 } = useManageAlarmLog()
 
-
 const {
   registers,
   manageRegisterValue,
 } = useManageRegister()
 
-// Theme Detection
+// ── Theme ──────────────────────────────────────────────────────────────────
 const configStore = useConfigStore()
 const theme = useTheme()
 
 const isDark = computed(() => {
-  if (configStore.theme === 'system') {
-    return theme.global.current.value.dark
-  }
-  
+  if (configStore.theme === 'system') return theme.global.current.value.dark
   return configStore.theme === 'dark'
 })
 
-// Dynamic colors berdasarkan theme
-const overlayBgColor = computed(() => 
-  isDark.value 
-    ? 'rgba(211, 47, 47, 0.15)' 
-    : 'rgba(211, 47, 47, 0.08)',
-)
+const overlayBgColor   = computed(() => isDark.value ? 'rgba(211, 47, 47, 0.15)' : 'rgba(211, 47, 47, 0.08)')
+const cardBorderColor  = computed(() => isDark.value ? 'rgb(211, 47, 47)' : 'rgb(244, 67, 54)')
+const alarmDetailsBg   = computed(() => isDark.value ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)')
+const tableHighlightBg = computed(() => isDark.value ? 'rgba(211, 47, 47, 0.05)' : 'rgba(211, 47, 47, 0.03)')
 
-const cardBorderColor = computed(() =>
-  isDark.value
-    ? 'rgb(211, 47, 47)'
-    : 'rgb(244, 67, 54)',
-)
-
-const alarmDetailsBg = computed(() =>
-  isDark.value
-    ? 'rgba(255, 255, 255, 0.05)'
-    : 'rgba(0, 0, 0, 0.03)',
-)
-
-const tableHighlightBg = computed(() =>
-  isDark.value
-    ? 'rgba(211, 47, 47, 0.05)'
-    : 'rgba(211, 47, 47, 0.03)',
-)
-
-// WebSocket Alarm Connection
-const alarmSocket = ref(null)
-const readyState = ref(0)
-const alarms = ref([])
+// ── Alarm WebSocket ────────────────────────────────────────────────────────
+const alarmSocket  = ref(null)
+const readyState   = ref(0)
+const alarms       = ref([])
 const showAlarmOverlay = ref(false)
-const activeAlarm = ref(null)
-const alarmAudio = ref(null)
+const activeAlarm  = ref(null)
+const alarmAudio   = ref(null)
 
-// Initialize alarm audio
 onMounted(() => {
-  // Create alarm sound (beep)
   const audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
   const playAlarmSound = () => {
     if (!audioContext) return
-
     const oscillator = audioContext.createOscillator()
     const gainNode = audioContext.createGain()
-
     oscillator.connect(gainNode)
     gainNode.connect(audioContext.destination)
-
-    oscillator.frequency.value = 800 // Hz
+    oscillator.frequency.value = 800
     oscillator.type = 'sine'
-
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5)
-
     oscillator.start(audioContext.currentTime)
     oscillator.stop(audioContext.currentTime + 0.5)
   }
@@ -160,20 +133,15 @@ const connectAlarmWebSocket = () => {
     alarmSocket.value = new WebSocket('ws://localhost:8181/ws')
 
     alarmSocket.value.onopen = () => {
-      readyState.value = alarmSocket.value.readyState // 1
-
-      console.log('Alarm WebSocket Connected')
+      readyState.value = alarmSocket.value.readyState
     }
 
     alarmSocket.value.onmessage = event => {
-      console.log(alarmSocket.value.readyState)
       try {
         const data = JSON.parse(event.data)
 
-        console.log(data)
         if (data.type === 'CREATED') {
           const parameter = getParameterById(data.parameter_id)
-
           const newAlarm = {
             id: data.id,
             parameter_id: data.parameter_id,
@@ -185,35 +153,27 @@ const connectAlarmWebSocket = () => {
             timestamp: data.timestamp,
             acknowledged: false,
           }
-          
+
           processedAlarmLogs.value.push(newAlarm)
-
-          // Add to alarms list
           alarms.value.unshift(newAlarm)
-
-          // Show overlay notification if status is Open
           activeAlarm.value = newAlarm
           showAlarmOverlay.value = true
 
-          // Play alarm sound
           if (alarmAudio.value) {
             alarmAudio.value()
-
-            // Repeat sound 3 times
             setTimeout(() => alarmAudio.value?.(), 600)
             setTimeout(() => alarmAudio.value?.(), 1200)
-            setTimeout(() => {
-              showAlarmOverlay.value = false
-            }, 3000)
+            setTimeout(() => { showAlarmOverlay.value = false }, 3000)
           }
-        }else{
-          const indexOfUpdatedAlarmLog =  processedAlarmLogs.value.findIndex(alarmLog => alarmLog.parameter_id == data.parameter_id)
-
-          processedAlarmLogs.value[indexOfUpdatedAlarmLog] = {
-            ...processedAlarmLogs.value[indexOfUpdatedAlarmLog],
-            value: data.value,
-            timestamp: data.timestamp,
-            status: data.status,
+        } else {
+          const idx = processedAlarmLogs.value.findIndex(a => a.parameter_id == data.parameter_id)
+          if (idx !== -1) {
+            processedAlarmLogs.value[idx] = {
+              ...processedAlarmLogs.value[idx],
+              value: data.value,
+              timestamp: data.timestamp,
+              status: data.status,
+            }
           }
         }
       } catch (error) {
@@ -221,20 +181,14 @@ const connectAlarmWebSocket = () => {
       }
     }
 
-    alarmSocket.value.onerror = error => {
-      console.error('Alarm WebSocket Error:', error)
+    alarmSocket.value.onerror = () => {
       readyState.value = alarmSocket.value.readyState
-
     }
 
     alarmSocket.value.onclose = () => {
-      console.log('Alarm WebSocket Disconnected')
-
-      // Reconnect after 5 seconds
-      readyState.value = alarmSocket.value.readyState // 3
-
+      readyState.value = alarmSocket.value.readyState
       setTimeout(() => {
-        if (alarmSocket.value?.readyState === 3) { // 3 = CLOSED
+        if (alarmSocket.value?.readyState === WebSocket.CLOSED) {
           connectAlarmWebSocket()
         }
       }, 5000)
@@ -246,10 +200,7 @@ const connectAlarmWebSocket = () => {
 
 const acknowledgeAlarm = alarmId => {
   const alarm = alarms.value.find(a => a.id === alarmId)
-  if (alarm) {
-    alarm.acknowledged = true
-  }
-
+  if (alarm) alarm.acknowledged = true
   if (activeAlarm.value?.id === alarmId) {
     showAlarmOverlay.value = false
     activeAlarm.value = null
@@ -258,99 +209,66 @@ const acknowledgeAlarm = alarmId => {
 
 const dismissAlarmOverlay = () => {
   showAlarmOverlay.value = false
-  if (activeAlarm.value) {
-    activeAlarm.value.acknowledged = true
-  }
+  if (activeAlarm.value) activeAlarm.value.acknowledged = true
   activeAlarm.value = null
 }
 
-const getAlarmSeverityColor = status => {
-  return status === 'Open' ? 'error' : 'warning'
-}
+const getAlarmSeverityColor = status => status === 'Open' ? 'error' : 'warning'
 
-const formatAlarmTime = timestamp => {
-  const date = new Date(timestamp)
-  
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
-}
+const formatAlarmTime = timestamp =>
+  new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-const formatAlarmDate = timestamp => {
-  const date = new Date(timestamp)
-  
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+const formatAlarmDate = timestamp =>
+  new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 
-const openAlarms = computed(() => {
-  return alarms.value.filter(a => a.status === 'Open' && !a.acknowledged)
-})
+const openAlarms = computed(() => alarms.value.filter(a => a.status === 'Open' && !a.acknowledged))
 
-// Disconnect on unmount
 onUnmounted(() => {
   disconnectMQTT()
-  if (alarmSocket.value) {
-    alarmSocket.value.close()
-  }
+  if (alarmSocket.value) alarmSocket.value.close()
 })
 
-// Filter running times
+// ── Realtime data & model viewer ───────────────────────────────────────────
 const runningTimes = ref([])
-
 const realtimeData = ref([])
 
 watch(
   mqttData,
-  newVal => {
-    let newData = []
-    Object.entries(mqttData).forEach(([key, value]) => {
-      newData.push({
-        id: value.id,
-        parameter: value.name,
-        value: value.value,
-        unit: value.unit,
-        code: value.code,
-      })
-    })
+  () => {
+    const newData = Object.values(mqttData).map(v => ({
+      id:        v.id,
+      parameter: v.name,
+      value:     v.value,
+      unit:      v.unit,
+      code:      v.code,
+    }))
     realtimeData.value = newData
-    modelViewerRef.value.updateParameterMarkers(newData)
-
+    modelViewerRef.value?.updateParameterMarkers(newData)
   },
   { deep: true },
 )
 
+// ── Machine & parameters ───────────────────────────────────────────────────
+const processedParameters = ref([])
+
 const processedMachine = computed(() => {
-  const rawProcessedMachine = machine.value.entry
-  if (!rawProcessedMachine) return null
+  const raw = machine.value.entry
+  if (!raw) return null
 
+  processedParameters.value = raw.value?.mqtt_topic.parameters.map(p => ({
+    id: p.id, title: p.code,
+  }))
 
-  if (rawProcessedMachine) {
-    connectMQTT(rawProcessedMachine)
-  }
-  console.log(rawProcessedMachine)
-    processedParameters.value = rawProcessedMachine.value?.mqtt_topic.parameters.map(parameter => {
-    return {
-      id: parameter.id,
-      title: parameter.code,
-    }
-  })
-  return rawProcessedMachine
+  return raw
 })
 
 const parameters = computed(() => {
-  if (processedMachine.value == null) return []
-
+  if (!processedMachine.value) return []
   return processedMachine.value['mqtt_topic'].parameters
 })
 
 watch(parameters, () => {
-  runningTimes.value = parameters.value.filter(parameter => parameter.is_featured)
+  runningTimes.value = parameters.value.filter(p => p.is_featured)
 })
 
 const layout = ref([])
@@ -359,7 +277,6 @@ watch(
   processedMachine,
   machine => {
     if (!machine?.widgets) return
-
     layout.value = machine.widgets.map(row => ({
       i: row.code,
       x: row.layout.x,
@@ -375,12 +292,10 @@ watch(
   { immediate: true },
 )
 
-// Computed
 const availableParameters = computed(() => parameters.value || [])
 
 const machineState = computed(() => {
   if (!machine?.value?.entry) return null
-
   return {
     id: processedMachine.value.id,
     name: processedMachine.value.name,
@@ -389,29 +304,35 @@ const machineState = computed(() => {
   }
 })
 
-const modelConfigurationReady = computed(() => {
-  return Boolean(processedMachine.value)
-})
+const modelConfigurationReady = computed(() => Boolean(processedMachine.value))
 
-const isDataReady = computed(() => {
-
-  return (
-    processedMachine.value !== null &&
-    availableParameters.value.length > 0
-  )
-})
+const isDataReady = computed(() =>
+  processedMachine.value !== null && availableParameters.value.length > 0,
+)
 
 const processedAlarmLogs = ref([])
-const processedParameters = ref([])
 
+// ── onMounted ──────────────────────────────────────────────────────────────
 onMounted(async () => {
-  let machineId = props.systemSetting.entry.value.machine_id
-  let actionResult = await fetchMachine(machineId, true)
-  let actionAlarmLogResult = await fetchAlarmLogsByMachineId(machineId, true)
+  const machineId = props.systemSetting.entry.value.machine_id
+
+  await fetchMachine(machineId, true)
+  await fetchAlarmLogsByMachineId(machineId, true)
   await nextTick()
+
+  // ✅ connectMQTT menerima machineConfig yang sama persis seperti sebelumnya.
+  //    Di dalam useMqttGateway, connectMQTT akan:
+  //    1. Ambil broker info dari machineConfig
+  //    2. Connect ke gateway URL via WebSocket
+  //    3. Kirim perintah { type: "connect", brokerInfo } ke gateway
+  //    4. Subscribe ke topic MQTT via gateway
+  if (processedMachine.value) {
+    console.log(processedMachine.value)
+    connectMQTT(processedMachine.value)
+  }
+
   processedAlarmLogs.value = alarmLogs.value.entries?.map(alarmLog => {
     const parameter = getParameterById(alarmLog.parameter_id)
-    
     return {
       id: alarmLog.id,
       parameter_id: alarmLog.parameter_id,
@@ -425,17 +346,22 @@ onMounted(async () => {
     }
   }) ?? []
 
-
-  // Connect to alarm WebSocket
   connectAlarmWebSocket()
 })
 
+// ── Jika machine baru selesai di-fetch, connect MQTT ─────────────────────
+// (fallback jika processedMachine belum tersedia saat onMounted)
+watch(processedMachine, machine => {
+  if (!machine || isConnected.value) return
+  connectMQTT(machine)
+}, { once: true })
+
+// ── Line series store untuk chart ─────────────────────────────────────────
 const lineSeriesStore = ref({})
 
 watch(
   mqttData,
   newVal => {
-
     const now = Date.now()
 
     Object.values(newVal).forEach(param => {
@@ -446,35 +372,23 @@ watch(
       }
 
       const series = lineSeriesStore.value[param.code]
+      if (series.length >= 20) series.shift()
 
-      // Sliding window
-      if (series.length >= 20) {
-        series.shift()
-      }
-
-      series.push({
-        x: now,          // timestamp (ms)
-        y: param.value,  // numeric value
-      })
+      series.push({ x: now, y: param.value })
 
       runningTimes.value.forEach(item => {
         const mqttParam = newVal[item.code]
         if (!mqttParam) return
-
-        // update VALUE SAJA
         item.value = `${Number(mqttParam.value).toFixed(2)} ${mqttParam.unit ?? item.unit ?? ''}`
       })
     })
-
   },
   { deep: true },
 )
 
-
-// Helper untuk generate props per widget - DIBUAT COMPUTED
+// ── Widget props ───────────────────────────────────────────────────────────
 const getWidgetProps = computed(() => {
-  // Force reactivity dengan mengakses mqttData
-  const mqttSnapshot = { ...mqttData }
+  void mqttData // force reactivity
 
   return widget => {
     if (widget.type === 'line') {
@@ -483,11 +397,7 @@ const getWidgetProps = computed(() => {
         realtimeData: widget.dataSourceIds.map(id => {
           const p = getParameterById(id)
           if (!p) return null
-
-          return {
-            name: p.name,
-            data: lineSeriesStore.value[p.code] ?? [],
-          }
+          return { name: p.name, data: lineSeriesStore.value[p.code] ?? [] }
         }),
       }
     }
@@ -496,15 +406,14 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
-      
       return {
-        title: widget.title,
-        subtitle: parameter?.name || widget.subtitle,
-        badge: "",
-        value: formattedValue.value || '-',
-        icon: widget.icon || "tabler-snowflake",
-        percentage: "10",
-        unit: formattedValue.unit || '',
+        title:      widget.title,
+        subtitle:   parameter?.name,
+        value:      formattedValue.value || '-',
+        icon:       widget.icon || 'tabler-snowflake',
+        percentage: '10',
+        unit:       formattedValue.unit || '',
+        badge:      getParameterOnlineStatusById(parameter?.id),
       }
     }
 
@@ -512,29 +421,24 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
-
       return {
-        header: widget.title,
-        subHeader: widget.subtitle,
-        value: formattedValue.value || 0,
-        unit: formattedValue.unit || '',
-        min: widget.min || 0,
-        max: widget.max || 100,
+        header:    widget.title,
+        subHeader: parameter?.name,
+        value:     formattedValue.value || 0,
+        unit:      formattedValue.unit || '',
+        min:       widget.min || 0,
+        max:       widget.max || 100,
       }
     }
 
     if (widget.type === 'bar') {
       return {
-        title: widget.title,
+        title:    widget.title,
         subtitle: widget.subtitle,
         realtimeData: widget.dataSourceIds.map(id => {
           const p = getParameterById(id)
           if (!p) return null
-
-          return {
-            name: p.name,
-            data: lineSeriesStore.value[p.code] ?? [],
-          }
+          return { name: p.name, data: lineSeriesStore.value[p.code] ?? [] }
         }),
       }
     }
@@ -545,19 +449,8 @@ const getWidgetProps = computed(() => {
 
 const gridMinHeight = computed(() => {
   if (!layout.value || layout.value.length === 0) return 'auto'
-
-  // Cari posisi row terbawah (y + h maksimal)
-  const maxRow = Math.max(
-    ...layout.value.map(item => item.y + item.h),
-  )
-
-  const rowHeight = 30  // dari :row-height="30"
-  const marginY = 16    // dari :margin="[16, 16]"
-
-  // Total height = (jumlah row * (row height + margin)) + extra padding
-  const totalHeight = (maxRow * (rowHeight + marginY)) + 32
-
-  return `${totalHeight}px`
+  const maxRow = Math.max(...layout.value.map(item => item.y + item.h))
+  return `${maxRow * (20 + 16)}px`
 })
 </script>
 
@@ -718,7 +611,7 @@ const gridMinHeight = computed(() => {
     </VRow>
 
     <!-- Alarms Section -->
-    <!-- <VRow class="mt-4">
+    <VRow class="mt-4">
       <VCol cols="12">
         <VCard>
           <VCardTitle class="d-flex align-center justify-space-between pa-4">
@@ -910,14 +803,14 @@ const gridMinHeight = computed(() => {
           </VCardText>
         </VCard>
       </VCol>
-    </VRow> -->
+    </VRow>
 
     <VRow>
       <VCol
         cols="12"
         md="12"
         sm="12"
-        class=""
+        class="pa-0 mb-5"
       >
         <div
           v-if="layout.length > 0"
@@ -926,7 +819,7 @@ const gridMinHeight = computed(() => {
           <GridLayout
             v-model:layout="layout"
             :col-num="12"
-            :row-height="30"
+            :row-height="20"
             :is-resizable="false"
             :is-draggable="false"
             vertical-compact
@@ -949,6 +842,7 @@ const gridMinHeight = computed(() => {
                   :is="chartComponentMap[widget.type]"
                   v-if="isDataReady && chartComponentMap[widget.type]"
                   v-bind="getWidgetProps(widget)"
+                 
                 />
 
                 <div
@@ -988,169 +882,7 @@ const gridMinHeight = computed(() => {
         </VCard>
       </VCol>
     </VRow>
-    <VRow class="match-height">
-      <VCol cols="12">
-        <h3 class="text-h4">
-          Administrative Insights
-        </h3>
-      </VCol>
-    </VRow>
-    <VRow>
-      <VCol
-        cols="12"
-        lg="12"
-        md="12"
-      >
-        <VCard class="fill-height">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Filter Parameter</VCardTitle>
-            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
-          </VCardItem>
-
-          <VCardText>
-            <VRow class="h-100">
-              <VCol
-                class="d-flex flex-row gap-4 align-end"
-                cols="12"
-                lg="12"
-                md="12"
-              >
-                <AppSelect
-                  v-model="selectedParameterIds"
-                  :items="processedParameters"
-                  :rules="[requiredValidator]"
-                  label="Parameter"
-                  placeholder="Select parameter"
-                  chips
-                  closable-chips
-                  multiple
-                />
-                <AppTextField
-                  v-model="interval"
-                  label="Interval (Minutes)"
-                  placeholder="60"
-                />
-                <VBtn
-                  color="error"
-                  type="submit"
-                >
-                  Stop
-                </VBtn>
-                <VBtn type="submit">
-                  Submit
-                </VBtn>
-              </VCol>
-            </VRow>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
    
-    <VRow class="match-height">
-      <VCol
-        class="d-flex"
-        cols="12"
-        lg="12"
-        md="12"
-      >
-        <VCard class="flex-grow-1">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Realtime Data (kW/hr)</VCardTitle>
-            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
-
-            <template #append>
-              <div class="d-flex align-center">
-                <VChip
-                  color="success"
-                  label
-                >
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="15"
-                    start
-                  />
-                  <span>22</span>
-                </VChip>
-              </div>
-            </template>
-          </VCardItem>
-
-          <VCardText>
-            <RealtimeAverageChart mode="realtime" />
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-  
-    <VRow class="match-height">
-      <VCol
-        class="d-flex"
-        cols="6"
-        lg="6"
-        md="6"
-      >
-        <VCard class="flex-grow-1">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Monthly Average (kW/hr)</VCardTitle>
-            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
-
-            <template #append>
-              <div class="d-flex align-center">
-                <VChip
-
-                  color="success"
-                  label
-                >
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="15"
-                    start
-                  />
-                  <span>22</span>
-                </VChip>
-              </div>
-            </template>
-          </VCardItem>
-          <VCardText>
-            <RealtimeAverageChart />
-          </VCardText>
-        </VCard>
-      </VCol>
-
-      <VCol
-        class="d-flex"
-        cols="6"
-        lg="6"
-        md="6"
-      >
-        <VCard class="flex-grow-1">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Weekly Average (kW/hr)</VCardTitle>
-            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
-
-            <template #append>
-              <div class="d-flex align-center">
-                <VChip
-                  color="success"
-                  label
-                >
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="15"
-                    start
-                  />
-                  <span>22</span>
-                </VChip>
-              </div>
-            </template>
-          </VCardItem>
-
-          <VCardText>
-            <RealtimeAverageChart />
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
   </div>
   <ManageRegisterValueDialog
     v-model:is-dialog-visible="isRegisterDialogOpen"
@@ -1178,7 +910,9 @@ const gridMinHeight = computed(() => {
 
 .grid-item-wrapper {
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .chart-container {

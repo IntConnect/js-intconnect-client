@@ -295,7 +295,6 @@ watch(machineId, async value => {
     
     if (machine.value && machine.value.entry && machine.value.entry.model_path) {
       modelPath.value = machine.value.entry.model_path
-      console.log('Machine loaded, modelPath set to:', modelPath.value)
     } else {
       console.warn('Machine loaded but no model_path found')
       modelPath.value = ''

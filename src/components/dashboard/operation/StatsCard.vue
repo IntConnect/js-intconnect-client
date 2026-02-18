@@ -14,7 +14,7 @@ const props = defineProps({
   },
   badge: {
     type: String,
-    default: "Offline",
+    default: "offline",
   },
   value: {
     type: [String, Number],
@@ -32,6 +32,14 @@ const props = defineProps({
     type: String,
     default: "kW",
   },
+  color: {
+    type: String,
+    default: 'green', // 'green', 'blue', 'warn', 'violet', 'red'
+  },
+  trendType: {
+    type: String,
+    default: 'up', // 'up', 'down', 'steady'
+  },
 })
 
 // Theme Detection
@@ -46,318 +54,327 @@ const isDark = computed(() => {
   return configStore.theme === 'dark'
 })
 
-const currentTheme = vuetifyTheme.current.value.colors
-
-// Dynamic Styles
-const glassCardStyle = computed(() => ({
-  background: isDark.value
-    ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.08) 100%)'
-    : 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(6, 182, 212, 0.04) 100%)',
-  borderColor: isDark.value
-    ? 'rgba(16, 185, 129, 0.2)'
-    : 'rgba(16, 185, 129, 0.25)',
-}))
-
-const textPrimaryClass = computed(() => 
-  isDark.value ? 'text-white' : 'text-grey-darken-3',
-)
-
-const textSecondaryClass = computed(() => 
-  isDark.value ? 'text-grey-lighten-1' : 'text-grey-darken-1',
-)
-
-const textMutedClass = computed(() => 
-  isDark.value ? 'text-grey' : 'text-grey-lighten-1',
-)
-
-// Data statistik
-const stats = {
-  current: '650',
-  unit: 'kW',
-  change: '+12.5%',
-  isPositive: true,
-  status: 'Optimal',
-}
+// Trend icon based on type
+const trendIcon = computed(() => {
+  switch (props.trendType) {
+    case 'up': return 'tabler-arrow-down'
+    case 'down': return 'tabler-arrow-up'
+    default: return 'tabler-minus'
+  }
+})
 </script>
 
 <template>
   <VCard 
-    class="glass-card-chiller"
-    :class="isDark ? '' : 'glass-card-chiller-light'"
-    :style="glassCardStyle"
+    class="ems-kpi-card"
+    :class="[
+      `c-${props.color}`,
+      isDark ? '' : 'ems-light'
+    ]"
   >
-    <!-- Header Section -->
-    <VCardText class="pb-3">
-      <div class="d-flex align-center justify-space-between mb-1">
-        <div class="d-flex align-center gap-2 flex-grow-1 min-width-0">
-          <div 
-            class="icon-wrapper flex-shrink-0"
-            :class="isDark ? '' : 'icon-wrapper-light'"
-          >
-            <VIcon
-              :icon="props.icon"
-              class="icon-glow"
-              size="24"
-            />
-          </div>
-          <div>
-            <h5 
-              class="text-subtitle-2 mb-0 text-left"
-              :class="textSecondaryClass"
-            >
-              {{ props.title }}
-            </h5>
-            <div 
-              class="text-caption"
-              :class="textMutedClass"
-            >
-              {{ props.subtitle }}
-            </div>
-          </div>
-        </div>
+    <!-- Header -->
+   <div class="ems-kpi-top">
+  <div class="ems-kpi-top-left">
+    <span class="ems-kpi-label">{{ props.title }}</span>
+    <StatusBadge :status="props.badge" variant="badge" size="md" :is-dark="isDark" />
+  </div>
+  <div class="ems-kpi-icon-box">
+    <VIcon :icon="props.icon" size="24" />
+  </div>
+</div>
 
-        <!-- Status Badge -->
-        <VChip
-          class="status-chip flex-shrink-0"
-          :class="isDark ? '' : 'status-chip-light'"
-          prepend-icon="tabler-circle-filled"
-          size="small"
-        >
-          {{ props.badge }}
-        </VChip>
-      </div>
+    <!-- Value -->
+    <div class="ems-kpi-val">
+      <span class="ems-kpi-num">{{ typeof props.value === 'number' ? props.value.toFixed(2) : props.value }}</span>
+      <span class="ems-kpi-unit">{{ props.unit }}</span>
+    </div>
 
-      <!-- Main Value Display -->
-      <div class="value-section mt-4">
-        <div class="d-flex align-center gap-3">
-          <div>
-            <div class="d-flex align-baseline gap-1">
-              <h3 
-                class="text-h3 font-weight-bold value-glow"
-                :class="isDark ? '' : 'value-glow-light'"
-              >
-                {{ Number(props.value).toFixed(2) }}
-              </h3>
-              <span 
-                class="text-h6"
-                :class="textSecondaryClass"
-              >
-                {{ props.unit }}
-              </span>
-            </div>
+    <!-- Footer -->
+    <div class="ems-kpi-foot">
+      <VChip
+        :class="[
+          'ems-badge',
+          `ems-badge-${props.trendType}`,
+          isDark ? '' : 'ems-badge-light'
+        ]"
+        :prepend-icon="trendIcon"
+        size="small"
+        variant="flat"
+      >
+        {{ props.percentage }}
+      </VChip>
+      <span class="ems-kpi-sub">{{ props.subtitle }}</span>
+    </div>
 
-            <!-- Change Indicator -->
-            <div class="d-flex align-center gap-2 mt-1">
-              <VChip
-                :class="[
-                  stats.isPositive ? 'change-chip-positive' : 'change-chip-negative',
-                  isDark ? '' : 'change-chip-light'
-                ]"
-                :prepend-icon="stats.isPositive ? 'tabler-trending-up' : 'tabler-trending-down'"
-                size="x-small"
-              >
-                {{ props.percentage }}
-              </VChip>
-              <span 
-                class="text-caption"
-                :class="textMutedClass"
-              >
-                vs last hour
-              </span>
-            </div>
-          </div>
-
-          <VSpacer />
-        </div>
-      </div>
-    </VCardText>
-
-    <!-- Chart Section -->
-
-    <!-- Animated Background -->
-    <div 
-      class="animated-bg"
-      :class="isDark ? '' : 'animated-bg-light'"
-    />
+    <!-- Animated gradient overlay (before pseudo-element in CSS) -->
   </VCard>
 </template>
 
 <style scoped>
-.glass-card-chiller {
+/* ═══════════════════════════════════════════════════════
+   EMS KPI CARD — mengikuti desain sistem sebelumnya
+   dengan CSS variables konsisten
+═══════════════════════════════════════════════════════ */
+
+.ems-kpi-card {
   position: relative;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 185, 129, 0.2) !important;
-  border-radius: 20px !important;
   overflow: hidden;
-  transition: all 0.3s ease;
+  padding: 22px 22px 18px !important;
+  border-radius: 14px !important;
+  border: 1px solid !important;
+  border-top-width: 3px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.35s ease;
+  
+  /* Dark mode defaults */
+  background: rgba(15, 23, 42, 0.70) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.glass-card-chiller:hover {
-  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.25) !important;
-  border-color: rgba(16, 185, 129, 0.4) !important;
+/* Light mode override */
+.ems-kpi-card.ems-light {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-.glass-card-chiller-light {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.glass-card-chiller-light:hover {
-  box-shadow: 0 12px 40px rgba(16, 185, 129, 0.2) !important;
-}
-
-/* Icon Wrapper */
-.icon-wrapper {
-  width: 48px;
-  height: 48px;
+/* Gradient overlay via ::before */
+.ems-kpi-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Hover effect */
+.ems-kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.13) !important;
+}
+
+.ems-kpi-card.ems-light:hover {
+  box-shadow: 0 8px 28px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* ─── Color variants (dark) ───────────────────────── */
+.ems-kpi-card.c-green {
+  --accent-rgb: 16, 185, 129;
+  border-top-color: #10b981 !important;
+}
+.ems-kpi-card.c-blue {
+  --accent-rgb: 59, 130, 246;
+  border-top-color: #3b82f6 !important;
+}
+.ems-kpi-card.c-warn {
+  --accent-rgb: 245, 158, 11;
+  border-top-color: #f59e0b !important;
+}
+.ems-kpi-card.c-violet {
+  --accent-rgb: 139, 92, 246;
+  border-top-color: #8b5cf6 !important;
+}
+.ems-kpi-card.c-red {
+  --accent-rgb: 239, 68, 68;
+  border-top-color: #ef4444 !important;
+}
+
+/* ─── Color variants (light) ──────────────────────── */
+.ems-kpi-card.ems-light.c-green {
+  --accent-rgb: 5, 150, 105;
+  border-top-color: #059669 !important;
+}
+.ems-kpi-card.ems-light.c-blue {
+  --accent-rgb: 37, 99, 235;
+  border-top-color: #2563eb !important;
+}
+.ems-kpi-card.ems-light.c-warn {
+  --accent-rgb: 217, 119, 6;
+  border-top-color: #d97706 !important;
+}
+.ems-kpi-card.ems-light.c-violet {
+  --accent-rgb: 124, 58, 237;
+  border-top-color: #7c3aed !important;
+}
+.ems-kpi-card.ems-light.c-red {
+  --accent-rgb: 220, 38, 38;
+  border-top-color: #dc2626 !important;
+}
+
+/* Additional light mode gradient tweaks */
+.ems-kpi-card.ems-light::before {
+  background: linear-gradient(145deg, rgba(var(--accent-rgb), 0.10) 0%, rgba(255, 255, 255, 0.90) 100%);
+}
+.ems-kpi-card.ems-light:hover::before {
+  background: linear-gradient(145deg, rgba(var(--accent-rgb), 0.12) 0%, rgba(255, 255, 255, 0.88) 100%);
+}
+
+/* ═══════════════════════════════════════════════════════
+   CARD CONTENT (all relative to bring above ::before)
+═══════════════════════════════════════════════════════ */
+.ems-kpi-top,
+.ems-kpi-val,
+.ems-kpi-foot {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Top section ─────────────────────────────────── */
+.ems-kpi-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.ems-kpi-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94a3b8; /* dark default */
+}
+
+.ems-kpi-card.ems-light .ems-kpi-label {
+  color: #64748b;
+}
+
+.ems-kpi-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(var(--accent-rgb), 0.14);
+  flex-shrink: 0;
   transition: all 0.3s ease;
 }
 
-.icon-wrapper-light {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.15));
-  border-color: rgba(16, 185, 129, 0.25);
+/* Icon colors per variant (dark) */
+.ems-kpi-card.c-green .ems-kpi-icon-box { color: #10b981; }
+.ems-kpi-card.c-blue .ems-kpi-icon-box  { color: #3b82f6; }
+.ems-kpi-card.c-warn .ems-kpi-icon-box  { color: #f59e0b; }
+.ems-kpi-card.c-violet .ems-kpi-icon-box{ color: #8b5cf6; }
+.ems-kpi-card.c-red .ems-kpi-icon-box   { color: #ef4444; }
+
+/* Icon colors per variant (light) */
+.ems-kpi-card.ems-light.c-green .ems-kpi-icon-box { color: #059669; }
+.ems-kpi-card.ems-light.c-blue .ems-kpi-icon-box  { color: #2563eb; }
+.ems-kpi-card.ems-light.c-warn .ems-kpi-icon-box  { color: #d97706; }
+.ems-kpi-card.ems-light.c-violet .ems-kpi-icon-box{ color: #7c3aed; }
+.ems-kpi-card.ems-light.c-red .ems-kpi-icon-box   { color: #dc2626; }
+
+.ems-kpi-card:hover .ems-kpi-icon-box {
+  transform: scale(1.05);
 }
 
-.glass-card-chiller:hover .icon-wrapper {
-  transform: rotate(-5deg) scale(1.05);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+/* ─── Value section ───────────────────────────────── */
+.ems-kpi-val {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
-.glass-card-chiller-light:hover .icon-wrapper {
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
-}
-
-.icon-glow {
-  color: #10b981;
-  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
-}
-
-.glass-card-chiller-light .icon-glow {
-  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
-}
-
-/* Status Chip */
-.status-chip {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: rgb(167, 243, 208) !important;
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  font-weight: 600;
-  font-size: 0.7rem;
-}
-
-.status-chip-light {
-  background: rgba(16, 185, 129, 0.15) !important;
-  color: rgb(5, 150, 105) !important;
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-/* Value Section */
-.value-section {
-  padding: 12px 0;
-}
-
-.value-glow {
-  color: #10b981;
-  text-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
-  letter-spacing: -1px;
-}
-
-.value-glow-light {
-  text-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-}
-
-/* Change Chips */
-.change-chip-positive {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: rgb(167, 243, 208) !important;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+.ems-kpi-num {
+  font-size: 2rem;
   font-weight: 700;
+  line-height: 1;
+  color: #f8fafc; /* dark */
 }
 
-.change-chip-positive.change-chip-light {
-  background: rgba(16, 185, 129, 0.15) !important;
-  color: rgb(5, 150, 105) !important;
-  border-color: rgba(16, 185, 129, 0.25);
+.ems-kpi-card.ems-light .ems-kpi-num {
+  color: #0f172a;
 }
 
-.change-chip-negative {
-  background: rgba(239, 68, 68, 0.2) !important;
-  color: rgb(254, 202, 202) !important;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  font-weight: 700;
+.ems-kpi-unit {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #94a3b8; /* dark */
 }
 
-.change-chip-negative.change-chip-light {
-  background: rgba(239, 68, 68, 0.15) !important;
-  color: rgb(185, 28, 28) !important;
-  border-color: rgba(239, 68, 68, 0.25);
+.ems-kpi-card.ems-light .ems-kpi-unit {
+  color: #64748b;
 }
 
-.circle-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
+/* ─── Footer section ──────────────────────────────── */
+.ems-kpi-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.ems-kpi-sub {
+  font-size: 0.78rem;
+  color: #94a3b8; /* dark */
 }
 
-/* Chart Container */
-.chart-container {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.ems-kpi-card.ems-light .ems-kpi-sub {
+  color: #64748b;
 }
 
-/* Divider Custom */
-.divider-custom {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+.ems-kpi-top-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* Bottom Stats */
-.stat-item {
-  text-align: center;
-  flex: 1;
+/* ─── Badge styles ────────────────────────────────── */
+.ems-badge {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  border: 1px solid !important;
+  padding: 3px 9px !important;
+  height: auto !important;
 }
 
-/* Animated Background */
-.animated-bg {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
-  animation: pulse-bg 4s ease-in-out infinite;
-  pointer-events: none;
+/* Dark mode badges */
+.ems-badge-up {
+  color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
 }
 
-.animated-bg-light {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+.ems-badge-down {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
 }
 
-@keyframes pulse-bg {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
-  }
+.ems-badge-steady {
+  color: #94a3b8 !important;
+  background: rgba(148, 163, 184, 0.10) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+/* Light mode badges */
+.ems-badge.ems-badge-light.ems-badge-up {
+  color: #059669 !important;
+  background: rgba(5, 150, 105, 0.12) !important;
+  border-color: rgba(5, 150, 105, 0.25) !important;
+}
+
+.ems-badge.ems-badge-light.ems-badge-down {
+  color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.12) !important;
+  border-color: rgba(220, 38, 38, 0.25) !important;
+}
+
+.ems-badge.ems-badge-light.ems-badge-steady {
+  color: #64748b !important;
+  background: rgba(100, 116, 139, 0.10) !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+/* Make sure VChip doesn't add extra styling */
+.ems-badge :deep(.v-chip__content) {
+  padding: 0;
 }
 </style>
