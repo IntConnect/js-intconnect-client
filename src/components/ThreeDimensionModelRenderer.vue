@@ -304,7 +304,7 @@ const createMarker = (parameterName, parameterValue, position, isRegister = fals
     container.userData.valueText = valueText
     container.userData.animPhase = Math.random() * Math.PI * 2
     container.userData.parameterName = parameterName
-    container.userData.code = registerData.code
+    container.userData.code = registerData?.code
 
 
   } else {
