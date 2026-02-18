@@ -95,13 +95,13 @@ watch(processedMachine, () => {
     w: row.layout.w,
     h: row.layout.h,
     ...row.config,
-    dataSourceIds: Array.isArray(row.config.dataSourceIds)
-      ? row.config.dataSourceIds
-      : [row.config.dataSourceIds],
+    dataSourceIds: row.config.dataSourceIds,
   })) || []
 
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(widgetConfig))
+ const existing = localStorage.getItem(STORAGE_KEY)
+  if (!existing) { // ← hanya set jika belum ada
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(widgetConfig))
+  }
 })
 
 
@@ -176,7 +176,6 @@ const selectedWidget = ref(null)
 const widgetForm = ref({
   type: 'line',
   title: '',
-  subtitle: '',
   dataSourceIds: [],
   w: 6,
   h: 5,
@@ -231,12 +230,15 @@ const chartPropsMap = {
       }
     }),
   }),
-  metric: widget => ({
+  metric: widget => {
+  const parameter = getParameterById(widget.dataSourceIds)
+  return {
     title: widget.title,
-    subtitle: widget.subtitle,
+    subtitle: parameter.name,
     value: '100',
-    unit: 'N/A',
-  }),
+    unit: parameter.unit,
+}
+  },
   gauge: widget => ({
     header: widget.title,
     subHeader: widget.subtitle,
@@ -313,45 +315,46 @@ const handleSaveWidget = () => {
 }
 
 const handleRemoveWidget = id => {
-  if (!confirm('Remove widget?')) return
-  layout.value = layout.value.filter(w => w.i !== id)
+  console.log(selectedWidget)
+  layout.value = layout.value.filter(w => w.i !== selectedWidget.value.i)
   saveIntoStorage()
+  showDeleteDialog.value = false
 }
 
 const handleLayoutUpdate = newLayout => {
   const edited = []
 
   newLayout.forEach(newItem => {
-    const baselineItem = baselineLayout.value.find(
-      b => b.i === newItem.i,
-    )
+    const baselineItem = baselineLayout.value.find(b => b.i === newItem.i)
 
+    // Deteksi perubahan posisi/ukuran tanpa perlu selectedWidget
+    if (baselineItem && isLayoutChanged(baselineItem, newItem)) {
+      // Cek apakah sudah ada di editedWidgets sebelumnya (misal dari edit form)
+      const existingEdited = editedWidgets.value.find(w => w.i === newItem.i)
 
-    if (!isAddMode.value && isLayoutChanged(baselineItem, newItem)) {
       edited.push({
         id: baselineItem.id,
         i: newItem.i,
+          code: baselineItem.i,
         layout: {
           x: newItem.x,
           y: newItem.y,
           w: newItem.w,
           h: newItem.h,
         },
-        config: {
-          type: selectedWidget.value.type,
-          title: selectedWidget.value.title,
-          subtitle: selectedWidget.value.subtitle,
-          dataSourceIds: selectedWidget.value.dataSourceIds,
-          color: selectedWidget.value.color,
+        config: existingEdited?.config ?? {
+          type: baselineItem.type,
+          title: baselineItem.title,
+          dataSourceIds: baselineItem.dataSourceIds,
+          color: baselineItem.color,
         },
       })
     }
-    editedWidgets.value = edited
-    layout.value = newLayout
-
-    saveIntoStorage()
   })
 
+  editedWidgets.value = edited
+    layout.value = newLayout
+  saveIntoStorage()
 }
 
 const isLayoutChanged = (oldItem, newItem) => {
@@ -408,7 +411,6 @@ const handleStoreWidget = async () => {
         config: {
           type: addedWidget.type,
           title: addedWidget.title,
-          subtitle: addedWidget.subtitle,
           dataSourceIds: addedWidget.dataSourceIds,
           color: addedWidget.color,
         },
@@ -435,7 +437,6 @@ const handleStoreWidget = async () => {
         config: {
           type: addedWidget.type,
           title: addedWidget.title,
-          subtitle: addedWidget.subtitle,
           dataSourceIds: addedWidget.dataSourceIds,
           color: addedWidget.color,
         },
@@ -494,16 +495,14 @@ const removedWidgets = computed(() => {
 const editedWidgets = ref([])
 
 const handleDragStart = i => {
-  selectedWidget.value = baselineLayout.value.find(
-    w => w.i === i,
-  )
+  selectedWidget.value = layout.value.find(w => w.i === i) ?? null
 }
 
 const handleResizeStart = i => {
-  selectedWidget.value = baselineLayout.value.find(
-    w => w.i === i,
-  )
+  selectedWidget.value = layout.value.find(w => w.i === i) ?? null
 }
+
+const showDeleteDialog = ref(false)
 </script>
 
 
@@ -519,7 +518,7 @@ const handleResizeStart = i => {
           <VCardText>
             <div class="d-flex align-center justify-space-between flex-wrap gap-4">
               <div>
-                <h2 class="text-h4 font-weight-bold text-white mb-1">
+                <h2 class="text-h4 font-weight-bold mb-1">
                   Dashboard Manager
                 </h2>
 
@@ -712,7 +711,10 @@ const handleResizeStart = i => {
                       size="small"
                       variant="text"
                       color="error"
-                      @click="handleRemoveWidget(widget.i)"
+                      @click="() => {
+                        selectedWidget = layout.find(w => w.i === widget.i) ?? null
+                        showDeleteDialog = true
+                      }"
                     >
                       <VIcon
                         icon="tabler-trash"
@@ -873,15 +875,6 @@ const handleResizeStart = i => {
               />
             </VCol>
 
-            <VCol cols="12">
-              <VTextField
-                v-model="widgetForm.subtitle"
-                label="Chart Subtitle"
-                placeholder="e.g., Real-time temperature data"
-                prepend-inner-icon="tabler-text-caption"
-                variant="outlined"
-              />
-            </VCol>
 
             <!-- Parameter Selection -->
             <VCol cols="12">
@@ -1083,14 +1076,6 @@ const handleResizeStart = i => {
               />
             </VCol>
 
-            <VCol cols="12">
-              <VTextField
-                v-model="widgetForm.subtitle"
-                label="Chart Subtitle"
-                prepend-inner-icon="tabler-text-caption"
-                variant="outlined"
-              />
-            </VCol>
 
             <VCol cols="12">
               <VSelect
@@ -1171,6 +1156,12 @@ const handleResizeStart = i => {
     :title-alert="titleAlert"
     :type="alertType"
     @update:is-dialog-visible="isAlertDialogVisible = $event"
+  />
+    <DeleteDialog
+    v-model="showDeleteDialog"
+    message="Remove widget?"
+    title="Delete Widget"
+    @submit="handleRemoveWidget"
   />
 </template>
 

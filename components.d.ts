@@ -76,6 +76,7 @@ declare module 'vue' {
     SpecialNode: typeof import('./src/components/flow/SpecialNode.vue')['default']
     StateCards: typeof import('./src/components/dashboard/operation/StateCards.vue')['default']
     StatsCard: typeof import('./src/components/dashboard/operation/StatsCard.vue')['default']
+    StatusBadge: typeof import('./src/components/dashboard/StatusBadge.vue')['default']
     TablePagination: typeof import('./src/@core/components/TablePagination.vue')['default']
     TheCustomizer: typeof import('./src/@core/components/TheCustomizer.vue')['default']
     ThemeSwitcher: typeof import('./src/@core/components/ThemeSwitcher.vue')['default']
