@@ -50,6 +50,7 @@ const {
   filterParametersByKeys,
   calculateDelta,
   getParameterById,
+  getParameterOnlineStatusById,
   getValueByParameterId,
   getFormattedValueById,
   lastUpdate,
@@ -162,15 +163,12 @@ const connectAlarmWebSocket = () => {
     alarmSocket.value.onopen = () => {
       readyState.value = alarmSocket.value.readyState // 1
 
-      console.log('Alarm WebSocket Connected')
     }
 
     alarmSocket.value.onmessage = event => {
-      console.log(alarmSocket.value.readyState)
       try {
         const data = JSON.parse(event.data)
 
-        console.log(data)
         if (data.type === 'CREATED') {
           const parameter = getParameterById(data.parameter_id)
 
@@ -228,7 +226,6 @@ const connectAlarmWebSocket = () => {
     }
 
     alarmSocket.value.onclose = () => {
-      console.log('Alarm WebSocket Disconnected')
 
       // Reconnect after 5 seconds
       readyState.value = alarmSocket.value.readyState // 3
@@ -333,7 +330,6 @@ const processedMachine = computed(() => {
   if (rawProcessedMachine) {
     connectMQTT(rawProcessedMachine)
   }
-  console.log(rawProcessedMachine)
     processedParameters.value = rawProcessedMachine.value?.mqtt_topic.parameters.map(parameter => {
     return {
       id: parameter.id,
@@ -359,7 +355,6 @@ watch(
   processedMachine,
   machine => {
     if (!machine?.widgets) return
-
     layout.value = machine.widgets.map(row => ({
       i: row.code,
       x: row.layout.x,
@@ -496,15 +491,15 @@ const getWidgetProps = computed(() => {
       const dataSourceId = widget.dataSourceIds[0]
       const formattedValue = getFormattedValueById(dataSourceId)
       const parameter = getParameterById(dataSourceId)
-      
       return {
         title: widget.title,
-        subtitle: parameter?.name || widget.subtitle,
+        subtitle: parameter.name,
         badge: "",
         value: formattedValue.value || '-',
         icon: widget.icon || "tabler-snowflake",
         percentage: "10",
         unit: formattedValue.unit || '',
+        badge: getParameterOnlineStatusById(parameter.id)
       }
     }
 
@@ -515,7 +510,7 @@ const getWidgetProps = computed(() => {
 
       return {
         header: widget.title,
-        subHeader: widget.subtitle,
+        subHeader: parameter.name,
         value: formattedValue.value || 0,
         unit: formattedValue.unit || '',
         min: widget.min || 0,
@@ -551,11 +546,11 @@ const gridMinHeight = computed(() => {
     ...layout.value.map(item => item.y + item.h),
   )
 
-  const rowHeight = 30  // dari :row-height="30"
+  const rowHeight = 20  // dari :row-height="30"
   const marginY = 16    // dari :margin="[16, 16]"
 
   // Total height = (jumlah row * (row height + margin)) + extra padding
-  const totalHeight = (maxRow * (rowHeight + marginY)) + 32
+  const totalHeight = (maxRow * (rowHeight + marginY))
 
   return `${totalHeight}px`
 })
@@ -718,7 +713,7 @@ const gridMinHeight = computed(() => {
     </VRow>
 
     <!-- Alarms Section -->
-    <!-- <VRow class="mt-4">
+    <VRow class="mt-4">
       <VCol cols="12">
         <VCard>
           <VCardTitle class="d-flex align-center justify-space-between pa-4">
@@ -910,14 +905,14 @@ const gridMinHeight = computed(() => {
           </VCardText>
         </VCard>
       </VCol>
-    </VRow> -->
+    </VRow>
 
     <VRow>
       <VCol
         cols="12"
         md="12"
         sm="12"
-        class=""
+        class="pa-0 mb-5"
       >
         <div
           v-if="layout.length > 0"
@@ -926,7 +921,7 @@ const gridMinHeight = computed(() => {
           <GridLayout
             v-model:layout="layout"
             :col-num="12"
-            :row-height="30"
+            :row-height="20"
             :is-resizable="false"
             :is-draggable="false"
             vertical-compact
@@ -949,6 +944,7 @@ const gridMinHeight = computed(() => {
                   :is="chartComponentMap[widget.type]"
                   v-if="isDataReady && chartComponentMap[widget.type]"
                   v-bind="getWidgetProps(widget)"
+                 
                 />
 
                 <div
@@ -988,169 +984,7 @@ const gridMinHeight = computed(() => {
         </VCard>
       </VCol>
     </VRow>
-    <VRow class="match-height">
-      <VCol cols="12">
-        <h3 class="text-h4">
-          Administrative Insights
-        </h3>
-      </VCol>
-    </VRow>
-    <VRow>
-      <VCol
-        cols="12"
-        lg="12"
-        md="12"
-      >
-        <VCard class="fill-height">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Filter Parameter</VCardTitle>
-            <VCardSubtitle>Performance insights based on COP and energy usage</VCardSubtitle>
-          </VCardItem>
-
-          <VCardText>
-            <VRow class="h-100">
-              <VCol
-                class="d-flex flex-row gap-4 align-end"
-                cols="12"
-                lg="12"
-                md="12"
-              >
-                <AppSelect
-                  v-model="selectedParameterIds"
-                  :items="processedParameters"
-                  :rules="[requiredValidator]"
-                  label="Parameter"
-                  placeholder="Select parameter"
-                  chips
-                  closable-chips
-                  multiple
-                />
-                <AppTextField
-                  v-model="interval"
-                  label="Interval (Minutes)"
-                  placeholder="60"
-                />
-                <VBtn
-                  color="error"
-                  type="submit"
-                >
-                  Stop
-                </VBtn>
-                <VBtn type="submit">
-                  Submit
-                </VBtn>
-              </VCol>
-            </VRow>
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
    
-    <VRow class="match-height">
-      <VCol
-        class="d-flex"
-        cols="12"
-        lg="12"
-        md="12"
-      >
-        <VCard class="flex-grow-1">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Realtime Data (kW/hr)</VCardTitle>
-            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
-
-            <template #append>
-              <div class="d-flex align-center">
-                <VChip
-                  color="success"
-                  label
-                >
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="15"
-                    start
-                  />
-                  <span>22</span>
-                </VChip>
-              </div>
-            </template>
-          </VCardItem>
-
-          <VCardText>
-            <RealtimeAverageChart mode="realtime" />
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
-  
-    <VRow class="match-height">
-      <VCol
-        class="d-flex"
-        cols="6"
-        lg="6"
-        md="6"
-      >
-        <VCard class="flex-grow-1">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Monthly Average (kW/hr)</VCardTitle>
-            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
-
-            <template #append>
-              <div class="d-flex align-center">
-                <VChip
-
-                  color="success"
-                  label
-                >
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="15"
-                    start
-                  />
-                  <span>22</span>
-                </VChip>
-              </div>
-            </template>
-          </VCardItem>
-          <VCardText>
-            <RealtimeAverageChart />
-          </VCardText>
-        </VCard>
-      </VCol>
-
-      <VCol
-        class="d-flex"
-        cols="6"
-        lg="6"
-        md="6"
-      >
-        <VCard class="flex-grow-1">
-          <VCardItem class="d-flex flex-wrap justify-space-between gap-4">
-            <VCardTitle>Weekly Average (kW/hr)</VCardTitle>
-            <VCardSubtitle>Hourly efficiency metrics for system performance analysis</VCardSubtitle>
-
-            <template #append>
-              <div class="d-flex align-center">
-                <VChip
-                  color="success"
-                  label
-                >
-                  <VIcon
-                    icon="tabler-arrow-up"
-                    size="15"
-                    start
-                  />
-                  <span>22</span>
-                </VChip>
-              </div>
-            </template>
-          </VCardItem>
-
-          <VCardText>
-            <RealtimeAverageChart />
-          </VCardText>
-        </VCard>
-      </VCol>
-    </VRow>
   </div>
   <ManageRegisterValueDialog
     v-model:is-dialog-visible="isRegisterDialogOpen"
@@ -1178,7 +1012,9 @@ const gridMinHeight = computed(() => {
 
 .grid-item-wrapper {
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 
 .chart-container {
