@@ -396,7 +396,7 @@ onMounted(async () => {
             <Vue3Dropzone
               v-model="localForm.model"
               :max-file-size="250"
-              accept=".glb"
+              accept="model/gltf-binary"
               mode="edit"
               @error="e => handleFileRejected('model_file' , e)"
               @file-uploaded="clearError('model_file')"

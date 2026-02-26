@@ -611,7 +611,7 @@ const gridMinHeight = computed(() => {
     </VRow>
 
     <!-- Alarms Section -->
-    <VRow class="mt-4">
+    <!-- <VRow class="mt-4">
       <VCol cols="12">
         <VCard>
           <VCardTitle class="d-flex align-center justify-space-between pa-4">
@@ -803,7 +803,7 @@ const gridMinHeight = computed(() => {
           </VCardText>
         </VCard>
       </VCol>
-    </VRow>
+    </VRow> -->
 
     <VRow>
       <VCol
@@ -886,7 +886,6 @@ const gridMinHeight = computed(() => {
   </div>
   <ManageRegisterValueDialog
     v-model:is-dialog-visible="isRegisterDialogOpen"
-
     :register="selectedRegister"
     @submit:value="handleRegisterValueUpdate"
   />

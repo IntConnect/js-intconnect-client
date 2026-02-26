@@ -578,7 +578,7 @@ onBeforeUnmount(() => {
                 v-model="uploadedModel"
                 :max-file-size="250"
                 :multiple="false"
-                accept=".glb"
+                accept="model/gltf-binary"
                 @error="e => handleFileRejected('model', e)"
                 @file-uploaded="clearError('model')"
               />
